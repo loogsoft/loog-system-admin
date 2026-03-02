@@ -58,15 +58,17 @@ export function ProductsDetails() {
   const [variationSize, setVariationSize] = useState("");
   const [variationIsActive, setVariationIsActive] = useState(true);
   const [variationImageFiles, setVariationImageFiles] = useState<File[]>([]);
-  const [variationImagePreviews, setVariationImagePreviews] = useState<string[]>([]);
-  const [selectedVariationImageIndex, setSelectedVariationImageIndex] = useState(0);
-  const [editingVariationIndex, setEditingVariationIndex] = useState<number | null>(null);
+  const [variationImagePreviews, setVariationImagePreviews] = useState<
+    string[]
+  >([]);
+  const [selectedVariationImageIndex, setSelectedVariationImageIndex] =
+    useState(0);
+  const [editingVariationIndex, setEditingVariationIndex] = useState<
+    number | null
+  >(null);
   const editingVariationFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const categoryOptions = useMemo(
-    () => Object.values(ProductCategoryEnum),
-    [],
-  );
+  const categoryOptions = useMemo(() => Object.values(ProductCategoryEnum), []);
   const statusOptions = useMemo(() => Object.values(ProductStatusEnum), []);
 
   useEffect(() => {
@@ -138,24 +140,6 @@ export function ProductsDetails() {
     }
   };
 
-  const onClearForm = () => {
-    setName("");
-    setDescription("");
-    setCategory(ProductCategoryEnum.SHIRT);
-    setStatus(ProductStatusEnum.ACTIVED);
-    setPrice("");
-    setPromoPrice("");
-    setLowStock("");
-    setStockEnabled(true);
-    setStock("");
-    setSupplierId("");
-    setImageNames([]);
-    setImageFiles([]);
-    setImagePreviews([]);
-    setSelectedImageIndex(0);
-    setVariations([]);
-  };
-
   const onOpenVariationForm = () => {
     setVariationPrice("");
     setVariationStock("");
@@ -225,9 +209,7 @@ export function ProductsDetails() {
 
     const newVariation: ProductVariationRequestDto = {
       name: `${variationColor.trim()} ${variationSize.trim()}`,
-      price: variationPrice.trim()
-        ? Number(toDot(variationPrice))
-        : undefined,
+      price: variationPrice.trim() ? Number(toDot(variationPrice)) : undefined,
       stock: Number(variationStock),
       color: variationColor.trim(),
       size: variationSize.trim(),
@@ -289,7 +271,10 @@ export function ProductsDetails() {
     setVariationImagePreviews([]);
   };
 
-  const onRemoveVariationImageFromList = (variationIdx: number, imageIdx: number) => {
+  const onRemoveVariationImageFromList = (
+    variationIdx: number,
+    imageIdx: number,
+  ) => {
     const updatedVariations = [...variations];
     const currentVariation = updatedVariations[variationIdx];
     const currentImages = currentVariation.images || [];
@@ -304,7 +289,8 @@ export function ProductsDetails() {
     setVariations(updatedVariations);
   };
 
-  const toDot = (value: string) => value.replace(/\./g, "").replace(",", ".").trim();
+  const toDot = (value: string) =>
+    value.replace(/\./g, "").replace(",", ".").trim();
 
   const onSave = async () => {
     if (saving) return;
@@ -321,31 +307,36 @@ export function ProductsDetails() {
     }
 
     if (stockEnabled && !stock.trim()) {
-      alert("Quantidade em estoque é obrigatória quando controle de estoque está ativo");
+      alert(
+        "Quantidade em estoque é obrigatória quando controle de estoque está ativo",
+      );
       return;
     }
 
     // Clean variations: keep ONLY fields expected by backend
     // Remove: id, createdAt, updatedAt, createdBy, updatedBy, images, etc
-    const cleanVariations = variations.length > 0
-      ? variations.map((variation) => {
-          let priceValue: number | undefined = undefined;
-          if (typeof variation.price === "string") {
-            priceValue = variation.price.trim() ? Number(toDot(variation.price)) : undefined;
-          } else if (typeof variation.price === "number") {
-            priceValue = variation.price;
-          }
+    const cleanVariations =
+      variations.length > 0
+        ? variations.map((variation) => {
+            let priceValue: number | undefined = undefined;
+            if (typeof variation.price === "string") {
+              priceValue = variation.price.trim()
+                ? Number(toDot(variation.price))
+                : undefined;
+            } else if (typeof variation.price === "number") {
+              priceValue = variation.price;
+            }
 
-          return {
-            name: variation.name,
-            price: priceValue,
-            stock: Number(variation.stock) || 0,
-            isActive: variation.isActive ?? true,
-            color: variation.color,
-            size: variation.size,
-          };
-        })
-      : undefined;
+            return {
+              name: variation.name,
+              price: priceValue,
+              stock: Number(variation.stock) || 0,
+              isActive: variation.isActive ?? true,
+              color: variation.color,
+              size: variation.size,
+            };
+          })
+        : undefined;
 
     const payload: ProductRequest = {
       name: name.trim(),
@@ -408,7 +399,6 @@ export function ProductsDetails() {
         onChange={onEditingVariationImagesSelected}
       />
 
-
       <div className={styles.top}>
         <div>
           <h1 className={styles.title}>
@@ -436,7 +426,7 @@ export function ProductsDetails() {
             disabled={saving}
           >
             <Save size={16} />
-            {saving ? loadingLabel : "Salvar Alterações"}
+            {saving ? loadingLabel : actionLabel}
           </button>
         </div>
       </div>
@@ -585,7 +575,6 @@ export function ProductsDetails() {
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-
               <span className={styles.panelTitle}>Variações do produto</span>
             </div>
 
@@ -602,9 +591,7 @@ export function ProductsDetails() {
               {expandedVariationForm && (
                 <div className={styles.variationFormCard}>
                   <div className={styles.variationFormHeader}>
-                    <h3 className={styles.variationFormTitle}>
-                      Nova variação
-                    </h3>
+                    <h3 className={styles.variationFormTitle}>Nova variação</h3>
                   </div>
 
                   <div className={styles.variationFormBody}>
@@ -675,13 +662,17 @@ export function ProductsDetails() {
                           </label>
                         </div>
 
-                        <label className={`${styles.field} ${styles.variationInfoFull}`}>
+                        <label
+                          className={`${styles.field} ${styles.variationInfoFull}`}
+                        >
                           <span className={styles.label}>Status</span>
                           <select
                             className={styles.select}
                             value={variationIsActive ? "true" : "false"}
                             onChange={(event) =>
-                              setVariationIsActive(event.target.value === "true")
+                              setVariationIsActive(
+                                event.target.value === "true",
+                              )
                             }
                           >
                             <option value="true">Ativo</option>
@@ -747,8 +738,12 @@ export function ProductsDetails() {
                               selectedIndex={0}
                               imageNames={[]}
                               onSelectImage={() => {}}
-                              onAddImages={() => setEditingVariationIndex(index)}
-                              onRemoveImage={(imgIdx) => onRemoveVariationImageFromList(index, imgIdx)}
+                              onAddImages={() =>
+                                setEditingVariationIndex(index)
+                              }
+                              onRemoveImage={(imgIdx) =>
+                                onRemoveVariationImageFromList(index, imgIdx)
+                              }
                             />
                           </div>
 
@@ -785,7 +780,14 @@ export function ProductsDetails() {
                                 <input
                                   className={styles.input}
                                   placeholder="0,00"
-                                  value={variation.price ? String(variation.price).replace(".", ",") : ""}
+                                  value={
+                                    variation.price
+                                      ? String(variation.price).replace(
+                                          ".",
+                                          ",",
+                                        )
+                                      : ""
+                                  }
                                   disabled
                                   onChange={() => {}}
                                 />
@@ -802,7 +804,9 @@ export function ProductsDetails() {
                               </label>
                             </div>
 
-                            <label className={`${styles.field} ${styles.variationInfoFull}`}>
+                            <label
+                              className={`${styles.field} ${styles.variationInfoFull}`}
+                            >
                               <span className={styles.label}>Status</span>
                               <select
                                 className={styles.select}
@@ -818,7 +822,14 @@ export function ProductsDetails() {
                         </div>
 
                         {editingVariationIndex === index && (
-                          <div className={styles.variationImagesSection} style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--border-light)" }}>
+                          <div
+                            className={styles.variationImagesSection}
+                            style={{
+                              marginTop: "16px",
+                              paddingTop: "16px",
+                              borderTop: "1px solid var(--border-light)",
+                            }}
+                          >
                             <label className={styles.label}>
                               Adicionar fotos à variação
                             </label>
@@ -831,21 +842,34 @@ export function ProductsDetails() {
                                     className={styles.variationImagePreview}
                                   />
                                   {variationImagePreviews.length > 1 && (
-                                    <div className={styles.variationImageThumbnails}>
-                                      {variationImagePreviews.map((preview, imgIdx) => (
-                                        <button
-                                          key={imgIdx}
-                                          className={styles.variationThumbnail}
-                                          type="button"
-                                          onClick={() =>
-                                            setVariationImageFiles(
-                                              variationImageFiles.filter((_, i) => i !== imgIdx),
-                                            )
-                                          }
-                                        >
-                                          <img src={preview} alt={`Thumbnail ${imgIdx + 1}`} />
-                                        </button>
-                                      ))}
+                                    <div
+                                      className={
+                                        styles.variationImageThumbnails
+                                      }
+                                    >
+                                      {variationImagePreviews.map(
+                                        (preview, imgIdx) => (
+                                          <button
+                                            key={imgIdx}
+                                            className={
+                                              styles.variationThumbnail
+                                            }
+                                            type="button"
+                                            onClick={() =>
+                                              setVariationImageFiles(
+                                                variationImageFiles.filter(
+                                                  (_, i) => i !== imgIdx,
+                                                ),
+                                              )
+                                            }
+                                          >
+                                            <img
+                                              src={preview}
+                                              alt={`Thumbnail ${imgIdx + 1}`}
+                                            />
+                                          </button>
+                                        ),
+                                      )}
                                     </div>
                                   )}
                                 </>
@@ -865,7 +889,13 @@ export function ProductsDetails() {
                               Selecionar fotos
                             </button>
 
-                            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "8px",
+                                marginTop: "8px",
+                              }}
+                            >
                               <button
                                 type="button"
                                 className={styles.cancelBtn}
