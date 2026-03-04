@@ -7,9 +7,9 @@ import { ProductsDetails } from "./pages/Product/ProductsDetails";
 import DiscountStockDetails from "./pages/DiscountStock/DiscountStockDetails";
 import Login from "./pages/Login/Login";
 import { useAuth } from "./contexts/useAuth";
-import { Supplier } from "./pages/supplier/Supplier";
-import { SupplierDetails } from "./pages/supplier/SupplierDetails";
-import { Profille } from "./pages/profille/Profille";
+import { Supplier } from "./pages/Supplier/Supplier";
+import { SupplierDetails } from "./pages/Supplier/SupplierDetails";
+import { Profille } from "./pages/Profille/Profille";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
