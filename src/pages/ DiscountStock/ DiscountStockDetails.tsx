@@ -113,7 +113,7 @@ export default function DiscountStockDetails() {
     () => discountStock.subtotal + discountStock.deliveryFee - discountStock.discount,
     [discountStock.subtotal, discountStock.deliveryFee, discountStock.discount],
   );
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   return (
     <div className={styles.page}>
       <header className={styles.topbar}>
