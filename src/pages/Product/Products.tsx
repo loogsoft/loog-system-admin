@@ -357,7 +357,7 @@ export function Products() {
                 onEdit={() => {}}
                 onDelete={(id) => handleDelete(id)}
                 onToggleAvailable={() => {}}
-                navigateTo="/product-details"
+                navigateTo={`/product-details/${p.id}`}
               />
             ))}
           </div>

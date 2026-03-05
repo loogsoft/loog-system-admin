@@ -1,98 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./DiscountStock.module.css";
-import { FiClock, FiFilter, FiSearch, FiTag, FiTrendingDown } from "react-icons/fi";
+import { FiClock, FiFilter, FiSearch, FiTag, FiTrendingDown, FiUser } from "react-icons/fi";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { DiscountStockFilterModal } from "../../components/DiscountStockFilterModal";
+import EntityCard from "../../components/EntityCard";
+import { SkeletonCard } from "../../components/SkeletonCard";
+import { ProductService } from "../../service/Product.service";
+import type { ProductResponse } from "../../dtos/response/product-response.dto";
+import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
+import { DarBaixaModal } from "../../components/DarBaixaModal";
+import { VoltarEstoqueModal } from "../../components/VoltarEstoqueModal";
+import type { StockHistoryItem } from "../../components/VoltarEstoqueModal";
 
 type StockLevel = "all" | "ok" | "low" | "critical";
 type SortOption = "alpha" | "priceAsc" | "priceDesc" | "stockAsc" | "stockDesc";
 
-type StockItem = {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  stock: number;
-  unit: string;
-  price: number;
-  level: "ok" | "low" | "critical";
-};
-
-type StockHistory = {
-  id: string;
-  date: string;
-  time: string;
-  product: string;
-  quantity: number;
-  reason: "Venda" | "Avaria" | "Consumo";
-  owner: string;
-};
-
-const STOCK_ITEMS: StockItem[] = [
-  {
-    id: "s1",
-    name: "Pinha Premium Grande",
-    sku: "SKU-921",
-    category: "Frutas de epoca",
-    stock: 85,
-    unit: "un",
-    price: 24.9,
-    level: "ok",
-  },
-  {
-    id: "s2",
-    name: "Cesta Decorativa Rustica",
-    sku: "SKU-511",
-    category: "Acessorios",
-    stock: 12,
-    unit: "un",
-    price: 89.9,
-    level: "low",
-  },
-  {
-    id: "s3",
-    name: "Pinha Pequena (Saco 500g)",
-    sku: "SKU-517",
-    category: "Frutas de epoca",
-    stock: 4,
-    unit: "un",
-    price: 12.5,
-    level: "critical",
-  },
-  {
-    id: "s4",
-    name: "Extrato de Pinha Organico",
-    sku: "SKU-477",
-    category: "Processados",
-    stock: 42,
-    unit: "un",
-    price: 18.9,
-    level: "ok",
-  },
-  {
-    id: "s5",
-    name: "Pinha Premium Media",
-    sku: "SKU-204",
-    category: "Frutas de epoca",
-    stock: 35,
-    unit: "un",
-    price: 19.9,
-    level: "ok",
-  },
-  {
-    id: "s6",
-    name: "Cesta Presenteavel",
-    sku: "SKU-812",
-    category: "Acessorios",
-    stock: 9,
-    unit: "un",
-    price: 74.5,
-    level: "low",
-  },
-];
-
-const STOCK_HISTORY: StockHistory[] = [
+const STOCK_HISTORY: StockHistoryItem[] = [
   {
     id: "h1",
     date: "24/05/2024",
@@ -131,7 +55,18 @@ const STOCK_HISTORY: StockHistory[] = [
   },
 ];
 
+const getStockLevel = (p: ProductResponse): "ok" | "low" | "critical" => {
+  if (!p.isActiveStock || p.stock === undefined) return "ok";
+  if (p.stock === 0) return "critical";
+  if (p.stock <= p.lowStock) return "low";
+  return "ok";
+};
+
 export function DiscountStock() {
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [darBaixaProduct, setDarBaixaProduct] = useState<ProductResponse | null>(null);
+  const [voltarEstoqueItem, setVoltarEstoqueItem] = useState<StockHistoryItem | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<"stock" | "history">("stock");
@@ -153,77 +88,76 @@ export function DiscountStock() {
     stockLevel: "all",
     sortBy: "alpha",
   });
-  const totalItems = STOCK_ITEMS.length;
+
   const totalOut = 142;
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await ProductService.findAll();
+        setProducts(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const LISTPAG: { value: number }[] = useMemo(
     () => [{ value: 6 }, { value: 12 }, { value: 24 }, { value: 48 }],
     [],
   );
 
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    STOCK_ITEMS.forEach((item) => {
-      counts[item.category] = (counts[item.category] || 0) + 1;
-    });
-    return counts;
-  }, []);
-
   const categories = useMemo(() => {
-    const unique = Array.from(new Set(STOCK_ITEMS.map((item) => item.category))).sort();
+    const unique = Array.from(new Set(products.map((p) => p.category))).sort();
     return [
-      { value: "all", label: `Todos ${STOCK_ITEMS.length}` },
-      ...unique.map((cat) => ({
-        value: cat,
-        label: cat,
-      })),
+      { value: "all", label: `Todos ${products.length}` },
+      ...unique.map((cat) => ({ value: cat, label: cat })),
     ];
-  }, [categoryCounts]);
+  }, [products]);
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
-    let filtered = STOCK_ITEMS.filter((item) => {
+
+    let filtered = products.filter((item) => {
       const matchesSearch = term
-        ? `${item.name} ${item.sku} ${item.category}`
+        ? `${item.name} ${item.description ?? ""} ${item.category}`
             .toLowerCase()
             .includes(term)
         : true;
+
       const matchesCategory =
         category === "all" ? true : item.category === category;
-      
-      const matchesPrice = 
-        (!filters.minPrice || item.price >= Number(filters.minPrice)) &&
-        (!filters.maxPrice || item.price <= Number(filters.maxPrice));
-       
+
+      const matchesPrice =
+        (!filters.minPrice || Number(item.price) >= Number(filters.minPrice)) &&
+        (!filters.maxPrice || Number(item.price) <= Number(filters.maxPrice));
+
       const matchesStock =
-        (!filters.minStock || item.stock >= Number(filters.minStock)) &&
-        (!filters.maxStock || item.stock <= Number(filters.maxStock));
-      
-      const matchesLevel = 
-        filters.stockLevel === "all" || item.level === filters.stockLevel;
-      
+        (!filters.minStock || (item.stock ?? 0) >= Number(filters.minStock)) &&
+        (!filters.maxStock || (item.stock ?? 0) <= Number(filters.maxStock));
+
+      const level = getStockLevel(item);
+      const matchesLevel =
+        filters.stockLevel === "all" || level === filters.stockLevel;
+
       return matchesSearch && matchesCategory && matchesPrice && matchesStock && matchesLevel;
     });
 
     const sorted = [...filtered];
     sorted.sort((a, b) => {
-      if (filters.sortBy === "priceAsc") {
-        return a.price - b.price;
-      }
-      if (filters.sortBy === "priceDesc") {
-        return b.price - a.price;
-      }
-      if (filters.sortBy === "stockAsc") {
-        return a.stock - b.stock;
-      }
-      if (filters.sortBy === "stockDesc") {
-        return b.stock - a.stock;
-      }
+      if (filters.sortBy === "priceAsc") return Number(a.price) - Number(b.price);
+      if (filters.sortBy === "priceDesc") return Number(b.price) - Number(a.price);
+      if (filters.sortBy === "stockAsc") return (a.stock ?? 0) - (b.stock ?? 0);
+      if (filters.sortBy === "stockDesc") return (b.stock ?? 0) - (a.stock ?? 0);
       return a.name.localeCompare(b.name, "pt-BR");
     });
 
     return sorted;
-  }, [search, category, filters]);
+  }, [search, category, filters, products]);
 
   const filteredHistory = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -249,12 +183,12 @@ export function DiscountStock() {
   const pagedStockItems = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, currentPage]);
+  }, [filteredItems, currentPage, pageSize]);
 
   const pagedHistoryItems = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filteredHistory.slice(start, start + pageSize);
-  }, [filteredHistory, currentPage]);
+  }, [filteredHistory, currentPage, pageSize]);
 
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
@@ -278,7 +212,7 @@ export function DiscountStock() {
       <section className={styles.metrics}>
         <StatCard
           label="Itens pendentes"
-          value={totalItems}
+          value={products.length}
           sub="Produtos com baixa"
           icon={<FiClock />}
         />
@@ -362,42 +296,40 @@ export function DiscountStock() {
               </div>
             </div>
           </div>
-          <div className={styles.table}>
-            <div className={styles.tableHeader}>
-              <span>Produto</span>
-              <span>Categoria</span>
-              <span>Estoque atual</span>
-              <span>Acao</span>
-            </div>
-            <div className={styles.tableBody}>
-              {pagedStockItems.map((item) => (
-                <div className={styles.row} key={item.id}>
-                  <div className={styles.productCol}>
-                    <div className={styles.productName}>{item.name}</div>
-                    <div className={styles.productSku}>SKU: {item.sku}</div>
-                  </div>
-                  <div className={styles.categoryCol}>{item.category}</div>
-                  <div className={styles.stockCol}>
-                    <span
-                      className={`${styles.stockPill} ${
-                        item.level === "critical"
-                          ? styles.stockCritical
-                          : item.level === "low"
-                            ? styles.stockLow
-                            : styles.stockOk
-                      }`}
-                    >
-                      {item.stock} {item.unit}
-                    </span>
-                  </div>
-                  <div className={styles.actionCol}>
-                    <button className={styles.actionBtn} type="button">
-                      Dar baixa
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className={styles.cardGrid}>
+            {loading
+              ? Array.from({ length: pageSize }).map((_, i) => <SkeletonCard key={i} />)
+              : pagedStockItems.map((item) => (
+                  <EntityCard
+                    key={item.id}
+                    id={item.id}
+                    type="product"
+                    name={item.name}
+                    description={item.description}
+                    category={item.category}
+                    price={item.price}
+                    promoPrice={item.promoPrice}
+                    imageUrl={item.images ?? []}
+                    stock={item.stock}
+                    lowStock={item.lowStock}
+                    isActiveStock={item.isActiveStock}
+                    available={item.status === ProductStatusEnum.ACTIVED}
+                    navigateTo=""
+                    status={item.status}
+                    actionButton={
+                      <button
+                        className={styles.actionBtn}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDarBaixaProduct(item);
+                        }}
+                      >
+                        Dar baixa
+                      </button>
+                    }
+                  />
+                ))}
           </div>
           <div className={styles.tableFooter}>
             <div className={styles.tableSummary}>
@@ -485,54 +417,43 @@ export function DiscountStock() {
               />
             </div>
           </div>
-          <div className={styles.table}>
-            <div
-              className={`${styles.tableHeader} ${styles.tableHeaderHistory}`}
-            >
-              <span>Data/Hora</span>
-              <span>Produto</span>
-              <span>Qtd. retirada</span>
-              <span>Motivo</span>
-              <span>Responsavel</span>
-              <span>Acao</span>
-            </div>
-            <div className={styles.tableBody}>
-              {pagedHistoryItems.map((item) => (
-                <div
-                  className={`${styles.row} ${styles.rowHistory}`}
-                  key={item.id}
-                >
-                  <div className={styles.dateCol}>
-                    <div>{item.date}</div>
-                    <div className={styles.muted}>{item.time}</div>
-                  </div>
-                  <div className={styles.productCol}>
-                    <div className={styles.productName}>{item.product}</div>
-                    <div className={styles.productSku}>SKU: {item.id}</div>
-                  </div>
-                  <div className={styles.qtyCol}>{item.quantity} un</div>
-                  <div className={styles.reasonCol}>
-                    <span
-                      className={`${styles.reasonPill} ${
-                        item.reason === "Venda"
-                          ? styles.reasonSale
-                          : item.reason === "Avaria"
-                            ? styles.reasonDamage
-                            : styles.reasonInternal
-                      }`}
+          <div className={styles.cardGrid}>
+            {pagedHistoryItems.map((item) => (
+              <EntityCard
+                key={item.id}
+                id={item.id}
+                type="product"
+                name={item.product}
+                description={`${item.date} às ${item.time} — ${item.owner}`}
+                category={item.reason as any}
+                price={0}
+                imageUrl={[]}
+                stock={item.quantity}
+                lowStock={0}
+                isActiveStock={false}
+                available={true}
+                navigateTo=""
+                status={ProductStatusEnum.ACTIVED}
+                actionButton={
+                  <>
+                    <div className={styles.historyOwnerBadge}>
+                      <FiUser className={styles.historyOwnerIcon} />
+                      <span>{item.owner}</span>
+                    </div>
+                    <button
+                      className={styles.actionOutlineBtn}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVoltarEstoqueItem(item);
+                      }}
                     >
-                      {item.reason}
-                    </span>
-                  </div>
-                  <div className={styles.ownerCol}>{item.owner}</div>
-                  <div className={styles.actionCol}>
-                    <button className={styles.actionOutlineBtn} type="button">
-                      Ver detalhes
+                      Voltar ao estoque
                     </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  </>
+                }
+              />
+            ))}
           </div>
           <div className={styles.tableFooter}>
             <div className={styles.tableSummary}>
@@ -577,6 +498,25 @@ export function DiscountStock() {
           </div>
         </section>
       )}
+
+      <DarBaixaModal
+        isOpen={darBaixaProduct !== null}
+        onClose={() => setDarBaixaProduct(null)}
+        product={darBaixaProduct}
+        onConfirm={(data) => {
+          console.log("Baixa confirmada:", data);
+          setDarBaixaProduct(null);
+        }}
+      />
+      <VoltarEstoqueModal
+        isOpen={voltarEstoqueItem !== null}
+        onClose={() => setVoltarEstoqueItem(null)}
+        item={voltarEstoqueItem}
+        onConfirm={(data) => {
+          console.log("Restauração confirmada:", data);
+          setVoltarEstoqueItem(null);
+        }}
+      />
     </div>
   );
 }

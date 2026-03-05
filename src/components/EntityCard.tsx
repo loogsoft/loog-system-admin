@@ -41,6 +41,7 @@ type ProductProps = BaseProps & {
   onToggleAvailable?: (id: string) => void;
   navigateTo: string;
   status: ProductStatusEnum | undefined;
+  actionButton?: React.ReactNode;
 };
 
 type SupplierProps = BaseProps & {
@@ -91,7 +92,10 @@ export default function EntityCard(props: Props) {
       : undefined;
     const statusLabel = props.isActive ? "ATIVO" : "INATIVO";
     return (
-      <div className={`${styles.card} ${styles.supplierCard}`}>
+      <div
+        className={`${styles.card} ${styles.supplierCard}`}
+        onClick={() => props.onEdit?.(props.id)}
+      >
         <div className={`${styles.media} ${styles.supplierMedia}`}>
           <div
             className={`${styles.avatar} ${styles.supplierAvatar}`}
@@ -116,14 +120,16 @@ export default function EntityCard(props: Props) {
         </div>
 
         <div className={`${styles.body} ${styles.supplierBody}`}>
-          <div
-            className={`${styles.statusBadge} ${styles.supplierStatus} ${
-              props.isActive ? styles.statusActive : styles.statusInactive
-            }`}
-          >
-            {statusLabel}
+          <div className={styles.nameRow}>
+            <div className={styles.name}>{props.name}</div>
+            <div
+              className={`${styles.statusBadge} ${
+                props.isActive ? styles.statusActive : styles.statusInactive
+              }`}
+            >
+              {statusLabel}
+            </div>
           </div>
-          <div className={styles.name}>{props.name}</div>
           <div className={`${styles.category} ${styles.supplierCategory}`}>
             {props.category}
           </div>
@@ -148,7 +154,10 @@ export default function EntityCard(props: Props) {
           className={styles.iconBtnEdit}
           type="button"
           aria-label="Editar"
-          onClick={() => props.onEdit?.(props.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onEdit?.(props.id);
+          }}
         >
           <ArrowUpRight />
         </button>
@@ -185,7 +194,7 @@ export default function EntityCard(props: Props) {
   return (
     <div
       className={`${styles.card} ${styles.EntityCard}`}
-      onClick={() => navigate(`/product-details/${props.id}`)}
+      onClick={() => props.navigateTo ? navigate(props.navigateTo) : undefined}
     >
       <div className={`${styles.media} ${styles.productMedia}`}>
         {props.isActiveStock && props.stock !== undefined && props.stock > 0 && props.stock <= props.lowStock ? (
@@ -236,34 +245,38 @@ export default function EntityCard(props: Props) {
           </div>
         )}
 
-        <div className={styles.cardActions}>
-          <button
-            className={styles.iconBtn}
-            type="button"
-            aria-label="Excluir"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsDeleteModalOpen(true);
-            }}
-          >
-            <FiTrash2 />
-          </button>
-        </div>
+        {props.onDelete ? (
+          <div className={styles.cardActions}>
+            <button
+              className={styles.iconBtn}
+              type="button"
+              aria-label="Excluir"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteModalOpen(true);
+              }}
+            >
+              <FiTrash2 />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div className={styles.body}>
-        <div
-          className={`${styles.statusBadge} ${styles.supplierStatus} ${
-            statusValue === ProductStatusEnum.ACTIVED
-              ? styles.statusActive
-              : styles.statusInactive
-          }`}
-        >
-          {statusLabel}
+        <div className={styles.nameRow}>
+          <div className={styles.name}>{props.name}</div>
+          <div
+            className={`${styles.statusBadge} ${
+              statusValue === ProductStatusEnum.ACTIVED
+                ? styles.statusActive
+                : styles.statusInactive
+            }`}
+          >
+            {statusLabel}
+          </div>
         </div>
-        <div className={styles.name}>{props.name}</div>
         <div className={`${styles.category} ${styles.productCategory}`}>
-          {props.category}
+          { props.description && props.description.length > 110 ? props.description.slice(0,110) + "..." : props.description }
         </div>
 
         <div className={styles.productMeta}>
@@ -306,15 +319,24 @@ export default function EntityCard(props: Props) {
         {!statusValue ? (
           <div className={styles.outOfStock}>SEM ESTOQUE</div>
         ) : null}
+
+        {props.actionButton ? (
+          <div className={styles.actionButtonWrapper}>{props.actionButton}</div>
+        ) : null}
       </div>
-      <button
-        className={styles.iconBtnEdit}
-        type="button"
-        aria-label="Editar"
-        onClick={() => navigate(`/product-details/${props.id}`)}
-      >
-        <ArrowUpRight />
-      </button>
+      {props.navigateTo ? (
+        <button
+          className={styles.iconBtnEdit}
+          type="button"
+          aria-label="Editar"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(props.navigateTo);
+          }}
+        >
+          <ArrowUpRight />
+        </button>
+      ) : null}
 
       <ConfirmDeleteModal
         isOpen={isDeleteModalOpen}
