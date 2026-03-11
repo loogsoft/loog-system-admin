@@ -1,5 +1,5 @@
 import styles from "./Product.module.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import {
   FiAlertTriangle,
   FiBox,
@@ -14,9 +14,10 @@ import { FilterModal } from "../../components/FilterModal";
 import { Plus } from "lucide-react";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
+import { MessageService } from "../../service/Message.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 
@@ -33,6 +34,17 @@ export function Products() {
   const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const location = useLocation();
+
+  // Seta o id do produto no input de busca se vier via state
+  useEffect(() => {
+    if (location.state && location.state.id) {
+      setQuery(String(location.state.id));
+      // Limpa o state após usar para evitar reuso em navegações futuras
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, navigate]);
+
   const [filters, setFilters] = useState<{
     minPrice: string;
     maxPrice: string;
@@ -95,7 +107,7 @@ export function Products() {
     // Filtro de busca
     const trimmed = query.trim().toLowerCase();
     if (trimmed) {
-      current = current.filter((p) => p.name.toLowerCase().includes(trimmed));
+      current = current.filter((p) => p.name.toLowerCase().includes(trimmed) || p.id.toLowerCase().includes(trimmed));
     }
 
     // Filtro de preço
@@ -205,6 +217,61 @@ export function Products() {
         setError(null);
         const data = await ProductService.findAll();
         setProducts(data);
+
+        for (const p of data) {
+          const primaryImage = (p.images || []).find((img) => img.isPrimary);
+          const imageUrl = primaryImage?.url || p.images?.[0]?.url || "";
+
+          if (p.isActiveStock && (p.stock ?? 0) === 0) {
+            try {
+              await MessageService.create({
+                productId: p.id,
+                name: p.name,
+                url: imageUrl,
+                type: 'esgotado',
+                description: `O produto "${p.name}" foi esgotado. Estoque zerado. Realize a reposição imediatamente.`,
+              });
+            } catch {}
+          } else if (p.isActiveStock && (p.lowStock ?? 0) > (p.stock ?? 0)) {
+            try {
+              await MessageService.create({
+                productId: p.id,
+                name: p.name,
+                url: imageUrl,
+                type: 'estoque_baixo',
+                description: `Alerta de estoque baixo: o produto "${p.name}" possui apenas ${p.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
+              });
+            } catch {}
+          }
+
+          if (Array.isArray(p.variations)) {
+            for (const v of p.variations) {
+              const varImage = v.imageUrl || imageUrl;
+              const varName = `${p.name} - ${v.color || ""} ${v.size || ""}`.trim();
+              if (Number(v.stock ?? 0) === 0) {
+                try {
+                  await MessageService.create({
+                    productId: p.id,
+                    name: varName,
+                    url: varImage,
+                    type: 'esgotado',
+                    description: `A variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" foi esgotada. Estoque zerado. Realize a reposição imediatamente.`,
+                  });
+                } catch {}
+              } else if (p.isActiveStock && (p.lowStock ?? 0) > Number(v.stock ?? 0)) {
+                try {
+                  await MessageService.create({
+                    productId: p.id,
+                    name: varName,
+                    url: varImage,
+                    type: 'estoque_baixo',
+                    description: `Alerta de estoque baixo: a variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" possui apenas ${v.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
+                  });
+                } catch {}
+              }
+            }
+          }
+        }
       } catch (err) {
         console.error(err);
         setError("Erro ao carregar produtos");
@@ -277,7 +344,7 @@ export function Products() {
 
       <div className={styles.gridContainer}>
         <div className={styles.filters}>
-          <div style={{display:"flex", gap:"10px"}}>
+          <div style={{ display: "flex", gap: "10px" }}>
             <div className={styles.search}>
               <FiSearch className={styles.searchIcon} />
               <input
@@ -291,7 +358,10 @@ export function Products() {
               />
             </div>
             <CustomSelect
-              options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+              options={LISTPAG.map((c) => ({
+                value: String(c.value),
+                label: String(c.value),
+              }))}
               value={String(pageSize)}
               onChange={(value) => {
                 setPageSize(Number(value));
@@ -302,7 +372,10 @@ export function Products() {
 
           <div className={styles.filterActions}>
             <CustomSelect
-              options={CATEGORIES.map((c) => ({ value: c.key, label: c.label }))}
+              options={CATEGORIES.map((c) => ({
+                value: c.key,
+                label: c.label,
+              }))}
               value={activeCat}
               onChange={(value) => setActiveCat(value as CategoryKey)}
             />
@@ -353,21 +426,34 @@ export function Products() {
                   ...(p.images || []),
                   ...(p.variations || [])
                     .filter((v) => v.imageUrl)
-                    .map((v) => ({ url: v.imageUrl!, fileName: v.name || "", id: v.id || "", isPrimary: false })),
+                    .map((v) => ({
+                      url: v.imageUrl!,
+                      fileName: v.name || "",
+                      id: v.id || "",
+                      isPrimary: false,
+                    })),
                 ]}
                 stock={p.stock}
                 isActiveStock={p.isActiveStock}
                 available
                 color={p.color}
-                colors={Array.from(new Set([
-                  ...(p.color ? [p.color] : []),
-                  ...((p.variations || []).map((v) => v.color).filter(Boolean) as string[]),
-                ]))}
+                colors={Array.from(
+                  new Set([
+                    ...(p.color ? [p.color] : []),
+                    ...((p.variations || [])
+                      .map((v) => v.color)
+                      .filter(Boolean) as string[]),
+                  ]),
+                )}
                 size={p.size}
-                sizes={Array.from(new Set([
-                  ...(p.size ? [p.size] : []),
-                  ...((p.variations || []).map((v) => v.size).filter(Boolean) as string[]),
-                ]))}
+                sizes={Array.from(
+                  new Set([
+                    ...(p.size ? [p.size] : []),
+                    ...((p.variations || [])
+                      .map((v) => v.size)
+                      .filter(Boolean) as string[]),
+                  ]),
+                )}
                 variations={p.variations}
                 status={p.status}
                 onEdit={() => {}}

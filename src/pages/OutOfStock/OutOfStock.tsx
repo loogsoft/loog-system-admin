@@ -16,6 +16,7 @@ import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
@@ -29,6 +30,15 @@ export function OutOfStock() {
   const [pageSize, setPageSize] = useState(12);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state && location.state.id) {
+      setQuery(String(location.state.id));
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, navigate]);
   const [filters, setFilters] = useState<{
     minPrice: string;
     maxPrice: string;
@@ -86,7 +96,7 @@ export function OutOfStock() {
 
     const trimmed = query.trim().toLowerCase();
     if (trimmed) {
-      current = current.filter((p) => p.name.toLowerCase().includes(trimmed));
+      current = current.filter((p) => p.name.toLowerCase().includes(trimmed) || p.id.toLowerCase().includes(trimmed));
     }
 
     if (filters.minPrice) {

@@ -12,14 +12,16 @@ import {
 import {
   FiAward,
   FiBox,
-  FiCalendar,
   FiDollarSign,
-  FiEye,
+  FiSearch,
   FiShoppingCart,
 } from "react-icons/fi";
+import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { useTheme } from "../../contexts/useTheme";
 import StatCard from "../../components/StatCard/StatCard";
 import { ProductService } from "../../service/Product.service";
+import { StockMovementService } from "../../service/Stock-movement.service";
+import type { StockMovementResponseDto } from "../../dtos/response/stock-movement-response.dto";
 
 type MetricCard = {
   label: string;
@@ -289,8 +291,44 @@ export function Dashboard() {
   const [period, setPeriod] = useState<Period>("week");
   const { theme } = useTheme();
   const [stockiten, setStockIten] = useState(0);
+  const [recentMovements, setRecentMovements] = useState<StockMovementResponseDto[]>([]);
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
 
   const periodData = useMemo(() => DASHBOARD_MOCK[period], [period]);
+
+  const periodMovements = useMemo(() => {
+    const now = new Date();
+    return recentMovements.filter((m) => {
+      const d = new Date(m.createdAt);
+      if (period === "day") {
+        return (
+          d.getFullYear() === now.getFullYear() &&
+          d.getMonth() === now.getMonth() &&
+          d.getDate() === now.getDate()
+        );
+      }
+      if (period === "week") {
+        return now.getTime() - d.getTime() <= 7 * 24 * 60 * 60 * 1000;
+      }
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    });
+  }, [recentMovements, period]);
+
+  const totalVendas = useMemo(
+    () => periodMovements.filter((m) => m.type === "OUT").reduce((acc, m) => acc + m.quantity, 0),
+    [periodMovements]
+  );
+
+  const totalFaturamento = useMemo(
+    () =>
+      periodMovements
+        .filter((m) => m.type === "OUT")
+        .reduce((acc, m) => acc + m.quantity * Number(m.variation?.price ?? 0), 0),
+    [periodMovements]
+  );
   const chartColors = {
     primary: "var(--highlight-primary)",
     secondary: "var(--highlight-secondary)",
@@ -307,6 +345,50 @@ export function Dashboard() {
       totalProduct();
     } catch (error) {}
   }, []);
+
+  useEffect(() => {
+    StockMovementService.findAll()
+      .then((data) => {
+        const sorted = [...data].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setRecentMovements(sorted);
+      })
+      .catch(() => {});
+  }, []);
+
+  const filteredMovements = useMemo(() => {
+    let list = recentMovements;
+    if (typeFilter !== "all") {
+      list = list.filter((m) => m.type === typeFilter);
+    }
+    const trimmed = query.trim().toLowerCase();
+    if (trimmed) {
+      list = list.filter(
+        (m) =>
+          (m.responsibleName || "").toLowerCase().includes(trimmed) ||
+          (m.variation?.name || "").toLowerCase().includes(trimmed) ||
+          m.id.toLowerCase().includes(trimmed)
+      );
+    }
+    return list;
+  }, [recentMovements, query, typeFilter]);
+
+  const totalMovements = filteredMovements.length;
+  const maxPageMovements = Math.max(1, Math.ceil(totalMovements / pageSize));
+  const currentPage = Math.min(page, maxPageMovements);
+  const paginatedMovements = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredMovements.slice(start, start + pageSize);
+  }, [filteredMovements, currentPage, pageSize]);
+
+  const movementPages = useMemo(() => {
+    const pages: number[] = [];
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(maxPageMovements, currentPage + 2);
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  }, [currentPage, maxPageMovements]);
 
   return (
     <div className={styles.page}>
@@ -352,17 +434,18 @@ export function Dashboard() {
       </div>
 
       <div className={styles.metrics}>
-        {periodData.metrics.map((m) => (
-          <StatCard
-            key={m.label}
-            label={m.label}
-            value={m.value}
-            // badge={m.badge}
-            badgeTone={m.badgeTone}
-            icon={METRIC_ICONS[m.icon]}
-            sub={m.sub}
-          />
-        ))}
+        <StatCard
+          label="VENDAS TOTAIS"
+          value={totalVendas.toLocaleString("pt-BR")}
+          icon={METRIC_ICONS["discountStock"]}
+          badgeTone="success"
+        />
+        <StatCard
+          label="FATURAMENTO"
+          value={totalFaturamento.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          icon={METRIC_ICONS["money"]}
+          badgeTone="success"
+        />
         <StatCard
           key={1}
           label={"ITENS EM ESTOQUE"}
@@ -433,90 +516,119 @@ export function Dashboard() {
 
       <div className={styles.tablePanel}>
         <div className={styles.tableHeader}>
-          <div className={styles.tableTitle}>Vendas Recentes</div>
+          <div className={styles.tableTitle}>Movimentações Recentes</div>
+        </div>
 
-          <div className={styles.tableActions}>
-            <button className={styles.filterBtn} type="button">
-              <FiCalendar />
-              01Out - 31Out
-            </button>
-            <button className={styles.filterBtn} type="button">
-              Todos os Status
-            </button>
+        <div className={styles.filters}>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div className={styles.search}>
+              <FiSearch className={styles.searchIcon} />
+              <input
+                className={styles.searchInput}
+                type="text"
+                placeholder="Buscar por responsável, produto ou ID..."
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+              />
+            </div>
+            <CustomSelect
+              options={[5, 10, 20, 50].map((n) => ({ value: String(n), label: String(n) }))}
+              value={String(pageSize)}
+              onChange={(v: string) => { setPageSize(Number(v)); setPage(1); }}
+            />
+          </div>
+          <div className={styles.filterActions}>
+            <CustomSelect
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "OUT", label: "Saída" },
+                { value: "IN", label: "Entrada" },
+              ]}
+              value={typeFilter}
+              onChange={(v: string) => { setTypeFilter(v); setPage(1); }}
+            />
           </div>
         </div>
 
         <div className={styles.table}>
           <div className={`${styles.row} ${styles.thead}`}>
-            <div>ID BAIXA</div>
+            <div>ID</div>
             <div>DATA/HORA</div>
-            <div>CLIENTE</div>
-            <div>PRODUTOS</div>
-            <div>VALOR TOTAL</div>
-            <div>STATUS</div>
-            <div>AÇÕES</div>
+            <div>RESPONSÁVEL</div>
+            <div>PRODUTO</div>
+            <div>QTD</div>
+            <div>MOTIVO</div>
+            <div>TIPO</div>
           </div>
 
-          {periodData.recent.map((r) => (
-            <div key={r.id} className={styles.row}>
-              <div className={styles.idCell}>{r.id}</div>
-
-              <div className={styles.dateCell}>
-                <div>{r.date}</div>
-                <div className={styles.muted}>{r.time}</div>
-              </div>
-
-              <div className={styles.clientCell}>
-                <div className={styles.avatar}>{r.client.initials}</div>
-                <div className={styles.clientName}>{r.clientName}</div>
-              </div>
-
-              <div className={styles.productsCell}>{r.products}</div>
-
-              <div className={styles.totalCell}>{r.total}</div>
-
-              <div>
-                <span
-                  className={
-                    r.status === "CONCLUIDO"
-                      ? styles.statusOk
-                      : styles.statusBad
-                  }
-                >
-                  {r.status}
-                </span>
-              </div>
-
-              <div className={styles.actionsCell}>
-                <button
-                  className={styles.eyeBtn}
-                  type="button"
-                  aria-label="Ver"
-                >
-                  <FiEye />
-                </button>
-              </div>
-            </div>
-          ))}
+          {paginatedMovements.length === 0 ? (
+            <div style={{ padding: "24px", textAlign: "center", color: "var(--text-muted)" }}>Nenhuma movimentação encontrada.</div>
+          ) : (
+            paginatedMovements.map((r) => {
+              const dt = new Date(r.createdAt);
+              const date = dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+              const time = dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+              const initials = (r.responsibleName || "?")
+                .split(" ")
+                .slice(0, 2)
+                .map((p: string) => p[0]?.toUpperCase() ?? "")
+                .join("");
+              return (
+                <div key={r.id} className={styles.row}>
+                  <div className={styles.idCell}>#{r.id.slice(0, 8)}</div>
+                  <div className={styles.dateCell}>
+                    <div>{date}</div>
+                    <div className={styles.muted}>{time}</div>
+                  </div>
+                  <div className={styles.clientCell}>
+                    <div className={styles.avatar}>{initials}</div>
+                    <div className={styles.clientName}>{r.responsibleName || "-"}</div>
+                  </div>
+                  <div className={styles.productsCell}>{r.variation?.name || "-"}</div>
+                  <div className={styles.totalCell}>{r.quantity}x</div>
+                  <div>{r.reason || "-"}</div>
+                  <div>
+                    <span className={r.type === "OUT" ? styles.statusOk : styles.statusBad}>
+                      {r.type === "OUT" ? "SAÍDA" : "ENTRADA"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
-        <div className={styles.tableFooter}>
-          <div className={styles.muted}>Mostrando 4 de 432 baixas</div>
-
+        <div className={styles.bottom}>
+          <div className={styles.counter}>
+            Mostrando {paginatedMovements.length} de {totalMovements} movimentações
+          </div>
           <div className={styles.pagination}>
             <button
-              className={`${styles.pageBtn} ${styles.pageBtnActive}`}
+              className={`${styles.pageBtn} ${currentPage === 1 ? styles.pageBtnDisabled : ""}`}
               type="button"
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              aria-label="Página anterior"
             >
-              1
+              ‹
             </button>
-            <button className={styles.pageBtn} type="button">
-              2
-            </button>
-            <button className={styles.pageBtn} type="button">
-              3
-            </button>
-            <button className={styles.pageBtn} type="button">
+            {movementPages.map((p) => (
+              <button
+                key={p}
+                className={`${styles.pageBtn} ${p === currentPage ? styles.pageBtnActive : ""}`}
+                type="button"
+                onClick={() => setPage(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              className={`${styles.pageBtn} ${currentPage === maxPageMovements ? styles.pageBtnDisabled : ""}`}
+              type="button"
+              onClick={() => setPage(Math.min(maxPageMovements, currentPage + 1))}
+              disabled={currentPage === maxPageMovements}
+              aria-label="Próxima página"
+            >
               ›
             </button>
           </div>

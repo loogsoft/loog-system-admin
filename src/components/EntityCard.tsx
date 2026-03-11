@@ -220,6 +220,11 @@ export default function EntityCard(props: Props) {
         props.stock <= props.lowStock ? (
           <div className={styles.lowStock}>ESTOQUE BAIXO</div>
         ) : null}
+        {props.isActiveStock && (props.stock ?? 0) === 0 ? (
+          <div className={styles.zeroStockOverlay}>
+            <span className={styles.zeroStockOverlayLabel}>Esgotado</span>
+          </div>
+        ) : null}
         {productImageUrl ? (
           <>
             <img
@@ -297,8 +302,8 @@ export default function EntityCard(props: Props) {
           </div>
         </div>
         <div className={`${styles.category} ${styles.productCategory}`}>
-          {props.description && props.description.length > 110
-            ? props.description.slice(0, 110) + "..."
+          {props.description && props.description.length > 30
+            ? props.description.slice(0, 30) + "..."
             : props.description}
         </div>
 
@@ -434,6 +439,9 @@ export default function EntityCard(props: Props) {
                   <FiPackage className={styles.metaIcon} />
                   {`Estoque: ${props.stock}`}
                 </div>
+              )}
+              {props.isActiveStock && (props.stock ?? 0) === 0 && (
+                <div className={styles.zeroStockBadge}>⚠ Produto esgotado</div>
               )}
             </>
           )}

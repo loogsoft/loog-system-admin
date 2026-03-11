@@ -5,6 +5,7 @@ import {
   FiBox,
   FiUsers,
   FiSettings,
+  FiAlertCircle,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 import { IoExitOutline } from "react-icons/io5";
@@ -97,6 +98,16 @@ export function Sidebar() {
           >
             <FiShoppingCart className={styles.icon} />
             <span>Baixa de estoque</span>
+          </NavLink>
+
+          <NavLink
+            to="/out-of-stock"
+            className={({ isActive }) =>
+              isActive ? styles.active : styles.link
+            }
+          >
+            <FiAlertCircle className={styles.icon} />
+            <span>Sem estoque</span>
           </NavLink>
 
           <NavLink

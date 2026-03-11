@@ -3,6 +3,8 @@ import { FiBell, FiMoon, FiSun } from "react-icons/fi";
 import { useTheme } from "../../contexts/useTheme";
 import { useAuth } from "../../contexts/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { MessageService } from "../../service/Message.service";
 
 type HeaderProps = {
   title: string;
@@ -13,6 +15,16 @@ export function Header({ title, isMessageModalOpen }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [messageCount, setMessageCount] = useState(0);
+
+  useEffect(() => {
+    const fetch = () => {
+      MessageService.findAll().then((data) => setMessageCount(data.length)).catch(() => {});
+    };
+    fetch();
+    const interval = setInterval(fetch, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const userInitial = user?.name
     ? user.name.charAt(0).toUpperCase()
@@ -47,6 +59,9 @@ export function Header({ title, isMessageModalOpen }: HeaderProps) {
           onClick={() => isMessageModalOpen(true)}
         >
           <FiBell />
+          {messageCount > 0 && (
+            <span className={styles.badge}>{messageCount > 99 ? "99+" : messageCount}</span>
+          )}
         </button>
 
         <button

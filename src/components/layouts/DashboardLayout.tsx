@@ -6,7 +6,7 @@ import { MessageModal } from "../messageModal/MessageModal";
 import { useState } from "react";
 
 export function DashboardLayout() {
-  const [isMessageModalOpen, setIsMessageModalOpen] = useState(true);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   return (
     <div className={styles.container}>
       <Sidebar />

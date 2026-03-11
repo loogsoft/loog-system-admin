@@ -175,7 +175,7 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
         reason: form.reason,
         paymentMethod: form.paymentMethod,
         responsibleEmail: operatorEmail,
-        responsibleName: operatorLabel,
+        responsibleName:form.responsible,
         observation: form.observation,
       });
       onConfirm({
@@ -472,7 +472,7 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
               <span className={styles.operatorTitle}>
                 Operação registrada por
               </span>
-              <span className={styles.operatorName}>{operatorLabel}</span>
+              <span className={styles.operatorName}>{form.responsible || "—"}</span>
             </div>
           </div>
           {operatorEmail && (

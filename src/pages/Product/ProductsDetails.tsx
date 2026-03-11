@@ -322,6 +322,11 @@ export function ProductsDetails() {
       return;
     }
 
+    if (!color.trim()) {
+      alert("Cor do produto é obrigatória");
+      return;
+    }
+
     if (stockEnabled && !stock.trim()) {
       alert(
         "Quantidade em estoque é obrigatória quando controle de estoque está ativo",

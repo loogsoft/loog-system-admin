@@ -1,3 +1,70 @@
+.producIdRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.producIdInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.producIdLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.producIdValue {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: 'Fira Mono', 'Menlo', 'Consolas', monospace;
+}
+
+.copyBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 5px;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+}
+.copyBtn:hover {
+  color: var(--text-primary);
+  background: var(--surface-muted);
+}
+
+.searchBtn {
+  background: #FFC83D;
+  border: none;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+.searchBtn:hover {
+  background: #f0b92e;
+}
+.searchBtn:active {
+  transform: scale(0.97);
+}
 .backdrop {
   position: fixed;
   top: 0;
