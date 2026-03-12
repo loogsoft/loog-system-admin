@@ -5,7 +5,7 @@ type AuthContextType = {
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
-  user: {
+  user: { 
     id: string;
     name?: string;
     email?: string;
