@@ -7,6 +7,7 @@ export interface StockMovementResponseDto {
   productName: string;
   variation: ProductVariationResponseDto;
   quantity: number;
+  price: string;
   type: StockMovementType;
   reason: string;
   paymentMethod: string;

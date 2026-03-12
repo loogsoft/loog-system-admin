@@ -17,6 +17,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 20px;
 }
 
 .brandIcon {
@@ -38,9 +39,9 @@
 }
 
 .brandTitle {
-  font-size: 16px;
+  font-size: 15px;
   letter-spacing: 0.8px;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -54,6 +55,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 40px;
 }
 
 .submenuToggle {
@@ -177,6 +179,25 @@
   box-shadow: var(--shadow-1);
 }
 
+.linkStyle {
+  gap: 12;
+  width: 100%;
+  background: none;
+  border: none;
+  font-weight: 400;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.link:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-1);
+}
+
 .active {
   display: flex;
   align-items: center;
@@ -243,6 +264,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-top: 40px;
 }
 
 .userCard {

@@ -1,3 +1,12 @@
+.paymentCell {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  margin-left: 0;
+  min-width: 80px;
+  text-align: center;
+}
 .page {
   width: 100%;
   padding: 22px 24px 18px;
@@ -76,7 +85,7 @@
 
 .metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
   gap: 14px;
 }
 
@@ -310,43 +319,62 @@
 
 .row {
   display: grid;
-  grid-template-columns: 110px 110px 170px 1fr 120px 120px 70px;
-  gap: 12px;
+  grid-template-columns: 1.1fr 0.8fr 1fr 0.7fr 1.6fr 0.7fr 0.7fr;
+  gap: 0;
   align-items: center;
-  padding: 12px 12px;
+  padding: 14px 12px;
   background: var(--surface);
   border-bottom: 1px solid var(--border-default);
+}
+
+.row > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qtdValorCell {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  justify-content: flex-start;
 }
 
 .thead {
   background: var(--surface-muted);
   color: var(--text-muted);
-  font-weight: 400;
+  font-weight: 600;
   font-size: 10px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .idCell {
-  color: var(--highlight-primary);
-  font-weight: 400;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
 .dateCell {
   color: var(--text-primary);
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 500;
+  font-size: 13px;
 }
 
 .muted {
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 400;
+  margin-top: 1px;
 }
 
 .clientCell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .avatar {
@@ -358,53 +386,80 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 10px;
+  flex-shrink: 0;
 }
 
 .clientName {
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .productsCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: var(--text-secondary);
-  font-weight: 400;
-  font-size: 12px;
+  font-weight: 500;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.colorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border-default);
+  flex-shrink: 0;
 }
 
 .totalCell {
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.valueCell {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  margin-left: 0;
 }
 
 .statusOk {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 10px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 400;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   background: var(--status-success-bg);
   color: var(--status-success);
-  border: 1px solid rgba(45, 190, 120, 0.22);
+  border: 1px solid rgba(45, 190, 120, 0.15);
 }
 
 .statusBad {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 10px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 400;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   background: var(--status-warning-bg);
   color: var(--status-warning);
-  border: 1px solid rgba(231, 166, 23, 0.22);
+  border: 1px solid rgba(231, 166, 23, 0.15);
 }
 
 .actionsCell {
@@ -531,5 +586,14 @@
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 500;
+}
+
+.reasonCell {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 

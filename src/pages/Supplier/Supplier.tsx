@@ -15,7 +15,8 @@ import { FilterModal } from "../../components/FilterModal";
 import styles from "./Supplier.module.css";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
-import StatCard from "../../components/StatCard/StatCard";import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import StatCard from "../../components/StatCard/StatCard";
+import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import type { CategoryKey } from "../../types/Product-type";
 
 type SupplierStatus = "active" | "inactive";
@@ -85,11 +86,12 @@ const mapSupplierCard = (
     location: resolveLocation(item),
     status: normalizeStatus(item.status),
     initials: getInitials(name),
-    avatarColor: String(item.avatarColor ?? AVATAR_COLORS[index % AVATAR_COLORS.length]),
+    avatarColor: String(
+      item.avatarColor ?? AVATAR_COLORS[index % AVATAR_COLORS.length],
+    ),
     openDiscountStock: Number(item.openDiscountStock ?? 0),
   };
 };
-
 
 export function Supplier() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
@@ -112,7 +114,7 @@ export function Supplier() {
     category: "all" as CategoryKey,
     sortBy: null,
   });
-  
+
   const counts = useMemo(() => {
     const categories = new Set(suppliers.map((s) => s.category));
     const countBy = (category: string) =>
@@ -126,10 +128,15 @@ export function Supplier() {
   }, [suppliers]);
 
   const CATEGORIES = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(suppliers.map((s) => s.category)));
+    const uniqueCategories = Array.from(
+      new Set(suppliers.map((s) => s.category)),
+    );
     return [
       { key: "all" as CategoryKey, label: `Todos ${counts.all}` },
-      ...uniqueCategories.map((cat) => ({ key: cat as CategoryKey, label: cat })),
+      ...uniqueCategories.map((cat) => ({
+        key: cat as CategoryKey,
+        label: cat,
+      })),
     ];
   }, [suppliers, counts]);
 
@@ -162,7 +169,7 @@ export function Supplier() {
         setLoading(true);
         setError(null);
         const data = await SupplierService.findAll();
-        const list = Array.isArray(data) ? data : data.data ?? [];
+        const list = Array.isArray(data) ? data : (data.data ?? []);
         setSuppliers(list.map(mapSupplierCard));
       } catch (err) {
         console.error(err);
@@ -208,7 +215,6 @@ export function Supplier() {
   );
   const categoriesTotal = new Set(suppliers.map((s) => s.category)).size;
 
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -236,16 +242,26 @@ export function Supplier() {
           label="TOTAL DE FORNECEDORES"
           value={totalSuppliers.toLocaleString("pt-BR")}
           icon={<FiUsers />}
+          iconColor="#EFF6FF"
+          iconBackgroundColor="#3B82F6"
+          valueColor="#3B82F6"
         />
         <StatCard
           label="FORNECEDORES ATIVOS"
           value={activeSuppliers.toLocaleString("pt-BR")}
           icon={<FiUserCheck />}
+          iconColor="#ECFDF5"
+          iconBackgroundColor="#059669"
+          valueColor="#059669"
+
         />
         <StatCard
           label="BAIXAS EM ABERTO"
           value={openDiscountStock}
           icon={<FiPackage />}
+          iconColor="#FFFBEB"
+          iconBackgroundColor="#F59E0B"
+          valueColor="#F59E0B"
         />
         <StatCard
           label="CATEGORIAS"
@@ -256,7 +272,7 @@ export function Supplier() {
 
       <div className={styles.gridContainer}>
         <div className={styles.filters}>
-          <div style={{display:"flex", gap:"10px"}}>
+          <div style={{ display: "flex", gap: "10px" }}>
             <div className={styles.search}>
               <FiSearch className={styles.searchIcon} />
               <input
@@ -271,7 +287,10 @@ export function Supplier() {
               />
             </div>
             <CustomSelect
-              options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+              options={LISTPAG.map((c) => ({
+                value: String(c.value),
+                label: String(c.value),
+              }))}
               value={String(pageSize)}
               onChange={(value) => {
                 setPageSize(Number(value));
@@ -282,7 +301,10 @@ export function Supplier() {
 
           <div className={styles.filterActions}>
             <CustomSelect
-              options={CATEGORIES.map((c) => ({ value: c.key, label: c.label }))}
+              options={CATEGORIES.map((c) => ({
+                value: c.key,
+                label: c.label,
+              }))}
               value={activeCat}
               onChange={(value) => {
                 setActiveCat(value as CategoryKey);

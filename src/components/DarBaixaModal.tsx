@@ -36,6 +36,7 @@ export type BaixaFormData = {
   operatorEmail: string;
   variationId?: string;
   variationLabel?: string;
+  value: number;
 };
 
 const REASONS = ["Venda", "Avaria", "Consumo interno", "Devolução", "Perda"];
@@ -65,13 +66,18 @@ const REASONS_INFO: Record<string, { desc: string; example: string }> = {
 const PAYMENT_METHODS = [
   "PIX",
   "Dinheiro",
-  "Cartão de crédito",
-  "Cartão de débito",
-  "Transferência",
-  "N/A",
+  "Crédito",
+  "Débito",
+  "Crediario",
 ];
 
-export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: Props) {
+export function DarBaixaModal({
+  isOpen,
+  onClose,
+  product,
+  onConfirm,
+  onClick,
+}: Props) {
   const { user } = useAuth();
   const operatorEmail = user?.email || "";
   const { checkStockAndNotify } = useMessageContext();
@@ -97,6 +103,8 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
   >(hasVariations ? null : 0);
   const [form, setForm] = useState({
     quantity: 1,
+    value: 0,
+    percent: 0,
     reason: "Venda",
     paymentMethod: "PIX",
     responsible: "",
@@ -142,6 +150,9 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
   const currentStock = selectedVariation ? Number(selectedVariation.stock) : 0;
   const isOverStock = form.quantity > currentStock;
   const isZero = form.quantity <= 0;
+  const defaultValue = selectedVariation ? Number(selectedVariation.price) : 0;
+  const value = form.value === 0 ? defaultValue : form.value;
+  const percent = form.percent;
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -177,12 +188,14 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
         reason: form.reason,
         paymentMethod: form.paymentMethod,
         responsibleEmail: operatorEmail,
-        responsibleName:form.responsible,
+        responsibleName: form.responsible,
         observation: form.observation,
+        price: String(value * form.quantity),
       });
       await checkStockAndNotify();
       onConfirm({
         ...form,
+        value: value * form.quantity,
         operatorEmail,
         variationId: selectedVariation.id,
         variationLabel:
@@ -192,7 +205,9 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
       onClick();
       onClose();
       setForm({
-        quantity: 1,
+        quantity: 11,
+        value: product.price * form.quantity,
+        percent: 0,
         reason: "Venda",
         paymentMethod: "PIX",
         responsible: "",
@@ -201,6 +216,7 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
       setSelectedVariationIdx(hasVariations ? null : 0);
     } catch (error) {
       setError("Erro ao registrar a baixa. Tente novamente.");
+      setLoading(false);
     }
   };
 
@@ -351,6 +367,109 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
               <FiTag className={styles.labelIcon} />
+              VALOR DA BAIXA
+            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 13, color: "#888", marginRight: 4 }}>
+                R$
+              </span>
+              <input
+                className={styles.input}
+                type="number"
+                min={0}
+                value={value * form.quantity}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setForm((f) => ({
+                    ...f,
+                    value: v,
+                    percent:
+                      v === 0
+                        ? 0
+                        : Number(
+                            (((v - defaultValue) / defaultValue) * 100).toFixed(
+                              2,
+                            ),
+                          ),
+                  }));
+                }}
+                style={{ width: 110 }}
+              />
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginLeft: 8,
+                }}
+              >
+                <button
+                  type="button"
+                  style={{
+                    border: "none",
+                    background: "none",
+                    color: "#22c55e",
+                    fontSize: 16,
+                    cursor: "pointer",
+                    lineHeight: 1,
+                  }}
+                  onClick={() => {
+                    const newPercent = percent - 1;
+                    const newValue = Number(
+                      (defaultValue * (1 + newPercent / 100)).toFixed(2),
+                    );
+                    setForm((f) => ({
+                      ...f,
+                      percent: newPercent,
+                      value: newValue,
+                    }));
+                  }}
+                  aria-label="Aumentar %"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    border: "none",
+                    background: "none",
+                    color: "#ef4444",
+                    fontSize: 16,
+                    cursor: "pointer",
+                    lineHeight: 1,
+                  }}
+                  onClick={() => {
+                    const newPercent = percent + 1;
+                    const newValue = Number(
+                      (defaultValue * (1 + newPercent / 100)).toFixed(2),
+                    );
+                    setForm((f) => ({
+                      ...f,
+                      percent: newPercent,
+                      value: newValue,
+                    }));
+                  }}
+                  aria-label="Diminuir %"
+                >
+                  ▼
+                </button>
+              </div>
+              <span
+                style={{
+                  fontSize: 13,
+                  color: "#888",
+                  marginLeft: 8,
+                  position: "relative",
+                }}
+              >
+                {percent > 0 ? "+" : ""}
+                {percent}%
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>
+              <FiTag className={styles.labelIcon} />
               MOTIVO DA BAIXA
             </label>
             <div className={styles.reasonDropdown} ref={reasonRef}>
@@ -475,7 +594,9 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: 
               <span className={styles.operatorTitle}>
                 Operação registrada por
               </span>
-              <span className={styles.operatorName}>{form.responsible || "—"}</span>
+              <span className={styles.operatorName}>
+                {form.responsible || "—"}
+              </span>
             </div>
           </div>
           {operatorEmail && (

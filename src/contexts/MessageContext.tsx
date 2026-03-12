@@ -57,7 +57,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
               toast.error(`O produto "${p.name}" foi esgotado. Estoque zerado.`);
             }
           } catch {}
-        } else if (p.isActiveStock && (p.lowStock ?? 0) > mainStock) {
+        } else if (p.isActiveStock && (p.stock ?? 0) < (p.lowStock ?? 0)) {
           try {
             const created = await MessageService.create({
               productId: p.id,

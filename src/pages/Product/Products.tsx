@@ -97,7 +97,7 @@ export function Products() {
       if (Number(p.stock) > 0) return true;
       // Alguma variação tem estoque
       if (Array.isArray(p.variations)) {
-        return p.variations.some(v => Number(v.stock) > 0);
+        return p.variations.some((v) => Number(v.stock) > 0);
       }
       // Nenhum estoque
       return false;
@@ -116,7 +116,11 @@ export function Products() {
     // Filtro de busca
     const trimmed = query.trim().toLowerCase();
     if (trimmed) {
-      current = current.filter((p) => p.name.toLowerCase().includes(trimmed) || p.id.toLowerCase().includes(trimmed));
+      current = current.filter(
+        (p) =>
+          p.name.toLowerCase().includes(trimmed) ||
+          p.id.toLowerCase().includes(trimmed),
+      );
     }
 
     // Filtro de preço
@@ -206,7 +210,7 @@ export function Products() {
   }, [products]);
 
   const lowStock = useMemo(() => {
-    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= 5)
+    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= p.lowStock)
       .length;
   }, [products]);
 
@@ -237,7 +241,7 @@ export function Products() {
                 productId: p.id,
                 name: p.name,
                 url: imageUrl,
-                type: 'esgotado',
+                type: "esgotado",
                 description: `O produto "${p.name}" foi esgotado. Estoque zerado. Realize a reposição imediatamente.`,
               });
             } catch {}
@@ -247,7 +251,7 @@ export function Products() {
                 productId: p.id,
                 name: p.name,
                 url: imageUrl,
-                type: 'estoque_baixo',
+                type: "estoque_baixo",
                 description: `Alerta de estoque baixo: o produto "${p.name}" possui apenas ${p.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
               });
             } catch {}
@@ -256,24 +260,28 @@ export function Products() {
           if (Array.isArray(p.variations)) {
             for (const v of p.variations) {
               const varImage = v.imageUrl || imageUrl;
-              const varName = `${p.name} - ${v.color || ""} ${v.size || ""}`.trim();
+              const varName =
+                `${p.name} - ${v.color || ""} ${v.size || ""}`.trim();
               if (Number(v.stock ?? 0) === 0) {
                 try {
                   await MessageService.create({
                     productId: p.id,
                     name: varName,
                     url: varImage,
-                    type: 'esgotado',
+                    type: "esgotado",
                     description: `A variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" foi esgotada. Estoque zerado. Realize a reposição imediatamente.`,
                   });
                 } catch {}
-              } else if (p.isActiveStock && (p.lowStock ?? 0) > Number(v.stock ?? 0)) {
+              } else if (
+                p.isActiveStock &&
+                (p.lowStock ?? 0) > Number(v.stock ?? 0)
+              ) {
                 try {
                   await MessageService.create({
                     productId: p.id,
                     name: varName,
                     url: varImage,
-                    type: 'estoque_baixo',
+                    type: "estoque_baixo",
                     description: `Alerta de estoque baixo: a variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" possui apenas ${v.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
                   });
                 } catch {}
@@ -334,11 +342,9 @@ export function Products() {
           label="TOTAL DE PRODUTOS"
           value={counts.all.toLocaleString("pt-BR")}
           icon={<FiBox />}
-        />
-        <StatCard
-          label="ESTOQUE BAIXO"
-          value={lowStock}
-          icon={<FiAlertTriangle />}
+          iconColor="#EFF6FF"
+          iconBackgroundColor="#3B82F6"
+          valueColor="#3B82F6"
         />
         <StatCard
           label="VALOR TOTAL"
@@ -347,6 +353,17 @@ export function Products() {
             currency: "BRL",
           })}
           icon={<FiDollarSign />}
+          iconColor="#ECFDF5"
+          iconBackgroundColor="#059669"
+          valueColor="#059669"
+        />
+        <StatCard
+          label="ESTOQUE BAIXO"
+          value={lowStock}
+          icon={<FiAlertTriangle />}
+          iconColor="#FFFBEB"
+          iconBackgroundColor="#f50b0bd7"
+          valueColor="#f50b0bd7"
         />
         <StatCard label="CATEGORIAS" value={categoryTotal} icon={<FiGrid />} />
       </div>

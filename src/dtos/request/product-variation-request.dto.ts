@@ -6,4 +6,5 @@ export interface ProductVariationRequestDto {
   color: string;
   size: string;
   images?: File[];
+  lowStock: number;
 }

@@ -206,6 +206,13 @@ export default function EntityCard(props: Props) {
     e.stopPropagation();
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
+  // Verifica se o produto está esgotado (sem variações) ou se todas as variações estão esgotadas
+  const isSoldOut = props.isActiveStock && (
+    (Array.isArray(variations) && variations.length > 0)
+      ? variations.every(v => (v.stock ?? 0) === 0)
+      : (props.stock ?? 0) === 0
+  );
+
   return (
     <div
       className={`${styles.card} ${styles.EntityCard}`}
@@ -220,7 +227,7 @@ export default function EntityCard(props: Props) {
         props.stock <= props.lowStock ? (
           <div className={styles.lowStock}>ESTOQUE BAIXO</div>
         ) : null}
-        {props.isActiveStock && (props.stock ?? 0) === 0 ? (
+        {isSoldOut ? (
           <div className={styles.zeroStockOverlay}>
             <span className={styles.zeroStockOverlayLabel}>Esgotado</span>
           </div>

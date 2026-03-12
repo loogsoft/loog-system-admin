@@ -13,6 +13,9 @@ import { SupplierDetails } from "./pages/Supplier/SupplierDetails";
 import { Profille } from "./pages/Profille/Profille";
 import { OutOfStock } from "./pages/OutOfStock/OutOfStock";
 import { useMessageContext } from "./contexts/MessageContext";
+import Roleta from "./pages/Roulette/Roulette";
+import { Credit } from "./pages/Credit/Credit";
+import { CreditDetails } from "./pages/Credit/CreditDetails";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -49,6 +52,9 @@ export default function App() {
         <Route path="/suppliers" element={<Supplier />} />
         <Route path="/supplier-details/:id?" element={<SupplierDetails />} />
         <Route path="/config/:id?" element={<Profille />} />
+        <Route path="/roulette" element={<Roleta />} />
+        <Route path="/credit" element={<Credit />} />
+        <Route path="/credit-details/:id?" element={<CreditDetails />} />
       </Route>
     </Routes>
   );

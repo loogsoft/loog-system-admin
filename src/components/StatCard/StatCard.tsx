@@ -8,6 +8,12 @@ type StatCardProps = {
   badgeTone?: "success" | "neutral";
   icon?: ReactNode;
   sub?: string;
+  backgroundColor?: string;
+  color?: string;
+  valueBackgroundColor?: string;
+  valueColor?: string;
+  iconBackgroundColor?: string;
+  iconColor?: string;
 };
 
 export default function StatCard({
@@ -17,15 +23,31 @@ export default function StatCard({
   badgeTone = "success",
   icon,
   sub,
+  backgroundColor,
+  color,
+  valueBackgroundColor,
+  valueColor,
+  iconBackgroundColor,
+  iconColor,
 }: StatCardProps) {
   const showHeader = Boolean(icon || badge);
 
   return (
-    <div className={styles.card}>
+    <div
+      className={styles.card}
+      style={{ backgroundColor: backgroundColor || undefined, color: color || undefined }}
+    >
       {showHeader ? (
         <div className={styles.header}>
           {icon ? (
-            <span className={styles.icon} aria-hidden>
+            <span
+              className={styles.icon}
+              aria-hidden
+              style={{
+                backgroundColor: iconBackgroundColor || undefined,
+                color: iconColor || undefined,
+              }}
+            >
               {icon}
             </span>
           ) : (
@@ -44,7 +66,16 @@ export default function StatCard({
       ) : null}
 
       <div className={styles.label}>{label}</div>
-      <div className={`${styles.value} ${sub ? styles.valueSmall : ""}`}>
+      <div
+        className={`${styles.value} ${sub ? styles.valueSmall : ""}`}
+        style={{
+          backgroundColor: valueBackgroundColor || undefined,
+          color: valueColor || undefined,
+          borderRadius: valueBackgroundColor ? 8 : undefined,
+          padding: valueBackgroundColor ? "2px 8px" : undefined,
+          display: valueBackgroundColor ? "inline-block" : undefined,
+        }}
+      >
         {value}
       </div>
       {sub ? <div className={styles.sub}>{sub}</div> : null}

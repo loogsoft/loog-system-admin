@@ -65,7 +65,7 @@
 
 .value {
   margin-top: 6px;
-  color: var(--text-primary);
+  color: var(--highlight-primary);
   font-size: 28px;
   font-weight: 600;
 }

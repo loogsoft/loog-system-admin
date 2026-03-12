@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   FiGrid,
   FiShoppingCart,
@@ -6,6 +6,8 @@ import {
   FiUsers,
   FiSettings,
   FiAlertCircle,
+  FiTarget,
+  FiChevronDown,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 import { IoExitOutline } from "react-icons/io5";
@@ -13,36 +15,84 @@ import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
 import logoLight from "../../assets/logo-preta.png";
 import logoDark from "../../assets/logo-branco.png";
+import { useState} from "react";
+
+// Estrutura dinâmica do menu
+const menu = [
+  {
+    type: "item",
+    icon: FiGrid,
+    label: "Dashboard",
+    path: "/dashboard",
+    color: "#6C63FF",
+  },
+  {
+    type: "item",
+    icon: FiBox,
+    label: "Produtos",
+    path: "/produtos",
+    color: "#00B894",
+  },
+  {
+    type: "item",
+    icon: FiShoppingCart,
+    label: "Baixa de estoque",
+    path: "/discount-stock",
+    color: "#0984E3",
+  },
+  {
+    type: "item",
+    icon: FiAlertCircle,
+    label: "Sem estoque",
+    path: "/out-of-stock",
+    color: "#E17055",
+  },
+  {
+    type: "item",
+    icon: FiUsers,
+    label: "Fornecedores",
+    path: "/suppliers",
+    color: "#F0932B",
+  },
+  {
+    type: "group",
+    icon: FiTarget,
+    label: "Estratégias",
+    color: "#6C63FF",
+    key: "estrategias",
+    children: [
+      {
+        type: "item",
+        icon: FiTarget,
+        label: "Roleta",
+        path: "/roulette",
+        color: "#6C63FF",
+      },
+      {
+        type: "item",
+        icon: FiTarget,
+        label: "Crediarios",
+        path: "/credit",
+        color: "#ffe863",
+      },
+    ],
+  },
+];
 
 export function Sidebar() {
   const { logout, user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
 
   function handleLogout() {
-    // 1️⃣ Limpa token e estado
     logout();
-
-    // 2️⃣ Redireciona para login
     navigate("/login");
   }
 
   const displayName = user?.name || user?.email?.split("@")[0] || "Usuário";
-  
-  // Trunca o email de forma inteligente
-  const truncateEmail = (email: string) => {
-    if (!email) return "";
-    const [username, domain] = email.split("@");
-    if (username && domain) {
-      // Se o email é muito longo, exibe "user@dom..." 
-      const domainShort = domain.length > 12 ? domain.substring(0, 12) + "..." : domain;
-      const emailShort = `${username}@${domainShort}`;
-      return emailShort.length > 25 ? emailShort.substring(0, 22) + "..." : emailShort;
-    }
-    return email.length > 25 ? email.substring(0, 22) + "..." : email;
-  };
-  
-  const displayEmail = truncateEmail(user?.email || "usuario@email.com");
+  const displayEmail = user?.email || "usuario@email.com";
   const initials = displayName
     .split(" ")
     .map((part) => part.trim())
@@ -51,6 +101,78 @@ export function Sidebar() {
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("")
     .slice(0, 2);
+
+  // Renderização de item simples
+  const renderItem = (item: any) => {
+    return (
+      <NavLink
+        key={item.path}
+        to={item.path}
+        className={({ isActive: navActive }) =>
+          navActive ? styles.active : styles.link
+        }
+        style={{ gap: 12 }}
+      >
+        <item.icon className={styles.icon} color={item.color} size={20} />
+        <span>{item.label}</span>
+      </NavLink>
+    );
+  };
+
+  // Renderização de grupo com subitens
+  const renderGroup = (group: any) => {
+    const isOpen = !!openGroups[group.key];
+    return (
+      <div key={group.key}>
+        <button
+          type="button"
+          className={styles.link}
+          style={{
+            gap: 12,
+            width: "100%",
+            background: "none",
+            border: "none",
+            fontWeight: 400,
+            fontSize: 14,
+            padding: "10px 12px",
+            borderRadius: 12,
+            cursor: "pointer",
+            transition: "background 0.2s",
+          }}
+          onClick={() =>
+            setOpenGroups((prev) => ({
+              ...prev,
+              [group.key]: !prev[group.key],
+            }))
+          }
+          aria-expanded={isOpen}
+        >
+          <group.icon className={styles.icon} color={group.color} size={20} />
+          <span style={{ flex: 1, textAlign: "left", color: "#222" }}>
+            {group.label}
+          </span>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginLeft: 2,
+              transition: "transform 0.2s",
+              transform: isOpen ? "rotate(180deg)" : "none",
+            }}
+          >
+            <FiChevronDown size={18} color="#B0B3B9" />
+          </span>
+        </button>
+        <div
+          className={isOpen ? styles.submenuList : styles.submenuListHidden}
+          style={{ paddingLeft:  20, marginTop: 0 }}
+        >
+          {isOpen && group.children.map((child: any) => renderItem(child))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <aside className={styles.sidebar}>
       <div>
@@ -59,102 +181,25 @@ export function Sidebar() {
             <img
               src={theme === "dark" ? logoDark : logoLight}
               alt="Logo"
-              style={{ width: 40, height: 40 }}
+              style={{ width: 48, height: 48, marginBottom: 8 }}
             />
           </div>
-          <div style={{ paddingTop: 10 }}>
-            <strong className={styles.brandTitle}>GIUSEPPE</strong>
-            <span className={styles.brandSubtitle}>Gestão de Unidade</span>
+          <div style={{ paddingTop: 0 }}>
+            <strong
+              className={styles.brandTitle}
+              style={{ fontSize: 15, letterSpacing: 1 }}
+            >
+              GIUSEPPEVIDAL
+            </strong>
           </div>
         </div>
+        <div className={styles.footerDivider} />
+
 
         <nav className={styles.menu}>
-          <span className={styles.sectionTitle}>Menu principal</span>
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              isActive ? styles.active : styles.link
-            }
-          >
-            <FiGrid className={styles.icon} />
-            <span>Painel</span>
-          </NavLink>
-
-          <NavLink
-            to="/produtos"
-            className={({ isActive }) =>
-              isActive ? styles.active : styles.link
-            }
-          >
-            <FiBox className={styles.icon} />
-            <span>Produtos</span>
-          </NavLink>
-
-          <NavLink
-            to="/discount-stock"
-            className={({ isActive }) =>
-              isActive ? styles.active : styles.link
-            }
-          >
-            <FiShoppingCart className={styles.icon} />
-            <span>Baixa de estoque</span>
-          </NavLink>
-
-          <NavLink
-            to="/out-of-stock"
-            className={({ isActive }) =>
-              isActive ? styles.active : styles.link
-            }
-          >
-            <FiAlertCircle className={styles.icon} />
-            <span>Sem estoque</span>
-          </NavLink>
-
-          <NavLink
-            to="/suppliers"
-            className={({ isActive }) =>
-              isActive ? styles.active : styles.link
-            }
-          >
-            <FiUsers className={styles.icon} />
-            <span>Fornecedores</span>
-          </NavLink>
-
-          {/* <span className={styles.sectionTitle}>Relatorios</span>
-          <button
-            type="button"
-            className={styles.submenuToggle}
-            onClick={() => setReportsOpen((current) => !current)}
-            aria-expanded={reportsOpen}
-          >
-            <span className={styles.submenuTitle}>
-              <FileBarChart2Icon className={styles.icon} />
-              <span>Relatorios</span>
-            </span>
-            <ChevronDown
-              className={
-                reportsOpen ? styles.submenuChevronOpen : styles.submenuChevron
-              }
-            />
-          </button>
-          <div
-            className={
-              reportsOpen ? styles.submenuList : styles.submenuListHidden
-            }
-          >
-            {reportItems.map((item) => (
-              <NavLink
-                key={item.label}
-                to={item.to}
-                className={({ isActive }) =>
-                  isActive ? styles.subLinkActive : styles.subLink
-                }
-              >
-                <span className={styles.subIcon}>{item.icon}</span>
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </div> */}
+          {menu.map((node) =>
+            node.type === "group" ? renderGroup(node) : renderItem(node),
+          )}
         </nav>
       </div>
       <div className={styles.footer}>
@@ -182,8 +227,9 @@ export function Sidebar() {
           className={({ isActive }) =>
             isActive ? styles.active : styles.linkButton
           }
+          style={{ gap: 12 }}
         >
-          <FiSettings className={styles.icon} />
+          <FiSettings className={styles.icon} color="#636E72" size={20} />
           <span>Configurações</span>
         </NavLink>
 
@@ -193,8 +239,9 @@ export function Sidebar() {
           className={({ isActive }) =>
             isActive ? styles.buttonExit : styles.linkButton
           }
+          style={{ gap: 12 }}
         >
-          <IoExitOutline className={styles.icon} color="red" />
+          <IoExitOutline className={styles.icon} color="#D63031" size={20} />
           <span>Sair</span>
         </NavLink>
       </div>

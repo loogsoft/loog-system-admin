@@ -1,8 +1,9 @@
-import styles from "./OutOfStock.module.css";
+import styles from "./Credit.module.css";
 import { useEffect, useMemo, useState } from "react";
 import {
   FiAlertTriangle,
   FiBox,
+  FiDollarSign,
   FiFilter,
   FiGrid,
   FiSearch,
@@ -10,17 +11,19 @@ import {
 import EntityCard from "../../components/EntityCard";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { FilterModal } from "../../components/FilterModal";
+import { Plus } from "lucide-react";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
+import { MessageService } from "../../service/Message.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
+import { useLocation, useNavigate } from "react-router-dom";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
-import { useLocation, useNavigate } from "react-router-dom";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
-export function OutOfStock() {
+export function Credit() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,17 +31,20 @@ export function OutOfStock() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
+  const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
+  // Seta o id do produto no input de busca se vier via state
   useEffect(() => {
     if (location.state && location.state.id) {
       setQuery(String(location.state.id));
+      // Limpa o state após usar para evitar reuso em navegações futuras
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.state, location.pathname, navigate]);
+
   const [filters, setFilters] = useState<{
     minPrice: string;
     maxPrice: string;
@@ -50,7 +56,6 @@ export function OutOfStock() {
     category: "all",
     sortBy: null,
   });
-
   const categoryFromKey = (key: CategoryKey) => {
     switch (key) {
       case "shirt":
@@ -86,21 +91,19 @@ export function OutOfStock() {
     }
   };
 
-  // Produtos sem estoque: stock === 0 OU todas as variações com stock === 0
-  const outOfStockProducts = useMemo(() => {
-    return products.filter((p) => {
-      const mainStock = p.stock ?? 0;
-      if (mainStock <= 0) return true;
-      if (Array.isArray(p.variations) && p.variations.length > 0) {
-        return p.variations.some((v) => Number(v.stock ?? 0) <= 0);
+  const filtered = useMemo(() => {
+    let current = products.filter((p) => {
+      // Produto principal tem estoque
+      if (Number(p.stock) > 0) return true;
+      // Alguma variação tem estoque
+      if (Array.isArray(p.variations)) {
+        return p.variations.some((v) => Number(v.stock) > 0);
       }
+      // Nenhum estoque
       return false;
     });
-  }, [products]);
 
-  const filtered = useMemo(() => {
-    let current = [...outOfStockProducts];
-
+    // Filtro de categoria (select ou modal)
     const categoryToFilter =
       filters.category !== "all" ? filters.category : activeCat;
     if (categoryToFilter !== "all") {
@@ -110,6 +113,7 @@ export function OutOfStock() {
       }
     }
 
+    // Filtro de busca
     const trimmed = query.trim().toLowerCase();
     if (trimmed) {
       current = current.filter(
@@ -119,6 +123,7 @@ export function OutOfStock() {
       );
     }
 
+    // Filtro de preço
     if (filters.minPrice) {
       const min = parseFloat(filters.minPrice);
       current = current.filter((p) => Number(p.price) >= min);
@@ -128,6 +133,7 @@ export function OutOfStock() {
       current = current.filter((p) => Number(p.price) <= max);
     }
 
+    // Ordenação
     if (filters.sortBy === "price-asc") {
       current = [...current].sort((a, b) => Number(a.price) - Number(b.price));
     } else if (filters.sortBy === "price-desc") {
@@ -137,7 +143,7 @@ export function OutOfStock() {
     }
 
     return current;
-  }, [activeCat, outOfStockProducts, query, filters]);
+  }, [activeCat, products, query, filters]);
 
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / pageSize));
@@ -152,10 +158,10 @@ export function OutOfStock() {
 
   const counts = useMemo(() => {
     const countBy = (category: ProductCategoryEnum) =>
-      outOfStockProducts.filter((p) => p.category === category).length;
+      products.filter((p) => p.category === category).length;
 
     return {
-      all: outOfStockProducts.length,
+      all: products.length,
       shirt: countBy(ProductCategoryEnum.SHIRT),
       tshirt: countBy(ProductCategoryEnum.TSHIRT),
       polo: countBy(ProductCategoryEnum.POLO),
@@ -171,7 +177,7 @@ export function OutOfStock() {
       wallet: countBy(ProductCategoryEnum.WALLET),
       sunglasses: countBy(ProductCategoryEnum.SUNGLASSES),
     };
-  }, [outOfStockProducts]);
+  }, [products]);
 
   const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
     () => [
@@ -199,9 +205,23 @@ export function OutOfStock() {
     [],
   );
 
+  const totalValue = useMemo(() => {
+    return products.reduce((sum, p) => sum + Number(p.price || 0), 0);
+  }, [products]);
+
+  const lowStock = useMemo(() => {
+    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= 5)
+      .length;
+  }, [products]);
+
   const categoryTotal = useMemo(() => {
-    return new Set(outOfStockProducts.map((p) => p.category)).size;
-  }, [outOfStockProducts]);
+    return new Set(products.map((p) => p.category)).size;
+  }, [products]);
+
+  // const getPrimaryImageUrl = (images: ImageResponse[]) => {
+  //   const primary = (images || []).find((img: any) => img?.isPrimary);
+  //   return primary?.url || (images?.[0] as any)?.url || "";
+  // };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -210,6 +230,65 @@ export function OutOfStock() {
         setError(null);
         const data = await ProductService.findAll();
         setProducts(data);
+
+        for (const p of data) {
+          const primaryImage = (p.images || []).find((img) => img.isPrimary);
+          const imageUrl = primaryImage?.url || p.images?.[0]?.url || "";
+
+          if (p.isActiveStock && (p.stock ?? 0) === 0) {
+            try {
+              await MessageService.create({
+                productId: p.id,
+                name: p.name,
+                url: imageUrl,
+                type: "esgotado",
+                description: `O produto "${p.name}" foi esgotado. Estoque zerado. Realize a reposição imediatamente.`,
+              });
+            } catch {}
+          } else if (p.isActiveStock && (p.lowStock ?? 0) > (p.stock ?? 0)) {
+            try {
+              await MessageService.create({
+                productId: p.id,
+                name: p.name,
+                url: imageUrl,
+                type: "estoque_baixo",
+                description: `Alerta de estoque baixo: o produto "${p.name}" possui apenas ${p.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
+              });
+            } catch {}
+          }
+
+          if (Array.isArray(p.variations)) {
+            for (const v of p.variations) {
+              const varImage = v.imageUrl || imageUrl;
+              const varName =
+                `${p.name} - ${v.color || ""} ${v.size || ""}`.trim();
+              if (Number(v.stock ?? 0) === 0) {
+                try {
+                  await MessageService.create({
+                    productId: p.id,
+                    name: varName,
+                    url: varImage,
+                    type: "esgotado",
+                    description: `A variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" foi esgotada. Estoque zerado. Realize a reposição imediatamente.`,
+                  });
+                } catch {}
+              } else if (
+                p.isActiveStock &&
+                (p.lowStock ?? 0) > Number(v.stock ?? 0)
+              ) {
+                try {
+                  await MessageService.create({
+                    productId: p.id,
+                    name: varName,
+                    url: varImage,
+                    type: "estoque_baixo",
+                    description: `Alerta de estoque baixo: a variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" possui apenas ${v.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
+                  });
+                } catch {}
+              }
+            }
+          }
+        }
       } catch (err) {
         console.error(err);
         setError("Erro ao carregar produtos");
@@ -223,6 +302,7 @@ export function OutOfStock() {
 
   const handleDelete = async (id: string) => {
     if (deletingId) return;
+
     try {
       setDeletingId(id);
       await ProductService.remove(id);
@@ -239,39 +319,60 @@ export function OutOfStock() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Produtos sem estoque</h1>
+          <h1 className={styles.title}>Gestao de Crediarios</h1>
           <p className={styles.subtitle}>
-            Visualize todos os produtos com estoque zerado para reposição.
+            Gerencie os crediarios, visualize detalhes e mantenha tudo
+            atualizado.
           </p>
+        </div>
+
+        <div className={styles.headerActions}>
+          <button
+            className={styles.addBtn}
+            type="button"
+            onClick={() => navigate("/credit-details")}
+          >
+            <Plus size={16} />
+            Abrir Crediario
+          </button>
         </div>
       </div>
 
-      <section className={styles.metrics}>
+      <div className={styles.stats}>
         <StatCard
-          label="Total de produtos"
-          value={counts.all}
-          sub="Produtos sem estoque"
+          label="TOTAL DE CREDIARIOS"
+          value={counts.all.toLocaleString("pt-BR")}
           icon={<FiBox />}
-          iconColor="#EFF6FF"
-          iconBackgroundColor="#3B82F6"
-          valueColor="#3B82F6"
+          valueColor="#FFC83D"
         />
         <StatCard
-          label="Atenção"
-          value={"Reposição urgente"}
-          sub="Todos os itens zerados"
+          label="EM DIA"
+          value={totalValue.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
+          icon={<FiDollarSign />}
+          iconColor="#ECFDF5"
+          iconBackgroundColor="#059669"
+          valueColor="#059669"
+        />
+        <StatCard
+          label="EM ABERTO"
+          value={lowStock}
           icon={<FiAlertTriangle />}
           iconColor="#FFFBEB"
           iconBackgroundColor="#F59E0B"
           valueColor="#F59E0B"
         />
         <StatCard
-          label="Categorias"
+          label="VALOR TOTAL"
           value={categoryTotal}
-          sub="Categorias afetadas"
           icon={<FiGrid />}
+          iconColor="#EFF6FF"
+          iconBackgroundColor="#3B82F6"
+          valueColor="#3B82F6"
         />
-      </section>
+      </div>
 
       <div className={styles.gridContainer}>
         <div className={styles.filters}>
@@ -281,7 +382,7 @@ export function OutOfStock() {
               <input
                 className={styles.searchInput}
                 type="text"
-                placeholder="Buscar produtos sem estoque..."
+                placeholder="Buscar produtos..."
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
@@ -344,9 +445,9 @@ export function OutOfStock() {
         ) : paginated.length === 0 ? (
           <div className={styles.emptyState}>
             <FiBox className={styles.emptyIcon} />
-            <h3 className={styles.emptyTitle}>Nenhum produto sem estoque</h3>
+            <h3 className={styles.emptyTitle}>Nenhum produto encontrado</h3>
             <p className={styles.emptySubtitle}>
-              Todos os produtos estão com estoque disponível no momento.
+              Tente ajustar os filtros ou adicione novos produtos.
             </p>
           </div>
         ) : (

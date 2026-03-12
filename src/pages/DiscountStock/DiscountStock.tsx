@@ -237,6 +237,9 @@ export function DiscountStock() {
           value={products.length}
           sub="Produtos cadastrados"
           icon={<FiPackage />}
+          iconColor="#EFF6FF"
+          iconBackgroundColor="#3B82F6"
+          valueColor="#3B82F6"
         />
         <StatCard
           label="Total de vendas"
@@ -249,6 +252,9 @@ export function DiscountStock() {
           value={faturamentoFormatted}
           sub="Valor em estoque"
           icon={<FiDollarSign />}
+          iconColor="#ECFDF5"
+          iconBackgroundColor="#059669"
+          valueColor="#059669"
         />
       </section>
 
@@ -322,78 +328,82 @@ export function DiscountStock() {
             </div>
           </div>
           <div className={styles.cardGrid}>
-            {loading
-              ? Array.from({ length: pageSize }).map((_, i) => (
-                  <SkeletonCard key={i} />
-                ))
-              : pagedStockItems.length === 0
-              ? (
-                <div className={styles.emptyState}>
-                  <FiPackage className={styles.emptyIcon} />
-                  <h3 className={styles.emptyTitle}>Nenhum produto em promoção</h3>
-                  <p className={styles.emptySubtitle}>Adicione produtos ao estoque promocional.</p>
-                </div>
-              )
-              : pagedStockItems.map((item) => (
-                  <EntityCard
-                    key={item.id}
-                    id={item.id}
-                    type="product"
-                    name={item.name}
-                    description={item.description}
-                    category={item.category}
-                    price={item.price}
-                    promoPrice={item.promoPrice}
-                    imageUrl={[
-                      ...(item.images || []),
-                      ...(item.variations || [])
-                        .filter((v) => v.imageUrl)
-                        .map((v) => ({
-                          url: v.imageUrl!,
-                          fileName: v.name || "",
-                          id: "",
-                          isPrimary: false,
-                        })),
-                    ]}
-                    stock={item.stock}
-                    lowStock={item.lowStock}
-                    isActiveStock={item.isActiveStock}
-                    available={item.status === ProductStatusEnum.ACTIVED}
-                    color={item.color}
-                    colors={Array.from(
-                      new Set([
-                        ...(item.color ? [item.color] : []),
-                        ...((item.variations || [])
-                          .map((v) => v.color)
-                          .filter(Boolean) as string[]),
-                      ]),
-                    )}
-                    size={item.size}
-                    sizes={Array.from(
-                      new Set([
-                        ...(item.size ? [item.size] : []),
-                        ...((item.variations || [])
-                          .map((v) => v.size)
-                          .filter(Boolean) as string[]),
-                      ]),
-                    )}
-                    navigateTo=""
-                    status={item.status}
-                    variations={item.variations}
-                    actionButton={
-                      <button
-                        className={styles.actionBtn}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDarBaixaProduct(item);
-                        }}
-                      >
-                        Dar baixa
-                      </button>
-                    }
-                  />
-                ))}
+            {loading ? (
+              Array.from({ length: pageSize }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))
+            ) : pagedStockItems.length === 0 ? (
+              <div className={styles.emptyState}>
+                <FiPackage className={styles.emptyIcon} />
+                <h3 className={styles.emptyTitle}>
+                  Nenhum produto em promoção
+                </h3>
+                <p className={styles.emptySubtitle}>
+                  Adicione produtos ao estoque promocional.
+                </p>
+              </div>
+            ) : (
+              pagedStockItems.map((item) => (
+                <EntityCard
+                  key={item.id}
+                  id={item.id}
+                  type="product"
+                  name={item.name}
+                  description={item.description}
+                  category={item.category}
+                  price={item.price}
+                  promoPrice={item.promoPrice}
+                  imageUrl={[
+                    ...(item.images || []),
+                    ...(item.variations || [])
+                      .filter((v) => v.imageUrl)
+                      .map((v) => ({
+                        url: v.imageUrl!,
+                        fileName: v.name || "",
+                        id: "",
+                        isPrimary: false,
+                      })),
+                  ]}
+                  stock={item.stock}
+                  lowStock={item.lowStock}
+                  isActiveStock={item.isActiveStock}
+                  available={item.status === ProductStatusEnum.ACTIVED}
+                  color={item.color}
+                  colors={Array.from(
+                    new Set([
+                      ...(item.color ? [item.color] : []),
+                      ...((item.variations || [])
+                        .map((v) => v.color)
+                        .filter(Boolean) as string[]),
+                    ]),
+                  )}
+                  size={item.size}
+                  sizes={Array.from(
+                    new Set([
+                      ...(item.size ? [item.size] : []),
+                      ...((item.variations || [])
+                        .map((v) => v.size)
+                        .filter(Boolean) as string[]),
+                    ]),
+                  )}
+                  navigateTo=""
+                  status={item.status}
+                  variations={item.variations}
+                  actionButton={
+                    <button
+                      className={styles.actionBtn}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDarBaixaProduct(item);
+                      }}
+                    >
+                      Dar baixa
+                    </button>
+                  }
+                />
+              ))
+            )}
           </div>
           <div className={styles.tableFooter}>
             <div className={styles.tableSummary}>
@@ -488,46 +498,50 @@ export function DiscountStock() {
             {pagedHistoryItems.length === 0 ? (
               <div className={styles.emptyState}>
                 <FiShoppingBag className={styles.emptyIcon} />
-                <h3 className={styles.emptyTitle}>Nenhuma movimentação registrada</h3>
-                <p className={styles.emptySubtitle}>O histórico de baixas aparecerá aqui.</p>
+                <h3 className={styles.emptyTitle}>
+                  Nenhuma movimentação registrada
+                </h3>
+                <p className={styles.emptySubtitle}>
+                  O histórico de baixas aparecerá aqui.
+                </p>
               </div>
             ) : (
               pagedHistoryItems.map((item) => (
-              <EntityCard
-                key={item.id}
-                id={item.id}
-                type="product"
-                name={item.variation?.name || ""}
-                description={`${item.reason} — ${item.responsibleName}`}
-                category={item.reason as any}
-                price={0}
-                imageUrl={[]}
-                stock={item.quantity}
-                lowStock={0}
-                isActiveStock={false}
-                available={true}
-                navigateTo=""
-                status={ProductStatusEnum.ACTIVED}
-                actionButton={
-                  <>
-                    <div className={styles.historyOwnerBadge}>
-                      <FiUser className={styles.historyOwnerIcon} />
-                      <span>{item.responsibleName}</span>
-                    </div>
-                    <button
-                      className={styles.actionOutlineBtn}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setVoltarEstoqueItem(item);
-                      }}
-                    >
-                      Voltar ao estoque
-                    </button>
-                  </>
-                }
-              />
-            ))
+                <EntityCard
+                  key={item.id}
+                  id={item.id}
+                  type="product"
+                  name={item.variation?.name || ""}
+                  description={`${item.reason} — ${item.responsibleName}`}
+                  category={item.reason as any}
+                  price={0}
+                  imageUrl={[]}
+                  stock={item.quantity}
+                  lowStock={0}
+                  isActiveStock={false}
+                  available={true}
+                  navigateTo=""
+                  status={ProductStatusEnum.ACTIVED}
+                  actionButton={
+                    <>
+                      <div className={styles.historyOwnerBadge}>
+                        <FiUser className={styles.historyOwnerIcon} />
+                        <span>{item.responsibleName}</span>
+                      </div>
+                      <button
+                        className={styles.actionOutlineBtn}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setVoltarEstoqueItem(item);
+                        }}
+                      >
+                        Voltar ao estoque
+                      </button>
+                    </>
+                  }
+                />
+              ))
             )}
           </div>
           <div className={styles.tableFooter}>

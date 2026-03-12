@@ -10,6 +10,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import {
+  FiAlertTriangle,
   FiAward,
   FiBox,
   FiDollarSign,
@@ -32,241 +33,12 @@ type MetricCard = {
   badgeTone?: "success" | "neutral";
 };
 
-type RecentSale = {
-  id: string;
-  date: string;
-  time: string;
-  client: { initials: string };
-  clientName: string;
-  products: string;
-  total: string;
-  status: "CONCLUIDO" | "CANCELADO";
-};
-
 type Period = "day" | "week" | "month";
-
-type ChartPoint = {
-  name: string;
-  value: number;
-};
 
 type CustomTooltipProps = {
   active?: boolean;
   payload?: Array<{ value?: number | string }>;
   label?: string;
-};
-
-type PeriodData = {
-  metrics: MetricCard[];
-  chart: ChartPoint[];
-  recent: RecentSale[];
-};
-
-const DASHBOARD_MOCK: Record<Period, PeriodData> = {
-  day: {
-    metrics: [
-      {
-        label: "VENDAS TOTAIS",
-        value: "128",
-        badge: "+3.1%",
-        icon: "discountStock",
-        badgeTone: "success",
-      },
-      {
-        label: "FATURAMENTO",
-        value: "R$ 6.420",
-        badge: "+1.4%",
-        icon: "money",
-        badgeTone: "success",
-      },
-    ],
-    chart: [
-      { name: "08h", value: 12 },
-      { name: "10h", value: 18 },
-      { name: "12h", value: 32 },
-      { name: "14h", value: 26 },
-      { name: "16h", value: 22 },
-      { name: "18h", value: 41 },
-      { name: "20h", value: 33 },
-    ],
-    recent: [
-      {
-        id: "#99102",
-        date: "09 Fev",
-        time: "19:42",
-        client: { initials: "RM" },
-        clientName: "Ricardo Mendes",
-        products: "1x Camisa Polo, 1x Cinto Couro",
-        total: "R$ 54,90",
-        status: "CONCLUIDO",
-      },
-      {
-        id: "#99101",
-        date: "09 Fev",
-        time: "19:30",
-        client: { initials: "AS" },
-        clientName: "Amanda Silva",
-        products: "2x Camiseta Basica, 1x Calca Jeans",
-        total: "R$ 82,00",
-        status: "CONCLUIDO",
-      },
-      {
-        id: "#99098",
-        date: "09 Fev",
-        time: "19:25",
-        client: { initials: "JO" },
-        clientName: "João Oliveira",
-        products: "1x Jaqueta Corta Vento, 1x Mochila",
-        total: "R$ 42,50",
-        status: "CANCELADO",
-      },
-      {
-        id: "#99094",
-        date: "09 Fev",
-        time: "19:10",
-        client: { initials: "CP" },
-        clientName: "Carla P.",
-        products: "3x Camiseta Infantil",
-        total: "R$ 115,00",
-        status: "CONCLUIDO",
-      },
-    ],
-  },
-  week: {
-    metrics: [
-      {
-        label: "VENDAS TOTAIS",
-        value: "4,289",
-        badge: "+12.5%",
-        icon: "discountStock",
-        badgeTone: "success",
-      },
-      {
-        label: "FATURAMENTO",
-        value: "R$ 158.240",
-        badge: "+8.2%",
-        icon: "money",
-        badgeTone: "success",
-      },
-    ],
-    chart: [
-      { name: "SEG", value: 48 },
-      { name: "TER", value: 64 },
-      { name: "QUA", value: 58 },
-      { name: "QUI", value: 92 },
-      { name: "SEX", value: 24 },
-      { name: "SAB", value: 96 },
-      { name: "DOM", value: 86 },
-    ],
-    recent: [
-      {
-        id: "#88421",
-        date: "12 Out",
-        time: "19:42",
-        client: { initials: "RM" },
-        clientName: "Ricardo Mendes",
-        products: "1x Camisa Polo, 1x Cinto Couro",
-        total: "R$ 54,90",
-        status: "CONCLUIDO",
-      },
-      {
-        id: "#88428",
-        date: "12 Out",
-        time: "19:30",
-        client: { initials: "AS" },
-        clientName: "Amanda Silva",
-        products: "2x Camiseta Basica, 1x Calca Jeans",
-        total: "R$ 82,00",
-        status: "CONCLUIDO",
-      },
-      {
-        id: "#88419",
-        date: "12 Out",
-        time: "19:25",
-        client: { initials: "JO" },
-        clientName: "Joao Oliveira",
-        products: "1x Jaqueta Corta Vento, 1x Mochila",
-        total: "R$ 42,50",
-        status: "CANCELADO",
-      },
-      {
-        id: "#88418",
-        date: "12 Out",
-        time: "19:10",
-        client: { initials: "CP" },
-        clientName: "Carla P.",
-        products: "3x Camiseta Infantil",
-        total: "R$ 115,00",
-        status: "CONCLUIDO",
-      },
-    ],
-  },
-  month: {
-    metrics: [
-      {
-        label: "VENDAS TOTAIS",
-        value: "18,902",
-        badge: "+6.8%",
-        icon: "discountStock",
-        badgeTone: "success",
-      },
-      {
-        label: "FATURAMENTO",
-        value: "R$ 612.980",
-        badge: "+4.1%",
-        icon: "money",
-        badgeTone: "success",
-      },
-    ],
-    chart: [
-      { name: "SEM 1", value: 210 },
-      { name: "SEM 2", value: 248 },
-      { name: "SEM 3", value: 226 },
-      { name: "SEM 4", value: 268 },
-    ],
-    recent: [
-      {
-        id: "#87021",
-        date: "02 Fev",
-        time: "12:16",
-        client: { initials: "FP" },
-        clientName: "Felipe Pereira",
-        products: "2x Moletom, 1x Bone",
-        total: "R$ 96,40",
-        status: "CONCLUIDO",
-      },
-      {
-        id: "#87013",
-        date: "01 Fev",
-        time: "18:03",
-        client: { initials: "LL" },
-        clientName: "Larissa Lima",
-        products: "1x Vestido Midi, 1x Bolsa",
-        total: "R$ 84,90",
-        status: "CONCLUIDO",
-      },
-      {
-        id: "#86988",
-        date: "29 Jan",
-        time: "20:10",
-        client: { initials: "CB" },
-        clientName: "Carlos Braga",
-        products: "2x Camisa Social",
-        total: "R$ 74,00",
-        status: "CANCELADO",
-      },
-      {
-        id: "#86975",
-        date: "28 Jan",
-        time: "19:22",
-        client: { initials: "DM" },
-        clientName: "Diana M.",
-        products: "1x Jaqueta Jeans, 1x Shorts",
-        total: "R$ 68,00",
-        status: "CONCLUIDO",
-      },
-    ],
-  },
 };
 
 const METRIC_ICONS: Record<MetricCard["icon"], JSX.Element> = {
@@ -291,6 +63,7 @@ export function Dashboard() {
   const [period, setPeriod] = useState<Period>("week");
   const { theme } = useTheme();
   const [stockiten, setStockIten] = useState(0);
+  const [lowStock, setLowStock] = useState(0);
   const [recentMovements, setRecentMovements] = useState<
     StockMovementResponseDto[]
   >([]);
@@ -298,8 +71,6 @@ export function Dashboard() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
-
-  const periodData = useMemo(() => DASHBOARD_MOCK[period], [period]);
 
   const periodMovements = useMemo(() => {
     const now = new Date();
@@ -333,10 +104,7 @@ export function Dashboard() {
     () =>
       periodMovements
         .filter((m) => m.type === "OUT")
-        .reduce(
-          (acc, m) => acc + m.quantity * Number(m.variation?.price ?? 0),
-          0,
-        ),
+        .reduce((acc, m) => acc + Number(m.price || m.variation?.price || 0), 0),
     [periodMovements],
   );
   const chartColors = {
@@ -346,11 +114,47 @@ export function Dashboard() {
     grid: "var(--border-default)",
   };
 
+  const chartData = useMemo(() => {
+    const map: Record<string, number> = {};
+
+    periodMovements
+      .filter((m) => m.type === "OUT")
+      .forEach((m) => {
+        const d = new Date(m.createdAt);
+        let key = "";
+
+        if (period === "day") {
+          key = `${String(d.getHours()).padStart(2, "0")}h`;
+        }
+
+        if (period === "week") {
+          const days = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+          key = days[d.getDay()];
+        }
+
+        if (period === "month") {
+          const week = Math.ceil(d.getDate() / 7);
+          key = `SEM ${week}`;
+        }
+
+        map[key] = (map[key] || 0) + m.quantity;
+      });
+
+    return Object.entries(map).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  }, [periodMovements, period]);
   useEffect(() => {
     try {
       const totalProduct: any = async () => {
         const data = await ProductService.findAll();
         setStockIten(data.length);
+
+        const low = data.filter(
+          (p) => p.isActiveStock && (p.stock ?? 0) <= p.lowStock,
+        );
+        setLowStock(low.length);
       };
       totalProduct();
     } catch (error) {}
@@ -378,7 +182,9 @@ export function Dashboard() {
       list = list.filter(
         (m) =>
           (m.responsibleName || "").toLowerCase().includes(trimmed) ||
-          (m.productName || m.variation?.name || "").toLowerCase().includes(trimmed) ||
+          (m.productName || m.variation?.name || "")
+            .toLowerCase()
+            .includes(trimmed) ||
           m.id.toLowerCase().includes(trimmed),
       );
     }
@@ -400,6 +206,7 @@ export function Dashboard() {
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
   }, [currentPage, maxPageMovements]);
+
 
   return (
     <div className={styles.page}>
@@ -450,6 +257,9 @@ export function Dashboard() {
           value={totalVendas.toLocaleString("pt-BR")}
           icon={METRIC_ICONS["discountStock"]}
           badgeTone="success"
+          iconColor="#EFF6FF"
+          iconBackgroundColor="#3B82F6"
+          valueColor="#3B82F6"
         />
         <StatCard
           label="FATURAMENTO"
@@ -459,6 +269,9 @@ export function Dashboard() {
           })}
           icon={METRIC_ICONS["money"]}
           badgeTone="success"
+          iconColor="#ECFDF5"
+          iconBackgroundColor="#059669"
+          valueColor="#059669"
         />
         <StatCard
           key={1}
@@ -466,6 +279,17 @@ export function Dashboard() {
           icon={METRIC_ICONS["ticket"]}
           value={stockiten.toString()}
           badgeTone={"success"}
+          iconColor="#FFFBEB"
+          iconBackgroundColor="#F59E0B"
+          valueColor="#F59E0B"
+        />
+        <StatCard
+          label="ESTOQUE BAIXO"
+          value={lowStock}
+          icon={<FiAlertTriangle />}
+          iconColor="#FFFBEB"
+          iconBackgroundColor="#f50b0bd7"
+          valueColor="#f50b0bd7"
         />
       </div>
 
@@ -479,9 +303,12 @@ export function Dashboard() {
           </div>
 
           <div className={styles.legend}>
-            <span className={styles.legendItem}>HOJE</span>
-            <span className={`${styles.legendItem} ${styles.legendMuted}`}>
-              ONTEM
+            <span className={styles.legendItem}>
+              {period === "day"
+                ? "Hoje"
+                : period === "week"
+                  ? "Esta Semana"
+                  : "Este Mês"}
             </span>
           </div>
         </div>
@@ -490,7 +317,7 @@ export function Dashboard() {
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
               key={theme}
-              data={periodData.chart}
+              data={chartData}
               margin={{ top: 8, right: 8, left: 8, bottom: 6 }}
             >
               <defs>
@@ -578,11 +405,15 @@ export function Dashboard() {
 
         <div className={styles.table}>
           <div className={`${styles.row} ${styles.thead}`}>
-            <div>ID</div>
+            <div>PRODUTO</div>
             <div>DATA/HORA</div>
             <div>RESPONSÁVEL</div>
-            <div>PRODUTO</div>
-            <div>QTD</div>
+            <div>VARIAÇÃO</div>
+            <div className={styles.qtdValorCell}>
+              <span>QTD</span>
+              <span>VALOR</span>
+              <span>FORMA DE PAGAMENTO</span>
+            </div>
             <div>MOTIVO</div>
             <div>TIPO</div>
           </div>
@@ -615,7 +446,9 @@ export function Dashboard() {
                 .join("");
               return (
                 <div key={r.id} className={styles.row}>
-                  <div className={styles.idCell}>#{r.id.slice(0, 8)}</div>
+                  <div className={styles.idCell}>
+                    {r.productName || r.variation?.name || "-"}
+                  </div>
                   <div className={styles.dateCell}>
                     <div>{date}</div>
                     <div className={styles.muted}>{time}</div>
@@ -627,10 +460,27 @@ export function Dashboard() {
                     </div>
                   </div>
                   <div className={styles.productsCell}>
-                    {r.productName || r.variation?.name || "-"}
+                    {r.variation?.color && (
+                      <span
+                        className={styles.colorDot}
+                        style={{ backgroundColor: r.variation.color }}
+                      />
+                    )}
+                    {r.variation?.size || "-"}
                   </div>
-                  <div className={styles.totalCell}>{r.quantity}x</div>
-                  <div>{r.reason || "-"}</div>
+                  <div className={styles.qtdValorCell}>
+                    <span className={styles.totalCell}>{r.quantity}x</span>
+                    <span className={styles.valueCell}>
+                      R$
+                      {r.price.length > 5
+                        ? r.price.slice(0, 4) + "..."
+                        : r.price || "-"}
+                    </span>
+                    <span className={styles.paymentCell}>
+                      {r.paymentMethod || "-"}
+                    </span>
+                  </div>
+                  <div className={styles.reasonCell}>{r.reason || "-"}</div>
                   <div>
                     <span
                       className={

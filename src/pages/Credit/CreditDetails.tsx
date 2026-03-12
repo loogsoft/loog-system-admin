@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import styles from "./ProductDetails.module.css";
+import styles from "./CreditDetails.module.css";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 import { ProductService } from "../../service/Product.service";
@@ -28,7 +28,7 @@ const ProductType = {
   VARIATION: "VARIATION",
 } as const;
 
-export function ProductsDetails() {
+export function CreditDetails() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEdit = !!id;
@@ -391,7 +391,6 @@ export function ProductsDetails() {
               color: variation.color,
               size: variation.size,
               images: variation.images,
-              lowStock: variationLowStockAlertEnabled ? Number(variationLowStock || "0") : 0,
             };
           })
         : undefined;
