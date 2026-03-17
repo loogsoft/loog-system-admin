@@ -11,7 +11,7 @@ import { Save, Plus, Pencil } from "lucide-react";
 import { ImageGallery } from "../../components/ImageGallery";
 import EntityCard from "../../components/EntityCard";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
-import { FiCreditCard, FiTrash2 } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
 
 type Variation = ProductVariationRequestDto | ProductVariationResponseDto;
 
@@ -78,34 +78,6 @@ export function ProductsDetails() {
     setPrice(formatCurrency(raw));
   };
 
-  const handlePromoPriceChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const raw = event.target.value.replace(/[^0-9]/g, "");
-    if (!raw) {
-      setPromoPrice("");
-      return;
-    }
-    setPromoPrice(formatCurrency(raw));
-  };
-
-  const handleVariationPriceChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    let value = event.target.value.replace(/[^0-9,]/g, "");
-    // Se o usuário digitar só números, formata para 2 casas decimais
-    if (/^\d+$/.test(value)) {
-      value = (parseInt(value, 10) / 100).toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    } else if (/^\d+,\d*$/.test(value)) {
-      // Se já tem vírgula, limita para 2 casas decimais
-      const [intPart, decPart] = value.split(",");
-      value = intPart + "," + (decPart ? decPart.slice(0, 2) : "");
-    }
-    setVariationPrice(value);
-  };
   const [existingImageIds, setExistingImageIds] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [saving, setSaving] = useState(false);

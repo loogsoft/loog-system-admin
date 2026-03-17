@@ -467,7 +467,7 @@ export function Credit() {
                   ...(p.variations || [])
                     .filter((v) => v.imageUrl)
                     .map((v) => ({
-                      url: v.imageUrl!,
+                      url: Array.isArray(v.imageUrl) ? (v.imageUrl[0] || "") : (v.imageUrl || ""),
                       fileName: v.name || "",
                       id: v.id || "",
                       isPrimary: false,

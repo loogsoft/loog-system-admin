@@ -311,7 +311,7 @@ export function CreditDetails() {
 
     const newVariation: ProductVariationRequestDto = {
       name: `${variationColor.trim()} ${variationSize.trim()}`,
-      price: variationPrice.trim() ? Number(toDot(variationPrice)) : undefined,
+      price: typeof variationPrice === "string" ? (variationPrice.trim() ? Number(toDot(variationPrice)) : undefined) : variationPrice,
       stock: Number(variationStock),
       color: variationColor.trim(),
       size: variationSize.trim(),
@@ -321,6 +321,7 @@ export function CreditDetails() {
         variationImageFiles.length > 0
           ? variationImageFiles
           : (existingImages as any),
+      activeLowStock: variationLowStockAlertEnabled,
     };
 
     if (targetIndex !== null) {
@@ -376,11 +377,13 @@ export function CreditDetails() {
         ? variations.map((variation) => {
             let priceValue: number | undefined = undefined;
             if (typeof variation.price === "string") {
-              priceValue = variation.price.trim()
-                ? Number(toDot(variation.price))
+              priceValue = (variation.price as string).trim()
+                ? Number(toDot(variation.price as string))
                 : undefined;
             } else if (typeof variation.price === "number") {
               priceValue = variation.price;
+            } else {
+              priceValue = undefined;
             }
 
             return {

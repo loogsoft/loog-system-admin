@@ -300,7 +300,7 @@ export function DarBaixaModal({
                 >
                   {v.imageUrl ? (
                     <img
-                      src={v.imageUrl}
+                      src={Array.isArray(v.imageUrl) ? (v.imageUrl[0] || "") : (v.imageUrl || "")}
                       alt={v.size || v.name}
                       className={styles.variationChipImg}
                     />

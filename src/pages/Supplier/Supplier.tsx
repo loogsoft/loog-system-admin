@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   FiFilter,
   FiGrid,
-  FiPackage,
   FiSearch,
   FiUserCheck,
   FiUsers,
@@ -211,10 +210,7 @@ export function Supplier() {
 
   const totalSuppliers = suppliers.length;
   const activeSuppliers = suppliers.filter((s) => s.status === "active").length;
-  const openDiscountStock = suppliers.reduce(
-    (sum, s) => sum + s.openDiscountStock,
-    0,
-  );
+
   const categoriesTotal = new Set(suppliers.map((s) => s.category)).size;
 
   return (
