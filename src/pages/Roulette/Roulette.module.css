@@ -1,4 +1,3 @@
-/* --- PADRÃO DA GRID DE PRODUTOS (copiado de Product.module.css) --- */
 .filters {
   display: flex;
   align-items: center;
@@ -225,7 +224,6 @@
   transition: background 0.2s, color 0.2s;
 }
 .tabBtnActive {
-  composes: tabBtn;
   background: #FFD54F;
   color: #fff;
 }
