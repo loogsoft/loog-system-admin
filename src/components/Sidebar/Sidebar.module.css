@@ -14,21 +14,21 @@
 
 .brand {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
   gap: 10px;
   margin-bottom: 20px;
+  padding-left: 15px;
 }
 
 .brandIcon {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  background-color: #f2b632;
+  background-color: var(--highlight-primary);
 }
 
 .brandIconInner {
@@ -40,7 +40,7 @@
 }
 
 .brandTitle {
-  font-size: 15px;
+  font-size: 12px;
   letter-spacing: 0.8px;
   font-weight: 600;
   color: var(--text-primary);
@@ -236,8 +236,8 @@
   align-items: center;
   gap: 12px;
   padding: 15px 20px;
-  background: #f2b5322d;
-  color: #f6b426;
+  background: var(--highlight-secondary);
+  color: var(--highlight-primary);
   border-radius: 12px;
   font-weight: 400;
   text-decoration: none;

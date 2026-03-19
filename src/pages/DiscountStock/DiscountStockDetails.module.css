@@ -108,7 +108,7 @@
   padding: 0 18px;
   border-radius: 12px;
   border: none;
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #ffffff;
   cursor: pointer;
   font-weight: 600;

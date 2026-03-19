@@ -586,7 +586,7 @@ export function ProductsDetails() {
                           flex: 1,
                           background:
                             productType === ProductType.UNIQUE
-                              ? "#FFC83D"
+                              ? "var(--highlight-primary)"
                               : "#F6F6F6",
                           color:
                             productType === ProductType.UNIQUE
@@ -619,7 +619,7 @@ export function ProductsDetails() {
                           flex: 1,
                           background:
                             productType === ProductType.VARIATION
-                              ? "#FFC83D"
+                              ? "var(--highlight-primary)"
                               : "#F6F6F6",
                           color:
                             productType === ProductType.VARIATION

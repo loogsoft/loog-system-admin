@@ -95,7 +95,7 @@
 }
 
 .totalBadge {
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -187,14 +187,14 @@
 }
 
 .tab:hover {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   color: var(--text-primary);
 }
 
 .tabActive {
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #fff;
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
 }
 
 .tabActive:hover {
@@ -245,11 +245,11 @@
 }
 
 .cardWarning {
-  border-left: 3px solid #FFC83D;
+  border-left: 3px solid var(--highlight-primary);
 }
 
 .cardWarning:hover {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
 }
 
 .cardDanger {
@@ -313,7 +313,7 @@
 }
 
 .cardWarning .cardIconBadge {
-  background: #FFC83D;
+  background: var(--highlight-primary);
 }
 
 .cardDanger .cardIconBadge {
@@ -321,7 +321,7 @@
 }
 
 .iconWarning {
-  color: #FFC83D;
+  color: var(--highlight-primary);
   font-size: 18px;
 }
 
@@ -488,7 +488,7 @@
 }
 
 .searchBtn {
-  background: #FFC83D;
+  background: var(--highlight-primary);
   border: none;
   color: #fff;
   font-size: 11px;

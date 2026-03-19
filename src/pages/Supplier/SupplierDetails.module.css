@@ -60,7 +60,7 @@
 	padding: 0 18px;
 	border-radius: 12px;
 	border: none;
-	background: #FFC83D;
+	background: var(--highlight-primary);
 	color: #ffffff;
 	font-weight: 600;
 	font-size: 13px;
@@ -68,7 +68,6 @@
 	align-items: center;
 	gap: 8px;
 	cursor: pointer;
-	box-shadow: 0 14px 26px rgba(255, 200, 61, 0.22);
 	transition: all 0.2s ease;
 }
 
@@ -189,13 +188,13 @@
 	width: 24px;
 	height: 24px;
 	border-radius: 8px;
-	background: #fff4c6;
+	background: var(--highlight-secondary);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	font-size: 12px;
 	font-weight: 900;
-	color: #7a5e00;
+	color: var(--highlight-primary);
 }
 
 .panelTitle {
@@ -257,7 +256,7 @@
 
 .input:focus,
 .select:focus {
-	border-color: #FFC83D;
+	border-color: var(--highlight-primary);
 	box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 

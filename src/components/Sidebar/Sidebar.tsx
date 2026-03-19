@@ -16,7 +16,7 @@ import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
 import logoLight from "../../assets/logo-preta.png";
 import logoDark from "../../assets/logo-branco.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GitGraphIcon } from "lucide-react";
 
 // Estrutura dinâmica do menu
@@ -86,6 +86,19 @@ export function Sidebar() {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    const companyData = localStorage.getItem("company");
+    if (companyData) {
+      const company = JSON.parse(companyData);
+      if (company.companyName) {
+        setName(company.companyName || company.name || "");
+      } else {
+        setName("Loog System");
+      }
+    }
+  }, []);
 
   function handleLogout() {
     logout();
@@ -135,7 +148,9 @@ export function Sidebar() {
           aria-expanded={isOpen}
         >
           <group.icon className={styles.icon} color={group.color} size={20} />
-          <span style={{ flex: 1, textAlign: "left", fontSize: 15 }}>{group.label}</span>
+          <span style={{ flex: 1, textAlign: "left", fontSize: 15 }}>
+            {group.label}
+          </span>
           <span
             style={{
               display: "flex",
@@ -166,15 +181,15 @@ export function Sidebar() {
             <img
               src={theme === "light" ? logoDark : logoLight}
               alt="Logo"
-              style={{ width: 40, height: 40 }}
+              style={{ width: 30, height: 30 }}
             />
           </div>
-          <div style={{ paddingTop: 0 }}>
+          <div style={{ paddingBottom: 5 }}>
             <strong
               className={styles.brandTitle}
-              style={{ fontSize: 17, letterSpacing: 1 }}
+              style={{ fontSize: 20, letterSpacing: 1 }}
             >
-              GIUSEPPEVIDAL
+              {name}
             </strong>
           </div>
         </div>

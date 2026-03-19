@@ -1,4 +1,5 @@
 import type { LoginRequestDto } from "../dtos/request/login-request.dto";
+import type { UserRequestDto } from "../dtos/request/user-request.dto";
 import type { VerifyCoderequestDto } from "../dtos/request/verification-code-request.dto";
 import type { LoginResponseDto } from "../dtos/response/login-response.dto";
 import api from "./api";
@@ -15,27 +16,27 @@ type UserProfileResponse = {
 };
 
 export const UserService = {
-  verifyEmail: async (dto: LoginRequestDto) => {
-    const response = await api.post(
-      "/users/verify-email",
-      dto
-    );
+  create: async (dto: UserRequestDto) => {
+    const response = await api.post("/users", dto);
+    return response.data;
+  },
+  verifyEmail: async (dto: LoginRequestDto): Promise<{ companyId: string }> => {
+    const response = await api.post("/users/verify-email", dto);
     return response.data;
   },
 
-  verificationToken: async (dto: VerifyCoderequestDto): Promise<LoginResponseDto> => {
+  verificationToken: async (
+    dto: VerifyCoderequestDto,
+  ): Promise<LoginResponseDto> => {
     const response = await api.post<LoginResponseDto>(
       "/users/verify-code",
-      dto
+      dto,
     );
     return response.data;
   },
 
   activate: async (body: string): Promise<string> => {
-    const response = await api.post<string>(
-      "/users/activate-api",
-      { body }
-    );
+    const response = await api.post<string>("/users/activate-api", { body });
     return response.data;
   },
 
@@ -48,5 +49,4 @@ export const UserService = {
     const response = await api.get<UserProfileResponse>(`/users/${id}`);
     return response.data;
   },
-  
 };

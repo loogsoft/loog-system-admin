@@ -28,7 +28,7 @@
 
 .saveButton {
   padding: 10px 16px;
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #ffffff;
   border: none;
   border-radius: 12px;
@@ -40,7 +40,7 @@
 }
 
 .saveButton:hover {
-  background: #FFBA0F;
+  background: var(--highlight-primary);
   box-shadow: 0 4px 12px rgba(255, 200, 61, 0.3);
 }
 
@@ -184,7 +184,7 @@
 
 .input:focus {
   outline: none;
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 

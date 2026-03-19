@@ -186,7 +186,7 @@
 
 .primaryBtn {
   border: none;
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #ffffff;
   font-weight: 600;
   font-size: 13px;
@@ -298,7 +298,7 @@
 }
 
 .search:focus-within {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 
@@ -349,7 +349,7 @@
 
 .filterBtn:active,
 .filterBtn:focus {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }

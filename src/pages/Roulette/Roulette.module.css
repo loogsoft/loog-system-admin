@@ -23,7 +23,7 @@
   border-color: #000;
 }
 .search:focus-within {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 .searchIcon {
@@ -200,7 +200,7 @@
 }
 
 .iconBtnEdit:hover {
-  background: #FFD54F;
+  background: var(--highlight-primary);
   color: #fff;
   transform: scale(1.05);
 }
@@ -224,7 +224,7 @@
   transition: background 0.2s, color 0.2s;
 }
 .tabBtnActive {
-  background: #FFD54F;
+  background: var(--highlight-primary);
   color: #fff;
 }
 .productsBox {
@@ -314,7 +314,7 @@
   border: 1px solid #ddd;
 }
 .featuredAddBtn {
-  background: #FFC107;
+  background: var(--highlight-primary);
   border: none;
   padding: 10px 16px;
   border-radius: 8px;
@@ -323,7 +323,7 @@
   transition: background 0.18s;
 }
 .featuredAddBtn:hover {
-  background: #FFB300;
+  background: var(--highlight-primary);
 }
 .featuredList {
   display: flex;
@@ -335,7 +335,7 @@
   padding: 10px;
   position: relative;
   background: #fff;
-  box-shadow: 0 1px 4px #FFD54F22;
+  box-shadow: 0 1px 4px rgba(255, 200, 61, 0.13);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -382,7 +382,7 @@
   align-items: center;
   gap: 6px;
   background: none;
-  color: #FFD54F;
+  color: var(--highlight-primary);
   border: none;
   font-weight: 700;
   font-size: 16px;
@@ -426,14 +426,14 @@
   font-weight: 600;
   font-size: 15px;
   padding: 4px 12px;
-  border: 1.5px solid #FFD54F;
-  color: #FFD54F;
+  border: 1.5px solid var(--highlight-primary);
+  color: var(--highlight-primary);
   background: #fff;
   cursor: pointer;
   transition: background 0.18s, color 0.18s, border 0.18s;
 }
 .actionBtn:hover {
-  background: #FFD54F;
+  background: var(--highlight-primary);
   color: #fff;
 }
 .actionBtn.delete {

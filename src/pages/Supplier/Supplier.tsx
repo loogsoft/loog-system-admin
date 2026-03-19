@@ -1,5 +1,5 @@
+import styles from "./Supplier.module.css";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   FiFilter,
   FiGrid,
@@ -11,11 +11,10 @@ import { Plus } from "lucide-react";
 import EntityCard from "../../components/EntityCard";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { FilterModal } from "../../components/FilterModal";
-import styles from "./Supplier.module.css";
-import { SupplierService } from "../../service/Supplier.service";
-import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import { useNavigate } from "react-router-dom";
+import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
 import type { CategoryKey } from "../../types/Product-type";
 
 type SupplierStatus = "active" | "inactive";
@@ -96,12 +95,13 @@ const mapSupplierCard = (
 
 export function Supplier() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
-  const [page, setPage] = useState(1);
-  const [query, setQuery] = useState("");
-  const navigate = useNavigate();
   const [suppliers, setSuppliers] = useState<SupplierCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<{
@@ -112,7 +112,7 @@ export function Supplier() {
   }>({
     minPrice: "",
     maxPrice: "",
-    category: "all" as CategoryKey,
+    category: "all",
     sortBy: null,
   });
 
@@ -146,22 +146,21 @@ export function Supplier() {
     [],
   );
 
-  const [pageSize, setPageSize] = useState(12);
-
   const filtered = useMemo(() => {
     let current = suppliers;
     if (activeCat !== "all") {
       current = current.filter((s) => s.category === activeCat);
     }
-
     const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return current;
-    return current.filter((s) =>
-      [s.name, s.email, s.phone, s.location]
-        .join(" ")
-        .toLowerCase()
-        .includes(trimmed),
-    );
+    if (trimmed) {
+      current = current.filter((s) =>
+        [s.name, s.email, s.phone, s.location]
+          .join(" ")
+          .toLowerCase()
+          .includes(trimmed),
+      );
+    }
+    return current;
   }, [activeCat, query, suppliers]);
 
   useEffect(() => {
@@ -200,12 +199,10 @@ export function Supplier() {
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, maxPage);
-
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
-
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
   const totalSuppliers = suppliers.length;
@@ -222,7 +219,6 @@ export function Supplier() {
             Centralize contatos, categorias e desempenho dos seus fornecedores.
           </p>
         </div>
-
         <div className={styles.headerActions}>
           <button
             className={styles.addBtn}
@@ -251,7 +247,6 @@ export function Supplier() {
           iconColor="#ECFDF5"
           iconBackgroundColor="#059669"
           valueColor="#059669"
-
         />
         <StatCard
           label="CATEGORIAS"
@@ -288,7 +283,6 @@ export function Supplier() {
               }}
             />
           </div>
-
           <div className={styles.filterActions}>
             <CustomSelect
               options={CATEGORIES.map((c) => ({
@@ -324,7 +318,6 @@ export function Supplier() {
             </div>
           </div>
         </div>
-
         {loading ? (
           <div className={styles.grid}>
             {Array.from({ length: 12 }).map((_, i) => (
@@ -363,12 +356,10 @@ export function Supplier() {
             ))}
           </div>
         )}
-
         <div className={styles.bottom}>
           <div className={styles.counter}>
             Mostrando {paginated.length} de {total} fornecedores
           </div>
-
           <div className={styles.pagination}>
             <button
               className={`${styles.pageBtn} ${

@@ -77,7 +77,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #FFC83D;
+  color: var(--highlight-primary);
   font-size: 14px;
   font-weight: 600;
 }
@@ -127,7 +127,7 @@
 }
 
 .input:focus {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   background: var(--hover-bg);
 }
 
@@ -149,7 +149,7 @@
 }
 
 .select:focus {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   background: var(--hover-bg);
 }
 
@@ -201,7 +201,7 @@
 
 .radio:checked {
   border-color: #FFC83D;
-  background: #FFC83D;
+  background: var(--highlight-primary);
 }
 
 .radio:checked::after {

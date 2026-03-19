@@ -38,7 +38,7 @@
   padding: 0 18px;
   border-radius: 12px;
   border: none;
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #ffffff;
   font-weight: 600;
   font-size: 13px;
@@ -46,7 +46,6 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 12px 22px rgba(255, 200, 61, 0.25);
   transition: all 0.2s ease;
 }
 
@@ -125,7 +124,7 @@
 }
 
 .search:focus-within {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 
@@ -197,7 +196,7 @@
 
 .filterBtn:active,
 .filterBtn:focus {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }

@@ -11,8 +11,9 @@
   --text-on-dark: #ffffff;
   --border-default: #e5e7eb;
   --border-light: #f1f1f1;
-  --highlight-primary: #f6c40f;
-  --highlight-secondary: #ffe29a;
+  --highlight-primary: #007BFF;
+  --highlight-primary-semp: #007BFF;
+  --highlight-secondary: #a8d2ff5f;
   --status-success: #16a34a;
   --status-success-bg: #dcfce7;
   --status-warning: #d97706;
@@ -35,6 +36,7 @@
   --border: var(--border-default);
   --borderLight: var(--border-light);
   --highlight: var(--highlight-primary);
+  --highlight: var(--highlight-secondary);
   color-scheme: light;
 }
 

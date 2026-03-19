@@ -27,7 +27,7 @@
 
 .trigger:focus,
 .triggerActive {
-  border-color: #FFC83D;
+  border-color: var(--highlight-primary);
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
@@ -100,13 +100,13 @@
 }
 
 .optionSelected {
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #ffffff;
   font-weight: 600;
 }
 
 .optionSelected:hover {
-  background: #FFC83D;
+  background: var(--highlight-primary);
   color: #ffffff;
 }
 

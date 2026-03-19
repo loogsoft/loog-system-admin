@@ -6,14 +6,7 @@
 	font-family: 'Inter', sans-serif;
 }
 
-.header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 32px 0 24px 0;
-	max-width: 900px;
-	margin: 0 auto;
-}
+
 .logoArea {
 	display: flex;
 	align-items: center;
@@ -52,26 +45,7 @@
 	color: #1a2341;
 }
 .loginArea {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 15px;
-}
-.loginBtn {
-	color: #2563eb;
-	background: #f1f5ff;
-	border-radius: 6px;
-	padding: 4px 16px;
-	font-weight: 600;
-	text-decoration: none;
-	transition: background .2s;
-}
-.loginBtn:hover {
-	background: #e0e7ff;
-}
-.main {
-	display: flex;
-	justify-content: center;
+	.sectionTitle {
 	align-items: flex-start;
 	min-height: 80vh;
 }
@@ -95,22 +69,7 @@
 	color: #6b7280;
 	font-size: 15px;
 	margin-bottom: 28px;
-}
-.section {
-	margin-bottom: 32px;
-}
-.sectionTitle {
-	font-weight: 600;
-	color: #1a2341;
-	font-size: 16px;
-	margin-bottom: 18px;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-.sectionTitle span {
-	background: #2563eb;
-	color: #fff;
+.actions {
 	border-radius: 50%;
 	width: 22px;
 	height: 22px;
@@ -264,8 +223,7 @@ input:focus {
 	justify-content: flex-end;
 	margin-top: 12px;
 }
-.submitBtn {
-	background: #2563eb;
+	background: var(--highlight-primary);
 	color: #fff;
 	font-weight: 600;
 	border: none;
@@ -294,4 +252,5 @@ input:focus {
 	color: #9ca3af;
 	font-size: 14px;
 	margin: 32px 0 0 0;
+}
 }

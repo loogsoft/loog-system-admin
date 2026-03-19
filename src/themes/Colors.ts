@@ -8,9 +8,9 @@ const Colors = {
   },
 
   Highlight: {
-    primary: "#2b6cee.",
-    // primary: "#FFC83D",
-    secondary: "#FFE8A3",
+    primary: "#007BFF",
+    secondary: "#a8d2ff",
+    // secondary: "#FFE8A3",
   },
 
   Texts: {

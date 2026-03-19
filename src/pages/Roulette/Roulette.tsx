@@ -331,13 +331,13 @@ export default function RouletteAdmin() {
           style={{
             width: 300,
             height: 38,
-            background: "#FFD54F",
+            background: "var(--highlight-primary)",
             border: "none",
             borderRadius: 99,
             fontWeight: 600,
             fontSize: 16,
             marginBottom: 10,
-            boxShadow: "0 2px 8px #FFD54F44",
+            boxShadow: "0 2px 8px rgba(255, 200, 61, 0.27)",
             cursor: "pointer",
           }}
         >
@@ -371,7 +371,7 @@ export default function RouletteAdmin() {
               flex: 1,
               height: 30,
               border: "none",
-              background: productTab === "create" ? "#FFD54F" : "transparent",
+              background: productTab === "create" ? "var(--highlight-primary)" : "transparent",
               color: productTab === "create" ? "#fff" : "#B0B0B0",
               fontWeight: 500,
               fontSize: 14,
@@ -389,7 +389,7 @@ export default function RouletteAdmin() {
               flex: 1,
               height: 30,
               border: "none",
-              background: productTab === "products" ? "#FFD54F" : "transparent",
+              background: productTab === "products" ? "var(--highlight-primary)" : "transparent",
               color: productTab === "products" ? "#fff" : "#B0B0B0",
               fontWeight: 500,
               fontSize: 14,
@@ -741,7 +741,7 @@ export default function RouletteAdmin() {
                   addPrize();
                 }}
                 style={{
-                  background: "linear-gradient(90deg,#FFD54F,#FFB300)",
+                  background: "var(--highlight-primary)",
                   border: "none",
                   width: 180,
                   height: 38,
@@ -749,7 +749,7 @@ export default function RouletteAdmin() {
                   fontWeight: 600,
                   fontSize: 16,
                   color: "#ffffff",
-                  boxShadow: "0 2px 8px #FFD54F44",
+                  boxShadow: "0 2px 8px rgba(255, 200, 61, 0.27)",
                   cursor: "pointer",
                   transition: "background 0.2s",
                 }}
@@ -773,7 +773,7 @@ export default function RouletteAdmin() {
                     position: "relative",
                     width: "100%",
                     height: "100%",
-                    boxShadow: "0 1px 4px #FFD54F22",
+                    boxShadow: "0 1px 4px rgba(255, 200, 61, 0.13)",
                   }}
                 >
                   <button
@@ -896,7 +896,7 @@ export default function RouletteAdmin() {
             <button
               onClick={handleSaveConfig}
               style={{
-                background: "linear-gradient(90deg,#FFD54F,#FFB300)",
+                background: "var(--highlight-primary)",
                 color: "#fff",
                 border: "none",
                 padding: "12px 28px",

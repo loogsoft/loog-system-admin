@@ -1,0 +1,24 @@
+import type { CompanyRequestDto } from "../dtos/request/company-request.dto";
+import type { CompanyResponseDto } from "../dtos/response/company-response.dto";
+import api from "./api";
+
+export const CompanyService = {
+  create: async (dto: CompanyRequestDto) => {
+    const response = await api.post(
+      "/company",
+      dto
+    );
+    return response.data;
+  },
+
+  findOne: async (id: string): Promise<CompanyResponseDto> => {
+    const response = await api.get<CompanyResponseDto>(`/company/${id}`);
+    return response.data;
+  },
+
+  findAll: async (): Promise<CompanyResponseDto[]> => {
+    const response = await api.get<CompanyResponseDto[]>(`/company`);
+    return response.data;
+  },
+  
+};

@@ -155,9 +155,7 @@ export function Dashboard() {
         const data = await ProductService.findAll();
         setStockIten(data.length);
 
-        const low = data.filter(
-          (p) => (p.stock ?? 0) <= p.lowStock,
-        );
+        const low = data.filter((p) => (p.stock ?? 0) <= p.lowStock);
         setLowStock(low.length);
       };
       totalProduct();

@@ -343,7 +343,7 @@ export function Credit() {
           label="TOTAL DE CREDIARIOS"
           value={counts.all.toLocaleString("pt-BR")}
           icon={<FiBox />}
-          valueColor="#FFC83D"
+          valueColor="var(--highlight-primary)"
         />
         <StatCard
           label="EM DIA"
