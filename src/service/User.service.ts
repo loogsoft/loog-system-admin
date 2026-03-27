@@ -1,3 +1,4 @@
+import type { UserTypeEnum } from "../dtos/enums/user-type.enum";
 import type { LoginRequestDto } from "../dtos/request/login-request.dto";
 import type { UserRequestDto } from "../dtos/request/user-request.dto";
 import type { VerifyCoderequestDto } from "../dtos/request/verification-code-request.dto";
@@ -9,15 +10,23 @@ type UserMeResponse = {
   email: string;
 };
 
-type UserProfileResponse = {
+export type UserProfileResponse = {
   id: string;
   name?: string;
   email?: string;
+  dataCadastro: Date;
+  userType: UserTypeEnum;
+  companyId: string;
 };
 
 export const UserService = {
   create: async (dto: UserRequestDto) => {
     const response = await api.post("/users", dto);
+    return response.data;
+  },
+
+  update: async (id: string, dto: Partial<UserRequestDto>) => {
+    const response = await api.put(`/users/${id}`, dto);
     return response.data;
   },
   verifyEmail: async (dto: LoginRequestDto): Promise<{ companyId: string }> => {
@@ -47,6 +56,11 @@ export const UserService = {
 
   findOne: async (id: string): Promise<UserProfileResponse> => {
     const response = await api.get<UserProfileResponse>(`/users/${id}`);
+    return response.data;
+  },
+
+  findAll: async (companyId: string): Promise<UserProfileResponse[]> => {
+    const response = await api.get<UserProfileResponse[]>(`/users/find-all/${companyId}`);
     return response.data;
   },
 };

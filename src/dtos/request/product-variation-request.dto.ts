@@ -1,5 +1,6 @@
 export interface ProductVariationRequestDto {
   name: string;
+  companyId: string;
   price?: number;
   stock: number;
   isActive?: boolean;

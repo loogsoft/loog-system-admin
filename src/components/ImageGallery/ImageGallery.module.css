@@ -251,7 +251,7 @@
 
 .thumbnailActive {
   border-color: var(--highlight-primary);
-  box-shadow: 0 0 0 3px rgba(246, 196, 15, 0.2);
+  box-shadow: none;
 }
 
 .addThumbnail {

@@ -14,10 +14,10 @@
 
 .brand {
   display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  margin-bottom: 20px;
+  flex-direction: row;
+  align-items: center;
   padding-left: 15px;
+  gap: 10px;
 }
 
 .brandIcon {
@@ -28,7 +28,6 @@
   align-items: center;
   justify-content: center;
   background: transparent;
-  background-color: var(--highlight-primary);
 }
 
 .brandIconInner {
@@ -40,7 +39,6 @@
 }
 
 .brandTitle {
-  font-size: 12px;
   letter-spacing: 0.8px;
   font-weight: 600;
   color: var(--text-primary);
@@ -56,7 +54,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
 .submenuToggle {
@@ -156,7 +154,6 @@
 .sectionTitle {
   margin: 12px 0 4px;
   font-size: 10px;
-  font-weight: 600;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -166,11 +163,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 15px 20px;
+  padding: 10px 20px;
   color: var(--text-secondary);
   text-decoration: none;
   border-radius: 12px;
-  font-size: 15px;
+  font-size: 12px;
   position: relative;
   
 }
@@ -184,7 +181,6 @@
   border-radius: 12px;
   font-size: 15px;
   position: relative;
-  gap: 12;
   width: 100%;
   background: none;
   border: none;
@@ -234,14 +230,13 @@
 .active {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 15px 20px;
+  gap: 10px;
+  padding: 12px 20px;
   background: var(--highlight-secondary);
   color: var(--highlight-primary);
   border-radius: 12px;
-  font-weight: 400;
   text-decoration: none;
-  font-size: 15px;
+  font-size: 12px;
 }
 
 .buttonExit {
@@ -256,7 +251,6 @@
   );
   color: #ffffff;
   border-radius: 14px;
-  font-weight: 400  ;
   text-decoration: none;
 }
 
@@ -279,7 +273,7 @@
 }
 
 .icon {
-  font-size: 18px;
+  font-size: 15px;
   color: currentColor;
 }
 
@@ -314,8 +308,6 @@
 
 .userCard:hover {
   background: var(--hover-bg);
-  border-color: #f2b632;
-  box-shadow: 0 2px 8px rgba(242, 182, 50, 0.15);
 }
 
 .userAvatar {
@@ -328,7 +320,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 400;
-  font-size: 17px;
+  font-size: 14px;
 }
 
 .userInfo {
@@ -359,7 +351,7 @@
 .footerDivider {
   height: 1px;
   background: var(--border-default);
-  margin: 6px 0 4px;
+  margin: 20px 0 10px;
 }
 
 .user {

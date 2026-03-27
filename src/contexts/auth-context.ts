@@ -1,14 +1,17 @@
 import { createContext } from "react";
+import type { UserTypeEnum } from "../dtos/enums/user-type.enum";
 
 type AuthContextType = {
   isAuthenticated: boolean;
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
-  user: { 
+  user: {
     id: string;
-    name?: string;
-    email?: string;
+    name: string;
+    email: string;
+    companyId: string;
+    userType: UserTypeEnum;
   } | null;
 };
 

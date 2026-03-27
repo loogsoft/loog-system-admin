@@ -1,3 +1,73 @@
+.creditCustomerCard {
+  background: var(--surface);
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 25px;
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+
+.creditCustomerMedia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+  background: var(--surface-muted);
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+}
+
+.creditCustomerAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background: rgba(246, 196, 15, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.creditCustomerMeta {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.creditCustomerCard .body {
+  padding: 18px 20px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.creditCustomerCard .nameRow {
+  margin-bottom: 2px;
+}
+
+.creditCustomerCard .name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.creditCustomerCard .category {
+  display: inline-flex;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
 .card {
   position: relative;
   border-radius: 25px;
@@ -111,6 +181,7 @@
   transform: translateY(-6px);
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10;
 }
 
 .card:hover .cardActions {
@@ -209,27 +280,27 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: #fee2e2;
+  background: rgba(239, 68, 68, 0.08);
   color: #ef4444;
-  border: 1px solid #fca5a5;
-  padding: 4px 10px;
-  max-width: 80%;
+  border: 2px solid #fca5a5;
+  padding: 6px 18px;
+  width: auto;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.08em;
   margin-top: 8px;
 }
 .lowStock {
-  background: rgba(255, 0, 0, 0.1);
+  background: #ffae0030;
   position: absolute;
   top: 10px;
   left: 10px;
-  color: red;
-  border: 1px solid rgba(245, 158, 11, 0.22);
-  padding: 10px 17px;
+  color: #f59e11;
+  border: 1px solid #f59e11;
+  padding: 7px 13px;
   border-radius: 999px;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.08em;
   margin-top: 12px;
@@ -468,7 +539,7 @@
   background: var(--highlight-primary);
   width: 18px;
   border-radius: 5px;
-  box-shadow: 0 2px 12px rgba(246, 196, 15, 0.5);
+  box-shadow: none;
   border: 1px solid rgba(246, 196, 15, 0.3);
 }
 

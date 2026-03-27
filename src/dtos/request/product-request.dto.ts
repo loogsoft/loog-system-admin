@@ -5,6 +5,7 @@ import type { ProductVariationRequestDto } from "./product-variation-request.dto
 export interface ProductRequest {
   name: string;
   description?: string;
+  companyId: string;
   category: ProductCategoryEnum;
   status?: ProductStatusEnum;
   price: number | null;

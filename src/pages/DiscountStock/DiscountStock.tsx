@@ -10,15 +10,17 @@ import {
 } from "react-icons/fi";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
-import { DiscountStockFilterModal } from "../../components/DiscountStockFilterModal";
-import EntityCard from "../../components/EntityCard";
-import { SkeletonCard } from "../../components/SkeletonCard";
+import EntityCard from "../../components/EntityCard/EntityCard";
+import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
-import { DarBaixaModal } from "../../components/DarBaixaModal";
-import { VoltarEstoqueModal } from "../../components/VoltarEstoqueModal";
+
+import { ReturnStockModal } from "../../components/ReturnaStockModal/ReturnStockModal";
 import { StockMovementService } from "../../service/Stock-movement.service";
+import { useAuth } from "../../contexts/useAuth";
+import { DiscountStockModal } from "../../components/DiscountStockModal/DiscountStockModal";
+import { DiscountStockFilterModal } from "../../components/FilterModal/DiscountStockFilterModal";
 
 type StockLevel = "all" | "ok" | "low" | "critical";
 type SortOption = "alpha" | "priceAsc" | "priceDesc" | "stockAsc" | "stockDesc";
@@ -44,7 +46,8 @@ export function DiscountStock() {
   const [pageSize, setPageSize] = useState(6);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [activedFindAll, setActivedFindAll] = useState(false);
-
+  const { user } = useAuth();
+  const companyId = user?.companyId;
   function alternValue() {
     setActivedFindAll((prev) => !prev);
   }
@@ -66,30 +69,32 @@ export function DiscountStock() {
 
   const totalVendas = useMemo(
     () => stockHistory.reduce((acc, h) => acc + h.quantity, 0),
-    [stockHistory]
+    [stockHistory],
   );
   // ...existing code...
 
   useEffect(() => {
     const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const data = await ProductService.findAll();
-        setProducts(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+      if (companyId)
+        try {
+          setLoading(true);
+          const data = await ProductService.findAll(companyId);
+          setProducts(data);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoading(false);
+        }
     };
     fetchProducts();
   }, [activedFindAll]);
 
   useEffect(() => {
     const fetchHistory = async () => {
+      if(companyId)
       try {
         setLoading(true);
-        const data = await StockMovementService.findAll();
+        const data = await StockMovementService.findAll(companyId);
         setStockHistory(data);
       } catch (err) {
         console.error(err);
@@ -203,11 +208,17 @@ export function DiscountStock() {
 
   // Calcula o faturamento total
   const faturamento = useMemo(() => {
-    return stockHistory.reduce((acc, h) => acc + (h.price || h.variation?.price || 0) * h.quantity, 0);
+    return stockHistory.reduce(
+      (acc, h) => acc + (h.price || h.variation?.price || 0) * h.quantity,
+      0,
+    );
   }, [stockHistory]);
 
   const faturamentoFormatted = useMemo(() => {
-    return faturamento.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    return faturamento.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
   }, [faturamento]);
 
   return (
@@ -354,7 +365,9 @@ export function DiscountStock() {
                     ...((item.variations || [])
                       .filter((v) => v.imageUrl)
                       .map((v) => ({
-                        url: Array.isArray(v.imageUrl) ? v.imageUrl[0] : v.imageUrl || "",
+                        url: Array.isArray(v.imageUrl)
+                          ? v.imageUrl[0]
+                          : v.imageUrl || "",
                         fileName: v.name || "",
                         id: "",
                         isPrimary: false,
@@ -362,7 +375,6 @@ export function DiscountStock() {
                   ]}
                   stock={item.stock}
                   lowStock={item.lowStock}
-
                   available={item.status === ProductStatusEnum.ACTIVED}
                   color={item.color}
                   colors={Array.from(
@@ -543,7 +555,9 @@ export function DiscountStock() {
                     </div>
                     <div className={styles.clientCell}>
                       <div className={styles.avatar}>{initials}</div>
-                      <div className={styles.clientName}>{r.responsibleName || "-"}</div>
+                      <div className={styles.clientName}>
+                        {r.responsibleName || "-"}
+                      </div>
                     </div>
                     <div className={styles.productsCell}>
                       {r.variation?.color && (
@@ -558,9 +572,13 @@ export function DiscountStock() {
                       <span className={styles.totalCell}>{r.quantity}x</span>
                       <span className={styles.valueCell}>
                         R$
-                        {Number(r.price || r.variation?.price || 0).toLocaleString("pt-BR")}
+                        {Number(
+                          r.price || r.variation?.price || 0,
+                        ).toLocaleString("pt-BR")}
                       </span>
-                      <span className={styles.paymentCell}>{r.paymentMethod || "-"}</span>
+                      <span className={styles.paymentCell}>
+                        {r.paymentMethod || "-"}
+                      </span>
                     </div>
                     <div className={styles.reasonCell}>{r.reason || "-"}</div>
                     <div>
@@ -577,7 +595,8 @@ export function DiscountStock() {
           </div>
           <div className={styles.tableFooter}>
             <div className={styles.tableSummary}>
-              Mostrando {pagedHistoryItems.length} de {filteredHistory.length} movimentações
+              Mostrando {pagedHistoryItems.length} de {filteredHistory.length}{" "}
+              movimentações
             </div>
             <div className={styles.pagination}>
               <button
@@ -613,7 +632,7 @@ export function DiscountStock() {
         </section>
       )}
 
-      <DarBaixaModal
+      <DiscountStockModal
         isOpen={darBaixaProduct !== null}
         onClose={() => setDarBaixaProduct(null)}
         product={darBaixaProduct}
@@ -623,7 +642,7 @@ export function DiscountStock() {
           setDarBaixaProduct(null);
         }}
       />
-      <VoltarEstoqueModal
+      <ReturnStockModal
         isOpen={voltarEstoqueItem !== null}
         onClose={() => setVoltarEstoqueItem(null)}
         item={voltarEstoqueItem}

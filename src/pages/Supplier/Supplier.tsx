@@ -1,5 +1,5 @@
-import styles from "./Supplier.module.css";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiFilter,
   FiGrid,
@@ -8,14 +8,16 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { Plus } from "lucide-react";
-import EntityCard from "../../components/EntityCard";
-import { SkeletonCard } from "../../components/SkeletonCard";
-import { FilterModal } from "../../components/FilterModal";
+import EntityCard from "../../components/EntityCard/EntityCard";
+import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
+import { FilterModal } from "../../components/FilterModal/FilterModal";
+import styles from "./Supplier.module.css";
+import { SupplierService } from "../../service/Supplier.service";
+import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
-import { useNavigate } from "react-router-dom";
-import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
 import type { CategoryKey } from "../../types/Product-type";
+import { useAuth } from "../../contexts/useAuth";
 
 type SupplierStatus = "active" | "inactive";
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
@@ -34,7 +36,7 @@ type SupplierCardData = {
   imageUrl: { url: string; id?: string; publicId?: string }[];
 };
 
-const AVATAR_COLORS = ["rgba(255, 200, 61, 0.2)"];
+const AVATAR_COLORS = ["var(--highlight-primary)"];
 
 const getInitials = (name: string) => {
   const parts = name
@@ -95,13 +97,12 @@ const mapSupplierCard = (
 
 export function Supplier() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
   const [suppliers, setSuppliers] = useState<SupplierCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
-  const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<{
@@ -112,10 +113,13 @@ export function Supplier() {
   }>({
     minPrice: "",
     maxPrice: "",
-    category: "all",
+    category: "all" as CategoryKey,
     sortBy: null,
   });
 
+  const { user } = useAuth();
+  const companyId = user?.companyId;
+  
   const counts = useMemo(() => {
     const categories = new Set(suppliers.map((s) => s.category));
     const countBy = (category: string) =>
@@ -146,37 +150,39 @@ export function Supplier() {
     [],
   );
 
+  const [pageSize, setPageSize] = useState(12);
+
   const filtered = useMemo(() => {
     let current = suppliers;
     if (activeCat !== "all") {
       current = current.filter((s) => s.category === activeCat);
     }
+
     const trimmed = query.trim().toLowerCase();
-    if (trimmed) {
-      current = current.filter((s) =>
-        [s.name, s.email, s.phone, s.location]
-          .join(" ")
-          .toLowerCase()
-          .includes(trimmed),
-      );
-    }
-    return current;
+    if (!trimmed) return current;
+    return current.filter((s) =>
+      [s.name, s.email, s.phone, s.location]
+        .join(" ")
+        .toLowerCase()
+        .includes(trimmed),
+    );
   }, [activeCat, query, suppliers]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await SupplierService.findAll();
-        const list = Array.isArray(data) ? data : (data.data ?? []);
-        setSuppliers(list.map(mapSupplierCard));
-      } catch (err) {
-        console.error(err);
-        setError("Erro ao carregar fornecedores");
-      } finally {
-        setLoading(false);
-      }
+      if (companyId)
+        try {
+          setLoading(true);
+          setError(null);
+          const data = await SupplierService.findAll(companyId);
+          const list = Array.isArray(data) ? data : (data.data ?? []);
+          setSuppliers(list.map(mapSupplierCard));
+        } catch (err) {
+          console.error(err);
+          setError("Erro ao carregar fornecedores");
+        } finally {
+          setLoading(false);
+        }
     };
     fetchData();
   }, []);
@@ -199,10 +205,12 @@ export function Supplier() {
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, maxPage);
+
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, currentPage, pageSize]);
+
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
   const totalSuppliers = suppliers.length;
@@ -219,6 +227,7 @@ export function Supplier() {
             Centralize contatos, categorias e desempenho dos seus fornecedores.
           </p>
         </div>
+
         <div className={styles.headerActions}>
           <button
             className={styles.addBtn}
@@ -283,6 +292,7 @@ export function Supplier() {
               }}
             />
           </div>
+
           <div className={styles.filterActions}>
             <CustomSelect
               options={CATEGORIES.map((c) => ({
@@ -318,6 +328,7 @@ export function Supplier() {
             </div>
           </div>
         </div>
+
         {loading ? (
           <div className={styles.grid}>
             {Array.from({ length: 12 }).map((_, i) => (
@@ -356,10 +367,12 @@ export function Supplier() {
             ))}
           </div>
         )}
+
         <div className={styles.bottom}>
           <div className={styles.counter}>
             Mostrando {paginated.length} de {total} fornecedores
           </div>
+
           <div className={styles.pagination}>
             <button
               className={`${styles.pageBtn} ${

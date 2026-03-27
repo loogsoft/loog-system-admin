@@ -12,8 +12,10 @@ type SupplierListResponse =
   | { data: SupplierResponseDto[] };
 
 export const SupplierService = {
-  findAll: async (): Promise<SupplierListResponse> => {
-    const response = await api.get<SupplierListResponse>(API_URL);
+  findAll: async (companyId: string): Promise<SupplierListResponse> => {
+    const response = await api.get<SupplierListResponse>(
+      `${API_URL}/find-all/${companyId}`,
+    );
     return response.data;
   },
 
@@ -28,7 +30,7 @@ export const SupplierService = {
     let config = {};
     let body: any = supplier;
     if (supplier instanceof FormData) {
-      config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      config = { headers: { "Content-Type": "multipart/form-data" } };
     }
     const response = await api.post<SupplierResponseDto>(API_URL, body, config);
     return response.data;
@@ -41,7 +43,7 @@ export const SupplierService = {
     let config = {};
     let body: any = supplier;
     if (supplier instanceof FormData) {
-      config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      config = { headers: { "Content-Type": "multipart/form-data" } };
     }
     const response = await api.patch<SupplierResponseDto>(
       `${API_URL}/${id}`,

@@ -15,12 +15,13 @@ import {
   FiChevronDown,
 } from "react-icons/fi";
 import { GiTrousers, GiTShirt } from "react-icons/gi";
+import { FiUser } from "react-icons/fi";
 import type { CSSProperties } from "react";
-import type { ProductCategoryEnum } from "../dtos/enums/product-category.enum";
-import type { ImageResponse } from "../dtos/response/image-response.dto";
-import { ProductStatusEnum } from "../dtos/enums/product-status.enum";
+import type { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
+import type { ImageResponse } from "../../dtos/response/image-response.dto";
+import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 import { ArrowUpRight } from "lucide-react";
-import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
+import { ConfirmDeleteModal } from "../ConfirmaDeleteModal/ConfirmDeleteModal";
 
 type BaseProps = {
   id: string;
@@ -65,7 +66,24 @@ type SupplierProps = BaseProps & {
   imageUrl: { url: string; id?: string; publicId?: string }[];
 };
 
-type Props = ProductProps | SupplierProps;
+type CreditCustomerProps = BaseProps & {
+  type: "creditCustomer";
+  name: string;
+  category: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  initials: string;
+  avatarColor?: string;
+  cpf?: string;
+  number?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+};
+
+type Props = ProductProps | SupplierProps | CreditCustomerProps;
 
 function currencyBRL(v: number) {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -77,7 +95,8 @@ const normalizeText = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
-const getProductIcon = (value: string) => {
+const getProductIcon = (value: string, isCreditCustomer: boolean) => {
+  if (isCreditCustomer) return <FiUser />;
   const normalized = normalizeText(value);
   if (normalized.includes("camiseta") || normalized.includes("camisa")) {
     return <GiTShirt />;
@@ -92,6 +111,91 @@ export default function EntityCard(props: Props) {
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  if (props.type === "creditCustomer") {
+    const avatarStyle = props.avatarColor
+      ? ({ backgroundColor: props.avatarColor } as CSSProperties)
+      : undefined;
+    return (
+      <div className={`${styles.card} ${styles.creditCustomerCard || ""}`} onClick={() => props.onEdit?.(props.id)}>
+        <div className={`${styles.media} ${styles.creditCustomerMedia || ""}`}>
+          <div className={`${styles.avatar} ${styles.creditCustomerAvatar || ""}`} style={avatarStyle}>
+            <span className={styles.avatarText}><FiUser /></span>
+          </div>
+          {props.onDelete ? (
+            <div className={styles.cardActions}>
+              <button
+                className={styles.iconBtn}
+                type="button"
+                aria-label="Excluir"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteModalOpen(true);
+                }}
+              >
+                <FiTrash2 />
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <div className={styles.body}>
+          <div className={styles.nameRow}>
+            <div className={styles.name}>{props.name}</div>
+          </div>
+          <div className={styles.category}>{props.category}</div>
+          <div className={styles.creditCustomerMeta || ""}>
+            {props.cpf && (
+              <div className={styles.metaItem}><span>CPF:</span> {props.cpf}</div>
+            )}
+            {props.email && (
+              <div className={styles.metaItem}><FiMail className={styles.metaIcon} />{props.email}</div>
+            )}
+            {props.phone && (
+              <div className={styles.metaItem}><FiPhone className={styles.metaIcon} />{props.phone}</div>
+            )}
+            {props.location && (
+              <div className={styles.metaItem}><FiMapPin className={styles.metaIcon} />{props.location}</div>
+            )}
+            {props.number && (
+              <div className={styles.metaItem}><span>Número:</span> {props.number}</div>
+            )}
+            {props.neighborhood && (
+              <div className={styles.metaItem}><span>Bairro:</span> {props.neighborhood}</div>
+            )}
+            {props.city && (
+              <div className={styles.metaItem}><span>Cidade:</span> {props.city}</div>
+            )}
+            {props.state && (
+              <div className={styles.metaItem}><span>Estado:</span> {props.state}</div>
+            )}
+            {props.zipCode && (
+              <div className={styles.metaItem}><span>CEP:</span> {props.zipCode}</div>
+            )}
+          </div>
+        </div>
+        <button
+          className={styles.iconBtnEdit}
+          type="button"
+          aria-label="Editar"
+          onClick={(e) => {
+            e.stopPropagation();
+            props.onEdit?.(props.id);
+          }}
+        >
+          <ArrowUpRight />
+        </button>
+        <ConfirmDeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => props.onDelete?.(props.id)}
+          title="Remover Cliente"
+          message="Tem certeza que deseja remover este Cliente?"
+          itemName={props.name}
+        />
+      </div>
+    );
+  }
+  // ...existing code...
   const statusValue =
     props.type === "supplier" ? ProductStatusEnum.ACTIVED : props.status;
 
@@ -238,7 +342,8 @@ export default function EntityCard(props: Props) {
 
   const statusLabel =
     statusValue === ProductStatusEnum.ACTIVED ? "ATIVO" : "INATIVO";
-  const productIcon = getProductIcon(`${props.name} ${props.category}`);
+  const isCreditCustomer = props.category === "Cliente";
+  const productIcon = getProductIcon(`${props.name} ${props.category}`, isCreditCustomer);
 
   const images = props.imageUrl || [];
   const hasMultipleImages = images.length > 1;
@@ -281,12 +386,12 @@ export default function EntityCard(props: Props) {
       }
     >
       <div className={`${styles.media} ${styles.productMedia}`}>
-        {props.stock !== undefined &&
+        {!isCreditCustomer && props.stock !== undefined &&
         props.stock > 0 &&
         props.stock <= props.lowStock ? (
           <div className={styles.lowStock}>ESTOQUE BAIXO</div>
         ) : null}
-        {isSoldOut ? (
+        {!isCreditCustomer && isSoldOut ? (
           <div className={styles.zeroStockOverlay}>
             <span className={styles.zeroStockOverlayLabel}>Esgotado</span>
           </div>
@@ -357,15 +462,17 @@ export default function EntityCard(props: Props) {
       <div className={styles.body}>
         <div className={styles.nameRow}>
           <div className={styles.name}>{props.name}</div>
-          <div
-            className={`${styles.statusBadge} ${
-              statusValue === ProductStatusEnum.ACTIVED
-                ? styles.statusActive
-                : styles.statusInactive
-            }`}
-          >
-            {statusLabel}
-          </div>
+          {!isCreditCustomer && (
+            <div
+              className={`${styles.statusBadge} ${
+                statusValue === ProductStatusEnum.ACTIVED
+                  ? styles.statusActive
+                  : styles.statusInactive
+              }`}
+            >
+              {statusLabel}
+            </div>
+          )}
         </div>
         <div className={`${styles.category} ${styles.productCategory}`}>
           {props.description && props.description.length > 30
@@ -507,20 +614,11 @@ export default function EntityCard(props: Props) {
                   </span>
                 </div>
               )}
-              {props.stock !== undefined && (
-                <div className={styles.metaItem}>
-                  <FiPackage className={styles.metaIcon} />
-                  {`Estoque: ${props.stock}`}
-                </div>
-              )}
-              {(props.stock ?? 0) === 0 && (
-                <div className={styles.zeroStockBadge}>⚠ Produto esgotado</div>
-              )}
             </>
           )}
         </div>
 
-        {!statusValue ? (
+        {!isCreditCustomer && !statusValue ? (
           <div className={styles.outOfStock}>SEM ESTOQUE</div>
         ) : null}
 

@@ -24,6 +24,7 @@ import StatCard from "../../components/StatCard/StatCard";
 import { ProductService } from "../../service/Product.service";
 import { StockMovementService } from "../../service/Stock-movement.service";
 import type { StockMovementResponseDto } from "../../dtos/response/stock-movement-response.dto";
+import { useAuth } from "../../contexts/useAuth";
 
 type MetricCard = {
   label: string;
@@ -72,7 +73,8 @@ export function Dashboard() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
-
+  const { user } = useAuth();
+  const companyId = user?.companyId;
   const periodMovements = useMemo(() => {
     const now = new Date();
     return recentMovements.filter((m) => {
@@ -150,9 +152,10 @@ export function Dashboard() {
     }));
   }, [periodMovements, period]);
   useEffect(() => {
+         if(companyId)
     try {
       const totalProduct: any = async () => {
-        const data = await ProductService.findAll();
+        const data = await ProductService.findAll(companyId);
         setStockIten(data.length);
 
         const low = data.filter((p) => (p.stock ?? 0) <= p.lowStock);
@@ -163,7 +166,8 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
-    StockMovementService.findAll()
+    if(companyId)
+    StockMovementService.findAll(companyId)
       .then((data) => {
         const sorted = [...data].sort(
           (a, b) =>

@@ -12,12 +12,12 @@ import {
   FiShield,
   FiHelpCircle,
 } from "react-icons/fi";
-import styles from "./DarBaixaModal.module.css";
-import type { ProductResponse } from "../dtos/response/product-response.dto";
-import { useAuth } from "../contexts/useAuth";
-import { StockMovementService } from "../service/Stock-movement.service";
-import { useMessageContext } from "../contexts/MessageContext";
+import styles from "./DiscountStockModal.module.css"
 import { CircularProgress } from "@mui/material";
+import { useMessageContext } from "../../contexts/MessageContext";
+import { useAuth } from "../../contexts/useAuth";
+import type { ProductResponse } from "../../dtos/response/product-response.dto";
+import { StockMovementService } from "../../service/Stock-movement.service";
 
 type Props = {
   isOpen: boolean;
@@ -71,7 +71,7 @@ const PAYMENT_METHODS = [
   "Crediario",
 ];
 
-export function DarBaixaModal({
+export function DiscountStockModal({
   isOpen,
   onClose,
   product,
@@ -117,7 +117,7 @@ export function DarBaixaModal({
   const [reasonOpen, setReasonOpen] = useState(false);
   const reasonRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
-
+  const companyId = user?.companyId;
   useEffect(() => {
     if (!reasonOpen && !responsibleOpen) return;
     const handler = (e: MouseEvent) => {
@@ -181,6 +181,7 @@ export function DarBaixaModal({
     try {
       if (!selectedVariation?.id) throw new Error("Variação não selecionada");
       await StockMovementService.create({
+        companyId: companyId || "",
         productName: product.name,
         variationId: selectedVariation.id,
         type: "OUT",

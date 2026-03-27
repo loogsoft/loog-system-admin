@@ -17,65 +17,39 @@ import Roleta from "./pages/Roulette/Roulette";
 import { Credit } from "./pages/Credit/Credit";
 import { CreditDetails } from "./pages/Credit/CreditDetails";
 import RegisterCompany from "./pages/registerCompany/RegisterCompany";
-import { CompanyService } from "./service/Company.service";
-import type { CompanyResponseDto } from "./dtos/response/company-response.dto";
+import { Collaborators } from "./pages/Collaborators/Collaborators";
 
 export default function App() {
   const { isAuthenticated, loading } = useAuth();
   const { checkStockAndNotify } = useMessageContext();
-
 
   useEffect(() => {
     if (!isAuthenticated) return;
     checkStockAndNotify();
   }, [isAuthenticated]);
 
-  // useEffect para buscar cores do backend
-  // useEffect(() => {
-  //   const fetchColors = async () => {
-  //     try {
-  //       const data: CompanyResponseDto = await CompanyService.findOne("5");
-  //       if (data.color) {
-  //         document.documentElement.style.setProperty("--highlight-primary", data.color);
-  //         // Converter cor hex para rgba com opacidade 0.15
-  //         function hexToRgba(hex: string, alpha: number) {
-  //           let c = hex.replace('#', '');
-  //           if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
-  //           const num = parseInt(c, 16);
-  //           const r = (num >> 16) & 255;
-  //           const g = (num >> 8) & 255;
-  //           const b = num & 255;
-  //           return `rgba(${r},${g},${b},${alpha})`;
-  //         }
-  //         document.documentElement.style.setProperty("--highlight-secondary", hexToRgba(data.color, 0.15));
-  //       }
-
-  //     } catch (error) {
-  //       console.error("Erro ao buscar cores:", error);
-  //     }
-  //   };
-
-  //   fetchColors();
-  // }, []);
-
-
-
   useEffect(() => {
     const companyData = localStorage.getItem("company");
     if (companyData) {
       const company = JSON.parse(companyData);
       if (company.color) {
-        document.documentElement.style.setProperty("--highlight-primary", company.color);
+        document.documentElement.style.setProperty(
+          "--highlight-primary",
+          company.color,
+        );
         function hexToRgba(hex: string, alpha: number) {
-          let c = hex.replace('#', '');
-          if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+          let c = hex.replace("#", "");
+          if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
           const num = parseInt(c, 16);
           const r = (num >> 16) & 255;
           const g = (num >> 8) & 255;
           const b = num & 255;
           return `rgba(${r},${g},${b},${alpha})`;
         }
-        document.documentElement.style.setProperty("--highlight-secondary", hexToRgba(company.color, 0.15));
+        document.documentElement.style.setProperty(
+          "--highlight-secondary",
+          hexToRgba(company.color, 0.15),
+        );
       }
     }
   }, []);
@@ -108,6 +82,7 @@ export default function App() {
         <Route path="/suppliers" element={<Supplier />} />
         <Route path="/supplier-details/:id?" element={<SupplierDetails />} />
         <Route path="/config/:id?" element={<Profille />} />
+        <Route path="/collaborators" element={<Collaborators />} />
         <Route path="/roulette" element={<Roleta />} />
         <Route path="/credit" element={<Credit />} />
         <Route path="/credit-details/:id?" element={<CreditDetails />} />

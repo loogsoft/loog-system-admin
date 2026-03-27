@@ -14,6 +14,7 @@ import { CircularProgress } from "@mui/material";
 import { toast } from "react-toastify";
 import { HealthService } from "../../service/health.service";
 import { useTheme } from "../../contexts/useTheme";
+import DashboardPreview from "../../components/DashboardPreview/DashboardPreview";
 import { ChevronLeft, Moon, Sun, Headset } from "lucide-react";
 import { IoStorefront } from "react-icons/io5";
 import { CompanyService } from "../../service/Company.service";
@@ -41,8 +42,8 @@ export default function Login() {
     | "login"
     | "verify"
     | "newCommunity"
-    | "newCommunity2"
-    | "newCommunity3"
+    | "newCommunity2" // agora: logo
+    | "newCommunity3" // agora: cor
     | "newCommunity4"
   >("login");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -59,37 +60,12 @@ export default function Login() {
   const [companyCpfCnpj, setCompanyCpfCnpj] = useState("");
   const [companyPassword, setCompanyPassword] = useState("");
   //Personalize
-  const [color, setColor] = useState("");
+  const [color, setColor] = useState("#ff9800");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const [companyId, setCompanyId] = useState("");
+  const companyIdRef = useRef("");
 
-  // async function newCompany() {
-  //   const payloadCompany = {
-  //     companyName,
-  //     companyEmail,
-  //     companyPhone: Number(companyPhone.replace(/\D/g, "")),
-  //     companyCpfCnpj: Number(companyCpfCnpj.replace(/\D/g, "")),
-  //     color,
-  //     // imageUrl: logoPreview || "",
-  //   };
-  //   try {
-  //     const response = await CompanyService.create(payloadCompany);
-  //     setCompanyId(response.id);
-  //     setStep("login");
-  //   } catch (error) {}
-  // }
-
-  // async function newUser() {
-  //   const payloadUser = {
-  //     name: companyName,
-  //     email: companyEmail,
-  //     userType: UserTypeEnum.ADMIN,
-  //     password: companyPassword,
-  //     companyId: companyId,
-  //   };
-  //   await UserService.create(payloadUser);
-  // }
   async function handleCreateCompanyAndUser() {
     setLoading(true);
     try {
@@ -212,11 +188,13 @@ export default function Login() {
     async (e: FormEvent) => {
       e.preventDefault();
 
+
       if (step === "login") {
         try {
           setLoading(true);
           const data = await UserService.verifyEmail({ email, password });
           setCompanyId(data.companyId);
+          companyIdRef.current = data.companyId;
           setStep("verify");
         } catch {
           showErrorToast();
@@ -234,11 +212,27 @@ export default function Login() {
             code: code.join(""),
           });
           localStorage.setItem("token", verify.token);
-          contextLogin(verify.token);
-          navigate("/dashboard");
+
+          // Buscar dados do usuário para pegar o userType
+          let userType: any = undefined;
           try {
+            const userData = await UserService.getMe();
+            if (userData && userData.id) {
+              const userProfile = await UserService.findOne(userData.id);
+              userType = userProfile.userType;
+              localStorage.setItem("userType", userType);
+            }
+          } catch {}
+
+          setTimeout(() => {
+            contextLogin(verify.token);
+            navigate("/dashboard");
+          }, 1500);
+
+          try {
+            const idToUse = companyIdRef.current || companyId;
             const data: CompanyResponseDto =
-              await CompanyService.findOne(companyId);
+              await CompanyService.findOne(idToUse);
             if (data.color) {
               document.documentElement.style.setProperty(
                 "--highlight-primary",
@@ -246,12 +240,8 @@ export default function Login() {
               );
               const companyData = localStorage.getItem("company");
               if (!companyData || companyData !== JSON.stringify(data)) {
-                const setCompanyData = localStorage.setItem(
-                  "company",
-                  JSON.stringify(data),
-                );
+                localStorage.setItem("company", JSON.stringify(data));
               }
-              // Converter cor hex para rgba com opacidade 0.15
               function hexToRgba(hex: string, alpha: number) {
                 let c = hex.replace("#", "");
                 if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
@@ -263,7 +253,7 @@ export default function Login() {
               }
               document.documentElement.style.setProperty(
                 "--highlight-secondary",
-                hexToRgba(data.color, 0.15),
+                hexToRgba(data.color, 0.10),
               );
             }
           } catch (error) {}
@@ -272,13 +262,15 @@ export default function Login() {
           codeRefs.current[0]?.focus();
           showErrorToast();
         } finally {
-          setLoading(false);
+          setTimeout(() => {
+            setLoading(false);
+          }, 1500);
         }
         return;
       }
       // Para os steps de cadastro, não faz nada no submit
     },
-    [code, contextLogin, email, navigate, password, showErrorToast, step],
+    [code, contextLogin, email, navigate, password, showErrorToast, step, companyId],
   );
 
   useEffect(() => {
@@ -378,6 +370,7 @@ export default function Login() {
               else if (step === "newCommunity") setStep("login");
               else if (step === "newCommunity2") setStep("newCommunity");
               else if (step === "newCommunity3") setStep("newCommunity2");
+              else if (step === "newCommunity4") setStep("newCommunity3");
             }}
             aria-label="Voltar"
             data-tooltip="Voltar"
@@ -399,7 +392,7 @@ export default function Login() {
                 : step === "newCommunity"
                   ? "Crie seu sistema"
                   : step === "newCommunity2"
-                    ? "Personalize seu painel"
+                    ? "Adicione a logo"
                     : step === "newCommunity3"
                       ? "Personalize seu painel"
                       : step === "newCommunity4"
@@ -412,9 +405,9 @@ export default function Login() {
                 : step === "newCommunity"
                   ? "Crie seu sistema de gerenciamento em poucos passos."
                   : step === "newCommunity2"
-                    ? "Adicione cor de destaque dos botões."
+                    ? "Adicione a logo do seu sistema."
                     : step === "newCommunity3"
-                      ? "Adicione a logo do seu sistema."
+                      ? "Adicione cor de destaque dos botões."
                       : step === "newCommunity4"
                         ? "Crie seu acesso administrativo para começar a usar o sistema."
                         : "Acesse sua conta para gerenciar seu negócio. "}
@@ -526,7 +519,11 @@ export default function Login() {
                   Verificacao de Seguranca
                 </div>
                 <div className={styles.verifySub}>
-                  Enviamos um código de 6 dígitos para o seu e-mail.
+                  Enviamos um código de 6 dígitos para o seu e-mail
+                  <span style={{ color: "var(--highlight-primary-semp)" }}>
+                    {" "}
+                    {email}
+                  </span>
                 </div>
                 <div className={styles.codeRow}>
                   {code.map((digit, index) => (
@@ -670,148 +667,6 @@ export default function Login() {
               </>
             ) : step === "newCommunity2" ? (
               <>
-                {/* Mini preview do sistema com a cor escolhida */}
-                <div
-                  style={{
-                    width: 220,
-                    margin: "0 auto 18px auto",
-                    borderRadius: 12,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-                    background: "#fff",
-                    border: "1px solid #eee",
-                    padding: 16,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "100%",
-                      height: 18,
-                      background: "#f5f5f5",
-                      borderRadius: 6,
-                      marginBottom: 8,
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: "80%",
-                      height: 12,
-                      background: "#e5e7eb",
-                      borderRadius: 4,
-                      marginBottom: 10,
-                    }}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 6,
-                      width: "100%",
-                      marginBottom: 10,
-                    }}
-                  >
-                    <div
-                      style={{
-                        flex: 1,
-                        height: 32,
-                        background: color || "var(--highlight-primary)",
-                        borderRadius: 8,
-                        color: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Botão
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        height: 32,
-                        background: "#f3f4f6",
-                        borderRadius: 8,
-                        color: "#222",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        border: `1.5px solid ${color || "var(--highlight-primary)"}`,
-                      }}
-                    >
-                      Secundário
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      width: "100%",
-                      height: 8,
-                      background: "#e5e7eb",
-                      borderRadius: 4,
-                    }}
-                  />
-                  <div
-                    style={{
-                      width: "60%",
-                      height: 8,
-                      background: "#e5e7eb",
-                      borderRadius: 4,
-                      marginTop: 4,
-                    }}
-                  />
-                </div>
-
-                <label className={styles.label}>Cor dos botões</label>
-                <div className={styles.inputWrap}>
-                  <div
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <input
-                      className={styles.input}
-                      type="color"
-                      value={color || "var(--highlight-primary)"}
-                      onChange={(e) => setColor(e.target.value)}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        padding: 0,
-                        border: "none",
-                        background: "none",
-                      }}
-                    />
-                    <span style={{ marginLeft: 12, fontSize: 13 }}>
-                      {color || "var(--highlight-primary)"}
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  className={styles.submit}
-                  type="button"
-                  onClick={() => setStep("newCommunity3")}
-                  disabled={!color.trim()}
-                  style={{
-                    opacity: !color.trim() ? 0.6 : 1,
-                    pointerEvents: !color.trim() ? "none" : "auto",
-                  }}
-                >
-                  Próximo
-                  <span className={styles.submitIcon} aria-hidden>
-                    <FiArrowRight />
-                  </span>
-                </button>
-              </>
-            ) : step === "newCommunity3" ? (
-              <>
-                {/* Mini preview do sistema com a logo */}
                 <div
                   style={{
                     width: 200,
@@ -881,31 +736,69 @@ export default function Login() {
                 <button
                   className={styles.submit}
                   type="button"
-                  onClick={() => setStep("newCommunity4")}
-                  disabled={
-                    !companyName.trim() ||
-                    !companyEmail.trim() ||
-                    !isValidEmail(companyEmail) ||
-                    !companyPhone.trim() ||
-                    !companyCpfCnpj.trim()
-                  }
+                  onClick={() => setStep("newCommunity3")}
+                  disabled={false}
                   style={{
-                    opacity:
-                      !companyName.trim() ||
-                      !companyEmail.trim() ||
-                      !isValidEmail(companyEmail) ||
-                      !companyPhone.trim() ||
-                      !companyCpfCnpj.trim()
-                        ? 0.6
-                        : 1,
-                    pointerEvents:
-                      !companyName.trim() ||
-                      !companyEmail.trim() ||
-                      !isValidEmail(companyEmail) ||
-                      !companyPhone.trim() ||
-                      !companyCpfCnpj.trim()
-                        ? "none"
-                        : "auto",
+                    opacity: 1,
+                    pointerEvents: "auto",
+                  }}
+                >
+                  Próximo
+                  <span className={styles.submitIcon} aria-hidden>
+                    <FiArrowRight />
+                  </span>
+                </button>
+              </>
+            ) : step === "newCommunity3" ? (
+              <>
+                <div style={{ margin: "0 auto 18px auto", maxWidth: 700 }}>
+                  <DashboardPreview name={companyName}color={color} imageUrl={logoPreview || undefined} />
+                </div>
+                <label className={styles.label}>Cor dos botões</label>
+                <div className={styles.inputWrap}>
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <input
+                      className={styles.input}
+                      type="color"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        padding: 0,
+                        border: "none",
+                        background: "none",
+                      }}
+                    />
+                    <input
+                      className={styles.input}
+                      type="text"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      style={{
+                        marginLeft: 12,
+                        fontSize: 13,
+                        width: 90,
+                      }}
+                      maxLength={9}
+                      placeholder="#000000"
+                    />
+                  </div>
+                </div>
+                <button
+                  className={styles.submit}
+                  type="button"
+                  onClick={() => setStep("newCommunity4")}
+                  disabled={!color.trim()}
+                  style={{
+                    opacity: !color.trim() ? 0.6 : 1,
+                    pointerEvents: !color.trim() ? "none" : "auto",
                   }}
                 >
                   Próximo

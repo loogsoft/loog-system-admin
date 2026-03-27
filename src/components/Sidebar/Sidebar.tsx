@@ -1,78 +1,78 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import {
-  FiGrid,
-  FiShoppingCart,
-  FiBox,
-  FiUsers,
-  FiSettings,
-  FiAlertCircle,
-  FiTarget,
-  FiChevronDown,
-  FiCreditCard,
-} from "react-icons/fi";
+import { FiSettings, FiChevronDown, FiUsers } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 import { IoExitOutline } from "react-icons/io5";
 import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
-import logoLight from "../../assets/logo-preta.png";
-import logoDark from "../../assets/logo-branco.png";
 import { useEffect, useState } from "react";
-import { GitGraphIcon } from "lucide-react";
+import {
+  Dashboard,
+  Store,
+  ShoppingCart,
+  People,
+  Notifications,
+  BarChart,
+  CreditCardRounded,
+  Casino,
+  WorkspacePremiumTwoTone,
+  WorkspacePremium,
+} from "@mui/icons-material";
+import { UserTypeEnum } from "../../dtos/enums/user-type.enum";
 
 // Estrutura dinâmica do menu
 const menu = [
   {
     type: "item",
-    icon: FiGrid,
+    icon: Dashboard,
     label: "Dashboard",
     path: "/dashboard",
     color: "#6C63FF",
   },
   {
     type: "item",
-    icon: FiBox,
+    icon: Store,
     label: "Produtos",
     path: "/produtos",
     color: "#00B894",
   },
   {
     type: "item",
-    icon: FiShoppingCart,
+    icon: ShoppingCart,
     label: "Baixa de estoque",
     path: "/discount-stock",
     color: "#005ca2",
   },
   {
     type: "item",
-    icon: FiAlertCircle,
+    icon: Notifications,
     label: "Sem estoque",
     path: "/out-of-stock",
     color: "#E17055",
   },
   {
     type: "item",
-    icon: FiUsers,
+    icon: People,
     label: "Fornecedores",
     path: "/suppliers",
     color: "#F0932B",
   },
   {
     type: "item",
-    icon: FiCreditCard,
+    icon: CreditCardRounded,
     label: "Crediarios",
     path: "/credit",
     color: "#ffd900",
   },
   {
     type: "group",
-    icon: GitGraphIcon,
+    icon: BarChart,
     label: "Estratégias",
     color: "#438fe1",
     key: "estrategias",
     children: [
       {
         type: "item",
-        icon: FiTarget,
+        icon: Casino,
         label: "Roleta",
         path: "/roulette",
         color: "#6C63FF",
@@ -126,7 +126,11 @@ export function Sidebar() {
         }
         style={{ gap: 12 }}
       >
-        <item.icon className={styles.icon} color={item.color} size={22} />
+        <item.icon
+          className={styles.icon}
+          style={{ color: item.color }}
+          size={20}
+        />
         <span>{item.label}</span>
       </NavLink>
     );
@@ -147,7 +151,11 @@ export function Sidebar() {
           }
           aria-expanded={isOpen}
         >
-          <group.icon className={styles.icon} color={group.color} size={20} />
+          <group.icon
+            className={styles.icon}
+            style={{ color: group.color }}
+            size={20}
+          />
           <span style={{ flex: 1, textAlign: "left", fontSize: 15 }}>
             {group.label}
           </span>
@@ -177,17 +185,21 @@ export function Sidebar() {
     <aside className={styles.sidebar}>
       <div>
         <div className={styles.brand}>
-          <div className={styles.brandIcon} aria-hidden="true">
-            <img
-              src={theme === "light" ? logoDark : logoLight}
-              alt="Logo"
-              style={{ width: 30, height: 30 }}
+          <div
+            style={{
+              border: "2px solid var(--highlight-primary)",
+              borderRadius: "30%",
+              padding: "3px 7px",
+            }}
+          >
+            <WorkspacePremium
+              style={{ fontSize: "30px", color: "var(--highlight-primary)" }}
             />
           </div>
-          <div style={{ paddingBottom: 5 }}>
+          <div>
             <strong
               className={styles.brandTitle}
-              style={{ fontSize: 20, letterSpacing: 1 }}
+              style={{ fontSize: 18, letterSpacing: 2 }}
             >
               {name}
             </strong>
@@ -201,37 +213,52 @@ export function Sidebar() {
           )}
         </nav>
       </div>
+
       <div className={styles.footer}>
         <div className={styles.footerDivider} />
-        <div
-          className={styles.userCard}
-          onClick={() => navigate(`/config/${user?.id}`)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              navigate(`/config/${user?.id}`);
-            }
-          }}
-        >
-          <div className={styles.userAvatar}>{initials}</div>
-          <div className={styles.userInfo}>
-            <div className={styles.userName}>{displayName}</div>
-            <div className={styles.userEmail}>{displayEmail}</div>
+        {user?.userType === UserTypeEnum.ADMIN && (
+          <div>
+            <div
+              className={styles.userCard}
+              onClick={() => navigate(`/config/${user?.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  navigate(`/config/${user?.id}`);
+                }
+              }}
+            >
+              <div className={styles.userAvatar}>{initials}</div>
+              <div className={styles.userInfo}>
+                <div className={styles.userName}>{displayName}</div>
+                <div className={styles.userEmail}>{displayEmail}</div>
+              </div>
+            </div>
+
+            <NavLink
+              to={"/config"}
+              className={({ isActive }) =>
+                isActive ? styles.active : styles.linkButton
+              }
+              style={{ gap: 12 }}
+            >
+              <FiSettings className={styles.icon} color="#636E72" size={20} />
+              <span>Configurações</span>
+            </NavLink>
+
+            <NavLink
+              to={"/collaborators"}
+              className={({ isActive }) =>
+                isActive ? styles.active : styles.linkButton
+              }
+              style={{ gap: 12 }}
+            >
+              <FiUsers className={styles.icon} color="#636E72" size={20} />
+              <span>Colaboradores</span>
+            </NavLink>
           </div>
-        </div>
-
-        <NavLink
-          to={"/config"}
-          className={({ isActive }) =>
-            isActive ? styles.active : styles.linkButton
-          }
-          style={{ gap: 12 }}
-        >
-          <FiSettings className={styles.icon} color="#636E72" size={20} />
-          <span>Configurações</span>
-        </NavLink>
-
+        )}
         <NavLink
           onClick={() => handleLogout()}
           to={""}

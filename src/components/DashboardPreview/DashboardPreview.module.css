@@ -1,0 +1,218 @@
+
+.miniMovWrap {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px #0001;
+  margin-top: 6px;
+  padding: 6px 4px 4px 4px;
+  max-width: 250px;
+}
+.miniMovTitle {
+  font-weight: 700;
+  font-size: 6px;
+  margin-bottom: 3px;
+}
+.miniMovTableWrap {
+  overflow-x: auto;
+}
+.miniMovTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 5px;
+}
+.miniMovTheadRow {
+  color: #94a3b8;
+  text-align: center;
+}
+.miniMovTable th, .miniMovTable td {
+  padding: 2px 2px;
+  max-width: 40px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 3px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.miniMovTable th {
+  font-weight: 700;
+  color: #94a3b8;
+  background: none;
+}
+.miniMovTable tr:last-child td {
+  border-bottom: none;
+}
+.miniMovBold {
+  font-weight: 700;
+}
+.miniMovDate {
+  color: #cbd5e1;
+  font-size: 4px;
+}
+.miniMovAvatar {
+  display: inline-block;
+  background: #f1f5f9;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  text-align: center;
+  line-height: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-right: 2px;
+  font-size: 5px;
+}
+.miniMovStatus {
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 3px;
+}
+.miniMovFooter {
+  color: #64748b;
+  font-size: 5px;
+  margin-top: 3px;
+}
+.previewWrap {
+  display: flex;
+  border: 2px solid #eee;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fafbfc;
+  height: 210px;
+  max-width: 320px;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px #0001;
+}
+.sidebar {
+  width: 56px;
+  background: #fff;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1.5px solid #f0f0f0;
+}
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+.logoIcon {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  border-radius: 5px;
+  margin-right: 0;
+  display: inline-block;
+}
+.logoText {
+  font-weight: 700;
+  font-size: 6px;
+  color: #222;
+}
+.menu {
+  width: 100%;
+}
+.menuItem,
+.menuItemActive {
+  display: flex;
+  align-items: center;
+  padding: 2px 2px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 44px;
+}
+.menuItemActive {
+  color: #fff;
+  font-weight: 500;
+}
+.menuItem {
+  color: #888;
+  background: none;
+}
+.menuIcon {
+  margin-right: 2px;
+  font-size: 5px;
+}
+.menuText {
+  font-size: 4px;
+}
+.main {
+  flex: 1;
+  padding: 8px 8px 8px 8px;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.userName {
+  font-weight: 600;
+  font-size: 7px;
+  margin-right: 8px;
+  color: #222;
+}
+.logoMini {
+  font-size: 12px;
+  font-weight: 700;
+}
+.cardsRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px #0001;
+  padding: 5px 5px;
+  min-width: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+.cardIcon {
+  font-size: 7px;
+  margin-bottom: 2px;
+}
+.cardLabel {
+  font-size: 5px;
+  color: #888;
+  margin-bottom: 1px;
+}
+.cardValue {
+  font-size: 5px;
+  font-weight: 700;
+  color: #222;
+}
+.salesPerformance {
+  margin-top: 4px;
+}
+.salesTitle {
+  font-size: 5px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 30px;
+}
+.salesChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+.salesBar {
+  width: 7px;
+  border-radius: 3px 3px 0 0;
+  background: #eee;
+  transition: background 0.2s;
+}

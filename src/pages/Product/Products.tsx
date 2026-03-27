@@ -8,18 +8,19 @@ import {
   FiGrid,
   FiSearch,
 } from "react-icons/fi";
-import EntityCard from "../../components/EntityCard";
-import { SkeletonCard } from "../../components/SkeletonCard";
-import { FilterModal } from "../../components/FilterModal";
+import EntityCard from "../../components/EntityCard/EntityCard";
+import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
+import { FilterModal } from "../../components/FilterModal/FilterModal";
 import { Plus } from "lucide-react";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
-import { MessageService } from "../../service/Message.service";
+import { useMessageContext } from "../../contexts/MessageContext";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { useLocation, useNavigate } from "react-router-dom";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import { useAuth } from "../../contexts/useAuth";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
@@ -35,7 +36,10 @@ export function Products() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+  const companyId = user?.companyId;
 
+  // alert(JSON.stringify(user?.userType))
   // Seta o id do produto no input de busca se vier via state
   useEffect(() => {
     if (location.state && location.state.id) {
@@ -206,12 +210,20 @@ export function Products() {
   );
 
   const totalValue = useMemo(() => {
-    return products.reduce((sum, p) => sum + Number(p.price || 0) +  Number(p.variations?.reduce((vSum, v) => vSum + Number(v.price || 0), 0) || 0), 0);
+    return products.reduce(
+      (sum, p) =>
+        sum +
+        Number(p.price || 0) +
+        Number(
+          p.variations?.reduce((vSum, v) => vSum + Number(v.price || 0), 0) ||
+            0,
+        ),
+      0,
+    );
   }, [products]);
 
   const lowStock = useMemo(() => {
-    return products.filter((p) => (p.stock ?? 0) <= p.lowStock)
-      .length;
+    return products.filter((p) => (p.stock ?? 0) <= p.lowStock).length;
   }, [products]);
 
   const categoryTotal = useMemo(() => {
@@ -223,80 +235,74 @@ export function Products() {
   //   return primary?.url || (images?.[0] as any)?.url || "";
   // };
 
+  const { createMessage } = useMessageContext();
   useEffect(() => {
     const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await ProductService.findAll();
-        setProducts(data);
+      if (companyId)
+        try {
+          setLoading(true);
+          setError(null);
+          const data = await ProductService.findAll(companyId);
+          setProducts(data);
 
-        for (const p of data) {
-          const primaryImage = (p.images || []).find((img) => img.isPrimary);
-          const imageUrl = primaryImage?.url || p.images?.[0]?.url || "";
+          for (const p of data) {
+            const primaryImage = (p.images || []).find((img) => img.isPrimary);
+            const imageUrl = primaryImage?.url || p.images?.[0]?.url || "";
 
-          if ((p.stock ?? 0) === 0) {
-            try {
-              await MessageService.create({
+            if ((p.stock ?? 0) === 0) {
+              await createMessage({
                 productId: p.id,
                 name: p.name,
                 url: imageUrl,
                 type: "esgotado",
                 description: `O produto "${p.name}" foi esgotado. Estoque zerado. Realize a reposição imediatamente.`,
+                companyId,
               });
-            } catch {}
-          } else if ((p.lowStock ?? 0) > (p.stock ?? 0)) {
-            try {
-              await MessageService.create({
+            } else if ((p.lowStock ?? 0) > (p.stock ?? 0)) {
+              await createMessage({
                 productId: p.id,
                 name: p.name,
                 url: imageUrl,
                 type: "estoque_baixo",
                 description: `Alerta de estoque baixo: o produto "${p.name}" possui apenas ${p.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
+                companyId,
               });
-            } catch {}
-          }
+            }
 
-          if (Array.isArray(p.variations)) {
-            for (const v of p.variations) {
-              const varImage = v.imageUrl || imageUrl;
-              const varName =
-                `${p.name} - ${v.color || ""} ${v.size || ""}`.trim();
-              if (Number(v.stock ?? 0) === 0) {
-                try {
-                  await MessageService.create({
+            if (Array.isArray(p.variations)) {
+              for (const v of p.variations) {
+                const varImage = v.imageUrl || imageUrl;
+                const varName =
+                  `${p.name} - ${v.color || ""} ${v.size || ""}`.trim();
+                if (Number(v.stock ?? 0) === 0) {
+                  await createMessage({
                     productId: p.id,
                     name: varName,
                     url: varImage,
                     type: "esgotado",
                     description: `A variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" foi esgotada. Estoque zerado. Realize a reposição imediatamente.`,
+                    companyId,
                   });
-                } catch {}
-              } else if (
-                
-                (p.lowStock ?? 0) > Number(v.stock ?? 0)
-              ) {
-                try {
-                  await MessageService.create({
+                } else if ((p.lowStock ?? 0) > Number(v.stock ?? 0)) {
+                  await createMessage({
                     productId: p.id,
                     name: varName,
                     url: varImage,
                     type: "estoque_baixo",
                     description: `Alerta de estoque baixo: a variação "${v.color || ""} ${v.size || ""}" do produto "${p.name}" possui apenas ${v.stock ?? 0} unidades restantes. O limite de alerta é ${p.lowStock}. Realize a reposição.`,
+                    companyId,
                   });
-                } catch {}
+                }
               }
             }
           }
+        } catch (err) {
+          console.error(err);
+          setError("Erro ao carregar produtos");
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error(err);
-        setError("Erro ao carregar produtos");
-      } finally {
-        setLoading(false);
-      }
     };
-
     fetchProducts();
   }, []);
 
@@ -461,14 +467,15 @@ export function Products() {
                   ...(p.variations || [])
                     .filter((v) => v.imageUrl)
                     .map((v) => ({
-                      url: Array.isArray(v.imageUrl) ? (v.imageUrl[0] || "") : (v.imageUrl || ""),
+                      url: Array.isArray(v.imageUrl)
+                        ? v.imageUrl[0] || ""
+                        : v.imageUrl || "",
                       fileName: v.name || "",
                       id: v.id || "",
                       isPrimary: false,
                     })),
                 ]}
                 stock={p.stock}
-
                 available
                 color={p.color}
                 colors={Array.from(

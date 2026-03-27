@@ -5,6 +5,7 @@ import type { ProductVariationResponseDto } from "./product-variation-response.d
 
 export interface ProductResponse {
   id: string;
+  companyId: string;
   name: string;
   description?: string;
   category: ProductCategoryEnum;

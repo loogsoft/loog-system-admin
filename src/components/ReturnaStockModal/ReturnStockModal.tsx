@@ -10,8 +10,8 @@ import {
   FiAlertTriangle,
   FiShield,
 } from "react-icons/fi";
-import styles from "./VoltarEstoqueModal.module.css";
-import { useAuth } from "../contexts/useAuth";
+import styles from "./ReturnStockModal.module.css";
+import { useAuth } from "../../contexts/useAuth";
 
 export type StockHistoryItem = {
   id: string;
@@ -36,7 +36,7 @@ type Props = {
   onConfirm: (data: VoltarEstoqueFormData) => void;
 };
 
-export function VoltarEstoqueModal({ isOpen, onClose, item, onConfirm }: Props) {
+export function ReturnStockModal({ isOpen, onClose, item, onConfirm }: Props) {
   const { user } = useAuth();
   const operatorLabel = user?.name || user?.email || "Usuário desconhecido";
   const operatorEmail = user?.email || "";

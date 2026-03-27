@@ -6,13 +6,13 @@ import type { PrizeResponseDto } from "../../dtos/response/prize-response.dto";
 import styles from "./Roulette.module.css";
 import { FiTrash2 } from "react-icons/fi";
 import { Edit2 } from "lucide-react";
-import { ConfirmDeleteModal } from "../../components/ConfirmDeleteModal";
+import { ConfirmDeleteModal } from "../../components/ConfirmaDeleteModal/ConfirmDeleteModal";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
-import EntityCard from "../../components/EntityCard";
+import EntityCard from "../../components/EntityCard/EntityCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { FiSearch, FiFilter } from "react-icons/fi";
-import { FilterModal } from "../../components/FilterModal";
+import { FilterModal } from "../../components/FilterModal/FilterModal";
 import type { CategoryKey } from "../../types/Product-type";
 
 // Declarar products/setProducts ANTES de qualquer uso

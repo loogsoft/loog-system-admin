@@ -7,16 +7,14 @@ export const StockMovementService = {
   create: async (
     dto: StockMovementRequestDto,
   ): Promise<StockMovementResponseDto> => {
-    const response = await api.post<StockMovementResponseDto>(
-      URL,
-      dto,
-    );
+    const response = await api.post<StockMovementResponseDto>(URL, dto);
     return response.data;
   },
 
-  findAll: async (): Promise<StockMovementResponseDto[]> => {
-    const response =
-      await api.get<StockMovementResponseDto[]>(URL);
+  findAll: async (companyId: string): Promise<StockMovementResponseDto[]> => {
+    const response = await api.get<StockMovementResponseDto[]>(
+      `${URL}/find-all/${companyId}`,
+    );
     return response.data;
   },
 

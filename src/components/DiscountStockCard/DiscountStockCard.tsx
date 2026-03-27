@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { DiscountStockStatusEnum } from "../dtos/enums/discount-stock-status.enum";
+import { DiscountStockStatusEnum } from "../../dtos/enums/discount-stock-status.enum";
 import styles from "./DiscountStockCard.module.css";
 import { FiChevronRight } from "react-icons/fi";
 

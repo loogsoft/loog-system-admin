@@ -8,10 +8,11 @@ import type { ProductRequest } from "../../dtos/request/product-request.dto";
 import type { ProductVariationRequestDto } from "../../dtos/request/product-variation-request.dto";
 import type { ProductVariationResponseDto } from "../../dtos/response/product-variation-response.dto";
 import { Save, Plus, Pencil } from "lucide-react";
-import { ImageGallery } from "../../components/ImageGallery";
-import EntityCard from "../../components/EntityCard";
+import { ImageGallery } from "../../components/ImageGallery/ImageGallery";
+import EntityCard from "../../components/EntityCard/EntityCard";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 import { FiTrash2 } from "react-icons/fi";
+import { useAuth } from "../../contexts/useAuth";
 
 type Variation = ProductVariationRequestDto | ProductVariationResponseDto;
 
@@ -39,6 +40,8 @@ export function ProductsDetails() {
   const [editingColor, setEditingColor] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const { user } = useAuth();
+  const companyId = user?.companyId;
 
   const [productType, setProductType] = useState<
     (typeof ProductType)[keyof typeof ProductType]
@@ -309,6 +312,7 @@ export function ProductsDetails() {
   };
 
   const onAddVariation = () => {
+
     if (!variationColor.trim() || !variationSize.trim()) {
       alert("Cor e tamanho da variação são obrigatórios");
       return;
@@ -317,6 +321,18 @@ export function ProductsDetails() {
     if (!variationStock.trim()) {
       alert("Estoque da variação é obrigatório");
       return;
+    }
+
+    if (variationPrice.trim()) {
+      const priceValue = Number(variationPrice.replace(",", "."));
+      if (isNaN(priceValue)) {
+        alert("Preço da variação deve ser um número válido");
+        return;
+      }
+      if (priceValue < 0) {
+        alert("Preço da variação não pode ser negativo");
+        return;
+      }
     }
 
     const duplicate = variations.some(
@@ -339,6 +355,7 @@ export function ProductsDetails() {
       targetIndex !== null ? variations[targetIndex].images : undefined;
 
     const newVariation: ProductVariationRequestDto = {
+      companyId: companyId ?? "",
       name: `${variationColor.trim()} ${variationSize.trim()}`,
       price: variationPrice.trim()
         ? Number(variationPrice.replace(",", "."))
@@ -397,12 +414,33 @@ export function ProductsDetails() {
         alert("Preço do produto é obrigatório");
         return;
       }
+      const priceValue = Number(toDot(price));
+      if (isNaN(priceValue)) {
+        alert("Preço deve ser um número válido");
+        return;
+      }
+      if (priceValue < 0) {
+        alert("Preço não pode ser negativo");
+        return;
+      }
       if (!color.trim()) {
         alert("Cor do produto é obrigatória");
         return;
       }
       if (!stock.trim()) {
         alert("Quantidade em estoque é obrigatória");
+        return;
+      }
+    }
+
+    if (promoPrice.trim()) {
+      const promoValue = Number(toDot(promoPrice));
+      if (isNaN(promoValue)) {
+        alert("Preço promocional deve ser um número válido");
+        return;
+      }
+      if (promoValue < 0) {
+        alert("Preço promocional não pode ser negativo");
         return;
       }
     }
@@ -435,11 +473,13 @@ export function ProductsDetails() {
                 variation.lowStock !== undefined && variation.lowStock !== null
                   ? Number(variation.lowStock)
                   : 0,
+              companyId: companyId ?? "",
             };
           })
         : undefined;
 
     const payload: ProductRequest = {
+      companyId: companyId ?? "",
       name: name.trim(),
       description: description.trim() || undefined,
       category,
@@ -544,7 +584,7 @@ export function ProductsDetails() {
       </div>
 
       <div className={styles.content}>
-        {productType === ProductType.UNIQUE && ( 
+        {productType === ProductType.UNIQUE && (
           <aside className={styles.imageGalleryAside}>
             <ImageGallery
               previews={imagePreviews}
@@ -554,8 +594,8 @@ export function ProductsDetails() {
               onAddImages={onPickImages}
               onRemoveImage={onRemoveImage}
             />
-          </aside>)
-        }
+          </aside>
+        )}
 
         <div className={styles.formColumn} style={{ marginBottom: 40 }}>
           <section className={styles.panel}>
@@ -1054,8 +1094,10 @@ export function ProductsDetails() {
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
+                                value={variationPrice}
+                                onChange={(e) =>
+                                  setVariationPrice(e.target.value)
+                                }
                               />
                             </label>
                             <label className={styles.field}>

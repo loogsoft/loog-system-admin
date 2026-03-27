@@ -4,10 +4,12 @@ import api from "./api";
 
 export const CompanyService = {
   create: async (dto: CompanyRequestDto) => {
-    const response = await api.post(
-      "/company",
-      dto
-    );
+    const response = await api.post("/company", dto);
+    return response.data;
+  },
+
+  update: async (companyId: string, dto: Partial<CompanyRequestDto>) => {
+    const response = await api.patch<CompanyResponseDto>(`/company/${companyId}`, dto);
     return response.data;
   },
 
@@ -20,5 +22,4 @@ export const CompanyService = {
     const response = await api.get<CompanyResponseDto[]>(`/company`);
     return response.data;
   },
-  
 };

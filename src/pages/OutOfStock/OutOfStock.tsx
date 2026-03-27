@@ -7,9 +7,9 @@ import {
   FiGrid,
   FiSearch,
 } from "react-icons/fi";
-import EntityCard from "../../components/EntityCard";
-import { SkeletonCard } from "../../components/SkeletonCard";
-import { FilterModal } from "../../components/FilterModal";
+import EntityCard from "../../components/EntityCard/EntityCard";
+import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
+import { FilterModal } from "../../components/FilterModal/FilterModal";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
@@ -17,6 +17,7 @@ import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/useAuth";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
@@ -32,6 +33,8 @@ export function OutOfStock() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const companyId = user?.companyId;
 
   useEffect(() => {
     if (location.state && location.state.id) {
@@ -150,49 +153,13 @@ export function OutOfStock() {
 
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
-  const counts = useMemo(() => {
-    const countBy = (category: ProductCategoryEnum) =>
-      outOfStockProducts.filter((p) => p.category === category).length;
-
-    return {
-      all: outOfStockProducts.length,
-      shirt: countBy(ProductCategoryEnum.SHIRT),
-      tshirt: countBy(ProductCategoryEnum.TSHIRT),
-      polo: countBy(ProductCategoryEnum.POLO),
-      shorts: countBy(ProductCategoryEnum.SHORTS),
-      jacket: countBy(ProductCategoryEnum.JACKET),
-      pants: countBy(ProductCategoryEnum.PANTS),
-      dress: countBy(ProductCategoryEnum.DRESS),
-      sweater: countBy(ProductCategoryEnum.SWEATER),
-      hoodie: countBy(ProductCategoryEnum.HOODIE),
-      underwear: countBy(ProductCategoryEnum.UNDERWEAR),
-      footwear: countBy(ProductCategoryEnum.FOOTWEAR),
-      belt: countBy(ProductCategoryEnum.BELT),
-      wallet: countBy(ProductCategoryEnum.WALLET),
-      sunglasses: countBy(ProductCategoryEnum.SUNGLASSES),
-    };
+  const categoriesDynamic = useMemo(() => {
+    const unique = Array.from(new Set(outOfStockProducts.map((p) => p.category)));
+    return [
+      { value: "all", label: `Todos ${outOfStockProducts.length}` },
+      ...unique.map((cat) => ({ value: cat, label: String(cat) })),
+    ];
   }, [outOfStockProducts]);
-
-  const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
-    () => [
-      { key: "all", label: `Todos ${counts.all}` },
-      { key: "shirt", label: "Camisa" },
-      { key: "tshirt", label: "Camiseta" },
-      { key: "polo", label: "Polo" },
-      { key: "shorts", label: "Shorts" },
-      { key: "jacket", label: "Jaqueta" },
-      { key: "pants", label: "Calça" },
-      { key: "dress", label: "Vestido" },
-      { key: "sweater", label: "Suéter" },
-      { key: "hoodie", label: "Moletom" },
-      { key: "underwear", label: "Cueca" },
-      { key: "footwear", label: "Calçado" },
-      { key: "belt", label: "Cinto" },
-      { key: "wallet", label: "Carteira" },
-      { key: "sunglasses", label: "Óculos" },
-    ],
-    [counts],
-  );
 
   const LISTPAG: { value: number }[] = useMemo(
     () => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }],
@@ -208,8 +175,10 @@ export function OutOfStock() {
       try {
         setLoading(true);
         setError(null);
-        const data = await ProductService.findAll();
-        setProducts(data);
+        if (companyId) {
+          const data = await ProductService.findAll(companyId);
+          setProducts(data);
+        }
       } catch (err) {
         console.error(err);
         setError("Erro ao carregar produtos");
@@ -249,7 +218,7 @@ export function OutOfStock() {
       <section className={styles.metrics}>
         <StatCard
           label="Total de produtos"
-          value={counts.all}
+          value={outOfStockProducts.length}
           sub="Produtos sem estoque"
           icon={<FiBox />}
           iconColor="#EFF6FF"
@@ -303,10 +272,7 @@ export function OutOfStock() {
 
           <div className={styles.filterActions}>
             <CustomSelect
-              options={CATEGORIES.map((c) => ({
-                value: c.key,
-                label: c.label,
-              }))}
+              options={categoriesDynamic}
               value={activeCat}
               onChange={(value) => setActiveCat(value as CategoryKey)}
             />
@@ -326,7 +292,7 @@ export function OutOfStock() {
                   setFilters(newFilters);
                   setActiveCat(newFilters.category);
                 }}
-                categories={CATEGORIES}
+                categories={categoriesDynamic}
                 initialFilters={filters}
               />
             </div>
@@ -366,7 +332,9 @@ export function OutOfStock() {
                   ...(p.variations || [])
                     .filter((v) => v.imageUrl)
                     .map((v) => ({
-                      url: Array.isArray(v.imageUrl) ? (v.imageUrl[0] || "") : (v.imageUrl || ""),
+                      url: Array.isArray(v.imageUrl)
+                        ? v.imageUrl[0] || ""
+                        : v.imageUrl || "",
                       fileName: v.name || "",
                       id: v.id || "",
                       isPrimary: false,

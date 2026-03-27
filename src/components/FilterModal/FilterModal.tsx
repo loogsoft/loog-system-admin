@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, DollarSign, Tag, ArrowUpDown } from "lucide-react";
-import styles from "./FilterModal.module.css";
-import type { CategoryKey } from "../types/Product-type";
+import styles from "./FilterModal.module.css"
+import type { CategoryKey } from "../../types/Product-type";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 

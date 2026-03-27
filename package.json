@@ -12,10 +12,12 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/material": "^7.3.7",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9",
     "apexcharts": "^5.10.3",
     "axios": "^1.13.2",
     "lucide-react": "^0.561.0",
+    "phosphor-react": "^1.4.1",
     "react": "^19.2.0",
     "react-apexcharts": "^2.1.0",
     "react-custom-roulette": "^1.4.1",

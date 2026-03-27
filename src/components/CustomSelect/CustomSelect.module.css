@@ -29,7 +29,7 @@
 .triggerActive {
   border-color: var(--highlight-primary);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
+  box-shadow: 0 0 0 2px var(--highlight-primary);
 }
 
 .value {

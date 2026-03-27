@@ -197,13 +197,11 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 12px 22px rgba(255, 200, 61, 0.25);
   transition: all 0.2s ease;
 }
 
 .primaryBtn:hover {
   transform: scale(1.05);
-  box-shadow: 0 16px 28px rgba(255, 200, 61, 0.35);
 }
 
 .metrics {
@@ -245,7 +243,6 @@
 .tabActive {
   background: var(--highlight-primary);
   color: #fff;
-  box-shadow: 0 6px 14px rgba(242, 182, 50, 0.35);
 }
 
 .tabActive:hover {
@@ -259,7 +256,6 @@
   border: 1px solid var(--border-default);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.08);
 }
 
 .cardGrid {
@@ -299,7 +295,7 @@
 
 .search:focus-within {
   border-color: var(--highlight-primary);
-  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
+  box-shadow: 0 0 0 2px var(--highlight-primary);
 }
 
 .searchIcon {
@@ -351,7 +347,7 @@
 .filterBtn:focus {
   border-color: var(--highlight-primary);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
+  box-shadow: 0 0 0 2px var(--highlight-primary);
 }
 
 .table {
@@ -578,13 +574,11 @@
   border-radius: 8px;
   cursor: pointer;
   width: 100%;
-  box-shadow: 0 6px 14px rgba(246, 196, 15, 0.3);
   transition: all 0.2s ease;
 }
 
 .actionBtn:hover {
   transform: scale(1.05);
-  box-shadow: 0 8px 18px rgba(246, 196, 15, 0.4);
 }
 
 .actionOutlineBtn {

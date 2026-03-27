@@ -5,13 +5,19 @@ import { AuthContext } from "./auth-context";
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ id: string; name?: string; email?: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name?: string; email?: string; companyId?: string; userType?: import("../dtos/enums/user-type.enum").UserTypeEnum } | null>(null);
 
   const fetchUser = useCallback(async () => {
     const me = await UserService.getMe();
-    let profile: { id: string; email?: string; name?: string } = {
+    let companyId: string | undefined = undefined;
+    try {
+      const verify = localStorage.getItem("companyId");
+      if (verify) companyId = verify;
+    } catch {}
+    let profile: { id: string; email?: string; name?: string; companyId?: string; userType?: import("../dtos/enums/user-type.enum").UserTypeEnum } = {
       id: me.id,
       email: me.email,
+      companyId,
     };
     try {
       const full = await UserService.findOne(me.id);
@@ -19,10 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: full.id ?? me.id,
         name: full.name,
         email: full.email ?? me.email,
+        companyId,
+        userType: full.userType,
       };
-    } catch {
-      // Fallback to the /users/me payload
-    }
+    } catch {}
     setUser(profile);
   }, []);
 
