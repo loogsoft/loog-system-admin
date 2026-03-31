@@ -1,4 +1,3 @@
-import { useAuth } from "../contexts/useAuth";
 import type { ProductStatusEnum } from "../dtos/enums/product-status.enum";
 import type { ProductRequest } from "../dtos/request/product-request.dto";
 import type { ProductResponse } from "../dtos/response/product-response.dto";

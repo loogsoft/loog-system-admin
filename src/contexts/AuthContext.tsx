@@ -5,7 +5,13 @@ import { AuthContext } from "./auth-context";
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ id: string; name?: string; email?: string; companyId?: string; userType?: import("../dtos/enums/user-type.enum").UserTypeEnum } | null>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    companyId: string;
+    userType: import("../dtos/enums/user-type.enum").UserTypeEnum;
+  } | null>(null);
 
   const fetchUser = useCallback(async () => {
     const me = await UserService.getMe();
@@ -14,7 +20,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const verify = localStorage.getItem("companyId");
       if (verify) companyId = verify;
     } catch {}
-    let profile: { id: string; email?: string; name?: string; companyId?: string; userType?: import("../dtos/enums/user-type.enum").UserTypeEnum } = {
+    let profile: {
+      id: string;
+      name?: string;
+      email?: string;
+      companyId?: string;
+      userType?: import("../dtos/enums/user-type.enum").UserTypeEnum;
+    } = {
       id: me.id,
       email: me.email,
       companyId,
@@ -25,11 +37,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: full.id ?? me.id,
         name: full.name,
         email: full.email ?? me.email,
-        companyId,
+        companyId: full.companyId || companyId,
         userType: full.userType,
       };
     } catch {}
-    setUser(profile);
+    if (!profile.companyId && companyId) {
+      profile.companyId = companyId;
+    }
+    setUser({
+      id: profile.id,
+      name: profile.name ?? "",
+      email: profile.email ?? "",
+      companyId: profile.companyId ?? "",
+      userType: profile.userType ?? ("ADMIN" as import("../dtos/enums/user-type.enum").UserTypeEnum),
+    });
   }, []);
 
   useEffect(() => {

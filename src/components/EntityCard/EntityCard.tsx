@@ -117,10 +117,18 @@ export default function EntityCard(props: Props) {
       ? ({ backgroundColor: props.avatarColor } as CSSProperties)
       : undefined;
     return (
-      <div className={`${styles.card} ${styles.creditCustomerCard || ""}`} onClick={() => props.onEdit?.(props.id)}>
+      <div
+        className={`${styles.card} ${styles.creditCustomerCard || ""}`}
+        onClick={() => props.onEdit?.(props.id)}
+      >
         <div className={`${styles.media} ${styles.creditCustomerMedia || ""}`}>
-          <div className={`${styles.avatar} ${styles.creditCustomerAvatar || ""}`} style={avatarStyle}>
-            <span className={styles.avatarText}><FiUser /></span>
+          <div
+            className={`${styles.avatar} ${styles.creditCustomerAvatar || ""}`}
+            style={avatarStyle}
+          >
+            <span className={styles.avatarText}>
+              <FiUser />
+            </span>
           </div>
           {props.onDelete ? (
             <div className={styles.cardActions}>
@@ -145,31 +153,52 @@ export default function EntityCard(props: Props) {
           <div className={styles.category}>{props.category}</div>
           <div className={styles.creditCustomerMeta || ""}>
             {props.cpf && (
-              <div className={styles.metaItem}><span>CPF:</span> {props.cpf}</div>
+              <div className={styles.metaItem}>
+                <span>CPF:</span> {props.cpf}
+              </div>
             )}
             {props.email && (
-              <div className={styles.metaItem}><FiMail className={styles.metaIcon} />{props.email}</div>
+              <div className={styles.metaItem}>
+                <FiMail className={styles.metaIcon} />
+                {props.email}
+              </div>
             )}
             {props.phone && (
-              <div className={styles.metaItem}><FiPhone className={styles.metaIcon} />{props.phone}</div>
+              <div className={styles.metaItem}>
+                <FiPhone className={styles.metaIcon} />
+                {props.phone}
+              </div>
             )}
             {props.location && (
-              <div className={styles.metaItem}><FiMapPin className={styles.metaIcon} />{props.location}</div>
+              <div className={styles.metaItem}>
+                <FiMapPin className={styles.metaIcon} />
+                {props.location}
+              </div>
             )}
             {props.number && (
-              <div className={styles.metaItem}><span>Número:</span> {props.number}</div>
+              <div className={styles.metaItem}>
+                <span>Número:</span> {props.number}
+              </div>
             )}
             {props.neighborhood && (
-              <div className={styles.metaItem}><span>Bairro:</span> {props.neighborhood}</div>
+              <div className={styles.metaItem}>
+                <span>Bairro:</span> {props.neighborhood}
+              </div>
             )}
             {props.city && (
-              <div className={styles.metaItem}><span>Cidade:</span> {props.city}</div>
+              <div className={styles.metaItem}>
+                <span>Cidade:</span> {props.city}
+              </div>
             )}
             {props.state && (
-              <div className={styles.metaItem}><span>Estado:</span> {props.state}</div>
+              <div className={styles.metaItem}>
+                <span>Estado:</span> {props.state}
+              </div>
             )}
             {props.zipCode && (
-              <div className={styles.metaItem}><span>CEP:</span> {props.zipCode}</div>
+              <div className={styles.metaItem}>
+                <span>CEP:</span> {props.zipCode}
+              </div>
             )}
           </div>
         </div>
@@ -207,14 +236,19 @@ export default function EntityCard(props: Props) {
     const images = props.imageUrl;
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const hasMultipleImages = images.length > 1;
-    const supplierImageUrl = images.length > 0 ? images[currentImageIndex].url : "";
+    const supplierImageUrl =
+      images.length > 0 ? images[currentImageIndex].url : "";
     const handlePrevImage = (e: React.MouseEvent) => {
       e.stopPropagation();
-      setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+      setCurrentImageIndex((prev) =>
+        prev === 0 ? images.length - 1 : prev - 1,
+      );
     };
     const handleNextImage = (e: React.MouseEvent) => {
       e.stopPropagation();
-      setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+      setCurrentImageIndex((prev) =>
+        prev === images.length - 1 ? 0 : prev + 1,
+      );
     };
     return (
       <div
@@ -232,7 +266,9 @@ export default function EntityCard(props: Props) {
               {hasMultipleImages && (
                 <>
                   <button
-                    className={styles.imageNavBtn + " " + styles.imageNavBtnLeft}
+                    className={
+                      styles.imageNavBtn + " " + styles.imageNavBtnLeft
+                    }
                     type="button"
                     aria-label="Imagem anterior"
                     onClick={handlePrevImage}
@@ -240,7 +276,9 @@ export default function EntityCard(props: Props) {
                     <FiChevronLeft />
                   </button>
                   <button
-                    className={styles.imageNavBtn + " " + styles.imageNavBtnRight}
+                    className={
+                      styles.imageNavBtn + " " + styles.imageNavBtnRight
+                    }
                     type="button"
                     aria-label="Próxima imagem"
                     onClick={handleNextImage}
@@ -342,8 +380,11 @@ export default function EntityCard(props: Props) {
 
   const statusLabel =
     statusValue === ProductStatusEnum.ACTIVED ? "ATIVO" : "INATIVO";
-  const isCreditCustomer = props.category === "Cliente";
-  const productIcon = getProductIcon(`${props.name} ${props.category}`, isCreditCustomer);
+  const isCreditCustomer = props.category === "Calça";
+  const productIcon = getProductIcon(
+    `${props.name} ${props.category}`,
+    isCreditCustomer,
+  );
 
   const images = props.imageUrl || [];
   const hasMultipleImages = images.length > 1;
@@ -378,15 +419,30 @@ export default function EntityCard(props: Props) {
     <div
       className={`${styles.card} ${styles.EntityCard}`}
       style={{
-        ...(props.width ? { width: typeof props.width === "number" ? props.width + "px" : props.width } : {}),
-        ...(props.height ? { height: typeof props.height === "number" ? props.height + "px" : props.height } : {}),
+        ...(props.width
+          ? {
+              width:
+                typeof props.width === "number"
+                  ? props.width + "px"
+                  : props.width,
+            }
+          : {}),
+        ...(props.height
+          ? {
+              height:
+                typeof props.height === "number"
+                  ? props.height + "px"
+                  : props.height,
+            }
+          : {}),
       }}
       onClick={() =>
         props.navigateTo ? navigate(props.navigateTo) : undefined
       }
     >
       <div className={`${styles.media} ${styles.productMedia}`}>
-        {!isCreditCustomer && props.stock !== undefined &&
+        {!isCreditCustomer &&
+        props.stock !== undefined &&
         props.stock > 0 &&
         props.stock <= props.lowStock ? (
           <div className={styles.lowStock}>ESTOQUE BAIXO</div>

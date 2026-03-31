@@ -92,12 +92,15 @@ export function OutOfStock() {
   // Produtos sem estoque: stock === 0 OU todas as variações com stock === 0
   const outOfStockProducts = useMemo(() => {
     return products.filter((p) => {
-      const mainStock = p.stock ?? 0;
-      if (mainStock <= 0) return true;
+      const mainStock = Number(p.stock ?? 0);
+      // Produto principal sem estoque
+      if (mainStock > 0) return false;
+      // Se tiver variações, TODAS precisam estar zeradas
       if (Array.isArray(p.variations) && p.variations.length > 0) {
-        return p.variations.some((v) => Number(v.stock ?? 0) <= 0);
+        return p.variations.every((v) => Number(v.stock ?? 0) <= 0);
       }
-      return false;
+      // Produto sem variações e sem estoque
+      return true;
     });
   }, [products]);
 
@@ -152,12 +155,20 @@ export function OutOfStock() {
   }, [filtered, currentPage, pageSize]);
 
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
-
   const categoriesDynamic = useMemo(() => {
-    const unique = Array.from(new Set(outOfStockProducts.map((p) => p.category)));
+    const unique = Array.from(
+      new Set(outOfStockProducts.map((p) => p.category)),
+    );
+
     return [
-      { value: "all", label: `Todos ${outOfStockProducts.length}` },
-      ...unique.map((cat) => ({ value: cat, label: String(cat) })),
+      {
+        key: "all" as CategoryKey,
+        label: `Todos ${outOfStockProducts.length}`,
+      },
+      ...unique.map((cat) => ({
+        key: cat as CategoryKey,
+        label: String(cat),
+      })),
     ];
   }, [outOfStockProducts]);
 
@@ -204,6 +215,10 @@ export function OutOfStock() {
     }
   };
 
+  const categoriesForSelect = categoriesDynamic.map((c) => ({
+    value: c.key,
+    label: c.label,
+  }));
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -272,7 +287,7 @@ export function OutOfStock() {
 
           <div className={styles.filterActions}>
             <CustomSelect
-              options={categoriesDynamic}
+              options={categoriesForSelect}
               value={activeCat}
               onChange={(value) => setActiveCat(value as CategoryKey)}
             />

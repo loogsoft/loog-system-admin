@@ -312,7 +312,6 @@ export function ProductsDetails() {
   };
 
   const onAddVariation = () => {
-
     if (!variationColor.trim() || !variationSize.trim()) {
       alert("Cor e tamanho da variação são obrigatórios");
       return;
@@ -477,9 +476,9 @@ export function ProductsDetails() {
             };
           })
         : undefined;
-
+    const companyData = localStorage.getItem("company");
     const payload: ProductRequest = {
-      companyId: companyId ?? "",
+      companyId: companyId ? companyId : companyData,
       name: name.trim(),
       description: description.trim() || undefined,
       category,

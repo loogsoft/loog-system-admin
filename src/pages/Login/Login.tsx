@@ -84,6 +84,7 @@ export default function Login() {
         return;
       }
       setCompanyId(createdCompanyId);
+      localStorage.setItem("companyId", String(createdCompanyId));
       const payloadUser = {
         name: companyName,
         email: companyEmail,
@@ -188,13 +189,13 @@ export default function Login() {
     async (e: FormEvent) => {
       e.preventDefault();
 
-
       if (step === "login") {
         try {
           setLoading(true);
           const data = await UserService.verifyEmail({ email, password });
           setCompanyId(data.companyId);
           companyIdRef.current = data.companyId;
+          localStorage.setItem("companyId", String(data.companyId));
           setStep("verify");
         } catch {
           showErrorToast();
@@ -215,11 +216,16 @@ export default function Login() {
 
           // Buscar dados do usuário para pegar o userType
           let userType: any = undefined;
+          let userCompanyId: string | undefined = undefined;
           try {
             const userData = await UserService.getMe();
             if (userData && userData.id) {
               const userProfile = await UserService.findOne(userData.id);
               userType = userProfile.userType;
+              userCompanyId = userProfile.companyId;
+              if (userCompanyId) {
+                localStorage.setItem("companyId", String(userCompanyId));
+              }
               localStorage.setItem("userType", userType);
             }
           } catch {}
@@ -230,14 +236,17 @@ export default function Login() {
           }, 1500);
 
           try {
-            const idToUse = companyIdRef.current || companyId;
-            const data: CompanyResponseDto =
-              await CompanyService.findOne(idToUse);
-            if (data.color) {
-              document.documentElement.style.setProperty(
-                "--highlight-primary",
-                data.color,
-              );
+            const idToUse = companyIdRef.current || companyId || userCompanyId;
+            if (idToUse) {
+              localStorage.setItem("companyId", String(idToUse));
+              const data: CompanyResponseDto =
+                await CompanyService.findOne(idToUse);
+              if (data.color) {
+                document.documentElement.style.setProperty(
+                  "--highlight-primary",
+                  data.color,
+                );
+              }
               const companyData = localStorage.getItem("company");
               if (!companyData || companyData !== JSON.stringify(data)) {
                 localStorage.setItem("company", JSON.stringify(data));
@@ -253,7 +262,7 @@ export default function Login() {
               }
               document.documentElement.style.setProperty(
                 "--highlight-secondary",
-                hexToRgba(data.color, 0.10),
+                hexToRgba(data.color, 0.1),
               );
             }
           } catch (error) {}
@@ -270,7 +279,16 @@ export default function Login() {
       }
       // Para os steps de cadastro, não faz nada no submit
     },
-    [code, contextLogin, email, navigate, password, showErrorToast, step, companyId],
+    [
+      code,
+      contextLogin,
+      email,
+      navigate,
+      password,
+      showErrorToast,
+      step,
+      companyId,
+    ],
   );
 
   useEffect(() => {
@@ -752,7 +770,11 @@ export default function Login() {
             ) : step === "newCommunity3" ? (
               <>
                 <div style={{ margin: "0 auto 18px auto", maxWidth: 700 }}>
-                  <DashboardPreview name={companyName}color={color} imageUrl={logoPreview || undefined} />
+                  <DashboardPreview
+                    name={companyName}
+                    color={color}
+                    imageUrl={logoPreview || undefined}
+                  />
                 </div>
                 <label className={styles.label}>Cor dos botões</label>
                 <div className={styles.inputWrap}>

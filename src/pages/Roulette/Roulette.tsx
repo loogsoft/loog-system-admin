@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { PrizesService } from "../../service/prizes.service";
 import type { PrizeRequestDto } from "../../dtos/request/prize-request.dto";
@@ -14,15 +13,13 @@ import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { FiSearch, FiFilter } from "react-icons/fi";
 import { FilterModal } from "../../components/FilterModal/FilterModal";
 import type { CategoryKey } from "../../types/Product-type";
+import { useAuth } from "../../contexts/useAuth";
 
 // Declarar products/setProducts ANTES de qualquer uso
 const useProductsState = () => useState<ProductResponse[]>([]);
 
-
 export default function RouletteAdmin() {
   const [products, setProducts] = useProductsState();
-
-
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -30,12 +27,11 @@ export default function RouletteAdmin() {
   const [loading, setLoading] = useState<boolean>(false);
   const [editValues, setEditValues] = useState<Partial<PrizeRequestDto>>({});
   const [createValues, setCreateValues] = useState<"new" | "not">("not");
-
-
-
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
+  const { user } = useAuth();
+  const companyId = user?.companyId;
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
   type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
@@ -71,11 +67,15 @@ export default function RouletteAdmin() {
     ],
     [products.length],
   );
-  const LISTPAG = useMemo(() => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }], []);
+  const LISTPAG = useMemo(
+    () => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }],
+    [],
+  );
 
   const filtered = useMemo(() => {
     let current = products;
-    const categoryToFilter = filters.category !== "all" ? filters.category : activeCat;
+    const categoryToFilter =
+      filters.category !== "all" ? filters.category : activeCat;
     if (categoryToFilter !== "all") {
       current = current.filter((p: ProductResponse) => {
         return String(p.category) === String(categoryToFilter);
@@ -99,11 +99,19 @@ export default function RouletteAdmin() {
       current = current.filter((p: ProductResponse) => Number(p.price) <= max);
     }
     if (filters.sortBy === "price-asc") {
-      current = [...current].sort((a: ProductResponse, b: ProductResponse) => Number(a.price) - Number(b.price));
+      current = [...current].sort(
+        (a: ProductResponse, b: ProductResponse) =>
+          Number(a.price) - Number(b.price),
+      );
     } else if (filters.sortBy === "price-desc") {
-      current = [...current].sort((a: ProductResponse, b: ProductResponse) => Number(b.price) - Number(a.price));
+      current = [...current].sort(
+        (a: ProductResponse, b: ProductResponse) =>
+          Number(b.price) - Number(a.price),
+      );
     } else if (filters.sortBy === "name-asc") {
-      current = [...current].sort((a: ProductResponse, b: ProductResponse) => a.name.localeCompare(b.name));
+      current = [...current].sort((a: ProductResponse, b: ProductResponse) =>
+        a.name.localeCompare(b.name),
+      );
     }
     return current;
   }, [products, query, filters, activeCat]);
@@ -132,8 +140,10 @@ export default function RouletteAdmin() {
 
   const handleEditSave = async () => {
     if (editingIndex === null) return;
-    const prize = prizesBack[editingIndex] as PrizeResponseDto & { id?: string };
-    if (!('id' in prize) || !prize.id) return;
+    const prize = prizesBack[editingIndex] as PrizeResponseDto & {
+      id?: string;
+    };
+    if (!("id" in prize) || !prize.id) return;
     try {
       // Garantir que editValues está completo para PrizeRequestDto
       const data: PrizeRequestDto = {
@@ -160,14 +170,15 @@ export default function RouletteAdmin() {
 
   const [prizes, setPrizes] = useState<PrizeRequestDto[]>([]);
   // prizesBack agora é PrizeResponseDto & { id?: string }
-  const [prizesBack, setPrizesBack] = useState<(PrizeResponseDto & { id?: string })[]>([]);
-
-
+  const [prizesBack, setPrizesBack] = useState<
+    (PrizeResponseDto & { id?: string })[]
+  >([]);
 
   useEffect(() => {
     const findAllProducts = async () => {
+      if(companyId)
       try {
-        const data = await ProductService.findAll();
+        const data = await ProductService.findAll(companyId);
         setProducts(Array.isArray(data) ? data : []);
       } catch (error) {}
     };
@@ -272,7 +283,9 @@ export default function RouletteAdmin() {
     if (!deleteId) return;
     try {
       await PrizesService.delete(deleteId);
-      setPrizesBack((prev) => prev.filter((p) => String(p.id || "") !== String(deleteId)));
+      setPrizesBack((prev) =>
+        prev.filter((p) => String(p.id || "") !== String(deleteId)),
+      );
       setIsDeleteModalOpen(false);
       setDeleteId(null);
     } catch (e) {
@@ -281,7 +294,9 @@ export default function RouletteAdmin() {
   }, [deleteId]);
 
   // Busca o nome do prêmio selecionado para deletar
-  const prizeToDelete = prizesBack.find((p) => String(p.id || "") === String(deleteId));
+  const prizeToDelete = prizesBack.find(
+    (p) => String(p.id || "") === String(deleteId),
+  );
 
   return (
     <div
@@ -371,7 +386,10 @@ export default function RouletteAdmin() {
               flex: 1,
               height: 30,
               border: "none",
-              background: productTab === "create" ? "var(--highlight-primary)" : "transparent",
+              background:
+                productTab === "create"
+                  ? "var(--highlight-primary)"
+                  : "transparent",
               color: productTab === "create" ? "#fff" : "#B0B0B0",
               fontWeight: 500,
               fontSize: 14,
@@ -389,7 +407,10 @@ export default function RouletteAdmin() {
               flex: 1,
               height: 30,
               border: "none",
-              background: productTab === "products" ? "var(--highlight-primary)" : "transparent",
+              background:
+                productTab === "products"
+                  ? "var(--highlight-primary)"
+                  : "transparent",
               color: productTab === "products" ? "#fff" : "#B0B0B0",
               fontWeight: 500,
               fontSize: 14,
@@ -912,7 +933,6 @@ export default function RouletteAdmin() {
         </div>
       )}
 
-
       {/* SEÇÃO: PRODUTOS EM DESTAQUE (PADRÃO PRODUTOS) */}
       <div className={styles.gridContainer}>
         <div className={styles.filters}>
@@ -924,11 +944,14 @@ export default function RouletteAdmin() {
                 type="text"
                 placeholder="Buscar produtos..."
                 value={query}
-                onChange={e => setQuery(e.target.value)}
+                onChange={(e) => setQuery(e.target.value)}
               />
             </div>
             <CustomSelect
-              options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+              options={LISTPAG.map((c) => ({
+                value: String(c.value),
+                label: String(c.value),
+              }))}
               value={String(pageSize)}
               onChange={(value: string) => {
                 setPageSize(Number(value));
@@ -938,7 +961,10 @@ export default function RouletteAdmin() {
           </div>
           <div className={styles.filterActions}>
             <CustomSelect
-              options={CATEGORIES.map((c) => ({ value: c.key, label: c.label }))}
+              options={CATEGORIES.map((c) => ({
+                value: c.key,
+                label: c.label,
+              }))}
               value={activeCat}
               onChange={(value) => setActiveCat(value as CategoryKey)}
             />
@@ -975,7 +1001,7 @@ export default function RouletteAdmin() {
           ) : (
             paginated.map((p: ProductResponse) => (
               <EntityCard
-              height={350}
+                height={350}
                 lowStock={p.lowStock}
                 key={p.id}
                 id={p.id}
@@ -989,7 +1015,9 @@ export default function RouletteAdmin() {
                   ...(p.variations || [])
                     .filter((v: any) => v.imageUrl)
                     .map((v: any) => ({
-                      url: Array.isArray(v.imageUrl) ? (v.imageUrl[0] || "") : (v.imageUrl || ""),
+                      url: Array.isArray(v.imageUrl)
+                        ? v.imageUrl[0] || ""
+                        : v.imageUrl || "",
                       fileName: v.name || "",
                       id: v.id || "",
                       isPrimary: false,
@@ -1031,7 +1059,10 @@ export default function RouletteAdmin() {
           </div>
           <div className={styles.pagination}>
             <button
-              className={styles.pageBtn + (currentPage === 1 ? ' ' + styles.pageBtnDisabled : '')}
+              className={
+                styles.pageBtn +
+                (currentPage === 1 ? " " + styles.pageBtnDisabled : "")
+              }
               type="button"
               onClick={() => setPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
@@ -1042,7 +1073,10 @@ export default function RouletteAdmin() {
             {pages.map((p) => (
               <button
                 key={p}
-                className={styles.pageBtn + (p === currentPage ? ' ' + styles.pageBtnActive : '')}
+                className={
+                  styles.pageBtn +
+                  (p === currentPage ? " " + styles.pageBtnActive : "")
+                }
                 type="button"
                 onClick={() => setPage(p)}
               >
@@ -1050,7 +1084,10 @@ export default function RouletteAdmin() {
               </button>
             ))}
             <button
-              className={styles.pageBtn + (currentPage === maxPage ? ' ' + styles.pageBtnDisabled : '')}
+              className={
+                styles.pageBtn +
+                (currentPage === maxPage ? " " + styles.pageBtnDisabled : "")
+              }
               type="button"
               onClick={() => setPage(Math.min(maxPage, currentPage + 1))}
               disabled={currentPage === maxPage}

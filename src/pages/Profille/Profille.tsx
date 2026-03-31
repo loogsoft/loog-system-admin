@@ -6,7 +6,6 @@ import { CompanyService } from "../../service/Company.service";
 import { toast } from "react-toastify";
 import {
   UserService,
-  type UserProfileResponse,
 } from "../../service/User.service";
 import { UserTypeEnum } from "../../dtos/enums/user-type.enum";
 export function Profille() {
@@ -42,14 +41,11 @@ export function Profille() {
   const [userStatus, setUserStatus] = useState<UserTypeEnum | null>(null);
 
   //new user
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
 
   const [companyId, setCompanyId] = useState("");
-  const [userPassword, setUserPassword] = useState("");
-  const [userType, setUserType] = useState<keyof typeof UserTypeEnum | "">("");
 
-  const [users, setUsers] = useState<UserProfileResponse[]>([]);
+
+  // const [users, setUsers] = useState<UserProfileResponse[]>([]);
 
   const status =
     userStatus === "ADMIN"
@@ -75,7 +71,7 @@ export function Profille() {
   });
   const [canSave, setCanSave] = useState(false);
 
-  const [canNewUser, setCanNewUser] = useState(false);
+  // const [canNewUser, setCanNewUser] = useState(false);
 
   useEffect(() => {
     const findUser = async () => {
@@ -91,20 +87,12 @@ export function Profille() {
             })
           : "",
       );
-      const dataa = await UserService.findAll(data.companyId);
-      setUsers(dataa);
+      await UserService.findAll(data.companyId);
+      // setUsers(dataa);
     };
 
     findUser();
   }, []);
-  useEffect(() => {
-    const allFilled =
-      userName.trim() !== "" &&
-      userEmail.trim() !== "" &&
-      userPassword.trim() !== "" &&
-      userType !== "";
-    setCanNewUser(allFilled);
-  }, [userName, userEmail, userPassword, userType]);
 
   useEffect(() => {
     if (!companyId) return;

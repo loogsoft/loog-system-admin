@@ -3,7 +3,6 @@ import { FiSettings, FiChevronDown, FiUsers } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 import { IoExitOutline } from "react-icons/io5";
 import { useAuth } from "../../contexts/useAuth";
-import { useTheme } from "../../contexts/useTheme";
 import { useEffect, useState } from "react";
 import {
   Dashboard,
@@ -14,7 +13,6 @@ import {
   BarChart,
   CreditCardRounded,
   Casino,
-  WorkspacePremiumTwoTone,
   WorkspacePremium,
 } from "@mui/icons-material";
 import { UserTypeEnum } from "../../dtos/enums/user-type.enum";
@@ -83,7 +81,6 @@ const menu = [
 
 export function Sidebar() {
   const { logout, user } = useAuth();
-  const { theme } = useTheme();
   const navigate = useNavigate();
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
   const [name, setName] = useState("");

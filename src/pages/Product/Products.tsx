@@ -160,12 +160,20 @@ export function Products() {
 
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
+
   const counts = useMemo(() => {
+    const hasStock = (p: ProductResponse) => {
+      if (Number(p.stock) > 0) return true;
+      if (Array.isArray(p.variations)) {
+        return p.variations.some((v) => Number(v.stock) > 0);
+      }
+      return false;
+    };
     const countBy = (category: ProductCategoryEnum) =>
-      products.filter((p) => p.category === category).length;
+      products.filter((p) => hasStock(p) && p.category === category).length;
 
     return {
-      all: products.length,
+      all: products.filter((p) => hasStock(p)).length,
       shirt: countBy(ProductCategoryEnum.SHIRT),
       tshirt: countBy(ProductCategoryEnum.TSHIRT),
       polo: countBy(ProductCategoryEnum.POLO),
@@ -210,20 +218,36 @@ export function Products() {
   );
 
   const totalValue = useMemo(() => {
-    return products.reduce(
-      (sum, p) =>
-        sum +
-        Number(p.price || 0) +
-        Number(
-          p.variations?.reduce((vSum, v) => vSum + Number(v.price || 0), 0) ||
-            0,
-        ),
-      0,
-    );
+    return products.reduce((sum, p) => {
+      let acc = sum;
+      if (Number(p.stock) > 0) {
+        acc += Number(p.price || 0);
+      }
+      if (Array.isArray(p.variations)) {
+        acc += p.variations.reduce((vSum, v) => {
+          if (Number(v.stock) > 0) {
+            return vSum + Number(v.price || 0);
+          }
+          return vSum;
+        }, 0);
+      }
+      return acc;
+    }, 0);
   }, [products]);
 
   const lowStock = useMemo(() => {
-    return products.filter((p) => (p.stock ?? 0) <= p.lowStock).length;
+    let count = 0;
+    for (const p of products) {
+      if (Number(p.stock) > 0 && (p.stock ?? 0) <= p.lowStock) {
+        count++;
+      }
+      if (Array.isArray(p.variations)) {
+        count += p.variations.filter(
+          (v) => Number(v.stock) > 0 && Number(v.stock) <= (p.lowStock ?? 0)
+        ).length;
+      }
+    }
+    return count;
   }, [products]);
 
   const categoryTotal = useMemo(() => {
