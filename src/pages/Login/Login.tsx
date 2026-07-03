@@ -1,6 +1,31 @@
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
+
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function normalizePhone(value: string) {
+  return onlyDigits(value).slice(0, 11);
+}
+
+function normalizeCpfCnpj(value: string) {
+  return onlyDigits(value).slice(0, 14);
+}
+
+function isValidPhone(value: string) {
+  return /^\d{10,11}$/.test(onlyDigits(value));
+}
+
+function isValidCpfCnpj(value: string) {
+  return /^(\d{11}|\d{14})$/.test(onlyDigits(value));
+}
+
+function isValidHexColor(value: string) {
+  return /^#[0-9a-fA-F]{6}$/.test(value.trim());
+}
+
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Login.module.css";
@@ -253,8 +278,29 @@ export default function Login() {
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const [companyId, setCompanyId] = useState("");
   const companyIdRef = useRef("");
+  const companyPhoneDigits = normalizePhone(companyPhone);
+  const companyCpfCnpjDigits = normalizeCpfCnpj(companyCpfCnpj);
+  const companyPhoneIsValid = isValidPhone(companyPhoneDigits);
+  const companyCpfCnpjIsValid = isValidCpfCnpj(companyCpfCnpjDigits);
+  const companyInfoIsValid =
+    companyName.trim().length > 0 &&
+    companyEmail.trim().length > 0 &&
+    isValidEmail(companyEmail) &&
+    companyPhoneIsValid &&
+    companyCpfCnpjIsValid;
+  const companyColorIsValid = isValidHexColor(color);
+  const companyPasswordIsValid =
+    companyPassword.trim().length > 0 &&
+    confirmPassword.trim().length > 0 &&
+    companyPassword === confirmPassword &&
+    companyPassword.length >= 8;
 
   async function handleCreateCompanyAndUser() {
+    if (!companyInfoIsValid || !companyColorIsValid || !companyPasswordIsValid) {
+      toast.error("Revise os dados da empresa antes de finalizar o cadastro.");
+      return;
+    }
+
     setLoading(true);
     try {
       const imageUrl = logoFile
@@ -263,8 +309,8 @@ export default function Login() {
       const payloadCompany = {
         companyName,
         companyEmail,
-        companyPhone: companyPhone.replace(/\D/g, ""),
-        companyCpfCnpj: companyCpfCnpj.replace(/\D/g, ""),
+        companyPhone: companyPhoneDigits,
+        companyCpfCnpj: companyCpfCnpjDigits,
         color,
         imageUrl,
       };
@@ -318,7 +364,7 @@ export default function Login() {
     if (!value) return "";
 
     // remove tudo que não for número
-    value = value.replace(/\D/g, "");
+    value = onlyDigits(value);
 
     // limita a 11 dígitos
     value = value.slice(0, 11);
@@ -340,7 +386,7 @@ export default function Login() {
     if (!value) return "";
 
     // remove tudo que não for número
-    value = value.replace(/\D/g, "");
+    value = onlyDigits(value);
 
     // limita a 14 dígitos (CNPJ)
     value = value.slice(0, 14);
@@ -1385,57 +1431,65 @@ export default function Login() {
                 </div>
 
                 <label className={styles.label}>Telefone da empresa</label>
-                <div className={styles.inputWrap}>
+                <div
+                  className={`${styles.inputWrap} ${
+                    companyPhone && !companyPhoneIsValid
+                      ? styles.inputWrapError
+                      : ""
+                  }`}
+                >
                   <input
                     className={styles.input}
                     value={phoneMask(companyPhone)}
-                    onChange={(e) => setCompanyPhone(e.target.value)}
+                    onChange={(e) =>
+                      setCompanyPhone(normalizePhone(e.target.value))
+                    }
                     placeholder="(11) 98765-4321"
                     type="tel"
                     autoComplete="tel"
+                    inputMode="numeric"
                   />
                 </div>
+                {companyPhone && !companyPhoneIsValid && (
+                  <span className={styles.fieldError}>
+                    Informe DDD + telefone com 10 ou 11 dígitos.
+                  </span>
+                )}
 
                 <label className={styles.label}>CPF/CNPJ da empresa</label>
-                <div className={styles.inputWrap}>
+                <div
+                  className={`${styles.inputWrap} ${
+                    companyCpfCnpj && !companyCpfCnpjIsValid
+                      ? styles.inputWrapError
+                      : ""
+                  }`}
+                >
                   <input
                     className={styles.input}
                     value={cpfCnpjMask(companyCpfCnpj)}
-                    onChange={(e) => setCompanyCpfCnpj(e.target.value)}
+                    onChange={(e) =>
+                      setCompanyCpfCnpj(normalizeCpfCnpj(e.target.value))
+                    }
                     placeholder="000.000.000-00 / 00.000.000/0000-00"
                     type="text"
                     autoComplete="off"
+                    inputMode="numeric"
                   />
                 </div>
+                {companyCpfCnpj && !companyCpfCnpjIsValid && (
+                  <span className={styles.fieldError}>
+                    Informe um CPF com 11 dígitos ou CNPJ com 14 dígitos.
+                  </span>
+                )}
 
                 <button
                   className={styles.submit}
                   type="button"
                   onClick={() => setStep("newCommunity2")}
-                  disabled={
-                    !companyName.trim() ||
-                    !companyEmail.trim() ||
-                    !isValidEmail(companyEmail) ||
-                    !companyPhone.trim() ||
-                    !companyCpfCnpj.trim()
-                  }
+                  disabled={!companyInfoIsValid}
                   style={{
-                    opacity:
-                      !companyName.trim() ||
-                      !companyEmail.trim() ||
-                      !isValidEmail(companyEmail) ||
-                      !companyPhone.trim() ||
-                      !companyCpfCnpj.trim()
-                        ? 0.6
-                        : 1,
-                    pointerEvents:
-                      !companyName.trim() ||
-                      !companyEmail.trim() ||
-                      !isValidEmail(companyEmail) ||
-                      !companyPhone.trim() ||
-                      !companyCpfCnpj.trim()
-                        ? "none"
-                        : "auto",
+                    opacity: !companyInfoIsValid ? 0.6 : 1,
+                    pointerEvents: !companyInfoIsValid ? "none" : "auto",
                   }}
                 >
                   Próximo
@@ -1552,10 +1606,10 @@ export default function Login() {
                   className={styles.submit}
                   type="button"
                   onClick={() => setStep("newCommunity4")}
-                  disabled={!color.trim()}
+                  disabled={!companyColorIsValid}
                   style={{
-                    opacity: !color.trim() ? 0.6 : 1,
-                    pointerEvents: !color.trim() ? "none" : "auto",
+                    opacity: !companyColorIsValid ? 0.6 : 1,
+                    pointerEvents: !companyColorIsValid ? "none" : "auto",
                   }}
                 >
                   Próximo
@@ -1580,6 +1634,11 @@ export default function Login() {
                         autoComplete="email"
                       />
                     </div>
+                    {companyEmail && !isValidEmail(companyEmail) && (
+                      <span className={styles.fieldError}>
+                        Informe um e-mail válido.
+                      </span>
+                    )}
                     <label className={styles.label} style={{ marginTop: 24 }}>
                       Senha
                     </label>
@@ -1634,25 +1693,14 @@ export default function Login() {
                     className={styles.submit}
                     type="button"
                     onClick={handleCreateCompanyAndUser}
-                    disabled={
-                      !companyPassword.trim() ||
-                      !confirmPassword.trim() ||
-                      companyPassword !== confirmPassword ||
-                      companyPassword.length < 8
-                    }
+                    disabled={!companyInfoIsValid || !companyPasswordIsValid}
                     style={{
                       opacity:
-                        !companyPassword.trim() ||
-                        !confirmPassword.trim() ||
-                        companyPassword !== confirmPassword ||
-                        companyPassword.length < 8
+                        !companyInfoIsValid || !companyPasswordIsValid
                           ? 0.6
                           : 1,
                       pointerEvents:
-                        !companyPassword.trim() ||
-                        !confirmPassword.trim() ||
-                        companyPassword !== confirmPassword ||
-                        companyPassword.length < 8
+                        !companyInfoIsValid || !companyPasswordIsValid
                           ? "none"
                           : "auto",
                     }}

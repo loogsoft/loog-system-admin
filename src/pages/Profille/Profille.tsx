@@ -59,6 +59,14 @@ const EMPTY_COMPANY: CompanySettings = {
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 
+function isValidPhone(value: string): boolean {
+  return /^\d{10,11}$/.test(value.replace(/\D/g, ""));
+}
+
+function isValidCpfCnpj(value: string): boolean {
+  return /^(\d{11}|\d{14})$/.test(value.replace(/\D/g, ""));
+}
+
 function phoneMask(value: string): string {
   const normalized = value.replace(/\D/g, "").slice(0, 11);
   if (normalized.length <= 10) {
@@ -229,6 +237,8 @@ export function Profille() {
   const InscriptionIcon = isCustomerPlan ? Crown : BadgeCheck;
 
   const companyColorIsValid = HEX_COLOR_REGEX.test(company.color);
+  const companyPhoneIsValid = isValidPhone(company.phone);
+  const companyDocumentIsValid = isValidCpfCnpj(company.document);
   const companyChanged = useMemo(
     () =>
       company.name !== savedCompany.name ||
@@ -242,6 +252,8 @@ export function Profille() {
   const canSaveCompany =
     companyChanged &&
     company.name.trim().length >= 2 &&
+    companyPhoneIsValid &&
+    companyDocumentIsValid &&
     companyColorIsValid &&
     !companySaving &&
     !loadingProfile;
@@ -532,7 +544,13 @@ export function Profille() {
 
               <label className={styles.field}>
                 <span>CPF ou CNPJ</span>
-                <div className={styles.inputShell}>
+                <div
+                  className={`${styles.inputShell} ${
+                    company.document && !companyDocumentIsValid
+                      ? styles.inputShellError
+                      : ""
+                  }`}
+                >
                   <Fingerprint size={17} />
                   <input
                     value={cpfCnpjMask(company.document)}
@@ -546,11 +564,22 @@ export function Profille() {
                     inputMode="numeric"
                   />
                 </div>
+                {company.document && !companyDocumentIsValid && (
+                  <span className={styles.fieldError}>
+                    Informe um CPF com 11 dígitos ou CNPJ com 14 dígitos.
+                  </span>
+                )}
               </label>
 
               <label className={styles.field}>
                 <span>Telefone</span>
-                <div className={styles.inputShell}>
+                <div
+                  className={`${styles.inputShell} ${
+                    company.phone && !companyPhoneIsValid
+                      ? styles.inputShellError
+                      : ""
+                  }`}
+                >
                   <Phone size={17} />
                   <input
                     value={phoneMask(company.phone)}
@@ -564,6 +593,11 @@ export function Profille() {
                     inputMode="tel"
                   />
                 </div>
+                {company.phone && !companyPhoneIsValid && (
+                  <span className={styles.fieldError}>
+                    Informe DDD + telefone com 10 ou 11 dígitos.
+                  </span>
+                )}
               </label>
             </div>
 
