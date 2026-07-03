@@ -15,7 +15,6 @@ import { Barcode, Plus } from "lucide-react";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
-import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { useLocation, useNavigate } from "react-router-dom";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
@@ -62,41 +61,6 @@ export function Products() {
     category: "all",
     sortBy: null,
   });
-  const categoryFromKey = (key: CategoryKey) => {
-    switch (key) {
-      case "shirt":
-        return ProductCategoryEnum.SHIRT;
-      case "tshirt":
-        return ProductCategoryEnum.TSHIRT;
-      case "polo":
-        return ProductCategoryEnum.POLO;
-      case "shorts":
-        return ProductCategoryEnum.SHORTS;
-      case "jacket":
-        return ProductCategoryEnum.JACKET;
-      case "pants":
-        return ProductCategoryEnum.PANTS;
-      case "dress":
-        return ProductCategoryEnum.DRESS;
-      case "sweater":
-        return ProductCategoryEnum.SWEATER;
-      case "hoodie":
-        return ProductCategoryEnum.HOODIE;
-      case "underwear":
-        return ProductCategoryEnum.UNDERWEAR;
-      case "footwear":
-        return ProductCategoryEnum.FOOTWEAR;
-      case "belt":
-        return ProductCategoryEnum.BELT;
-      case "wallet":
-        return ProductCategoryEnum.WALLET;
-      case "sunglasses":
-        return ProductCategoryEnum.SUNGLASSES;
-      default:
-        return null;
-    }
-  };
-
   const filtered = useMemo(() => {
     let current = products.filter(productHasAvailableStock);
 
@@ -104,10 +68,7 @@ export function Products() {
     const categoryToFilter =
       filters.category !== "all" ? filters.category : activeCat;
     if (categoryToFilter !== "all") {
-      const category = categoryFromKey(categoryToFilter);
-      if (category) {
-        current = current.filter((p) => p.category === category);
-      }
+      current = current.filter((p) => p.category === categoryToFilter);
     }
 
     // Filtro de busca
@@ -116,7 +77,7 @@ export function Products() {
       current = current.filter(
         (p) =>
           p.name.toLowerCase().includes(trimmed) ||
-          p.id.toLowerCase().includes(trimmed)||
+          p.id.toLowerCase().includes(trimmed) ||
           p.barCode?.toLowerCase().includes(trimmed),
       );
     }
@@ -155,47 +116,27 @@ export function Products() {
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
   const counts = useMemo(() => {
-    const countBy = (category: ProductCategoryEnum) =>
-      products.filter(
-        (p) => productHasAvailableStock(p) && p.category === category,
-      ).length;
+    const availableProducts = products.filter(productHasAvailableStock);
+    const byCategory = availableProducts.reduce((acc, product) => {
+      acc.set(product.category, (acc.get(product.category) ?? 0) + 1);
+      return acc;
+    }, new Map<string, number>());
 
     return {
-      all: products.filter(productHasAvailableStock).length,
-      shirt: countBy(ProductCategoryEnum.SHIRT),
-      tshirt: countBy(ProductCategoryEnum.TSHIRT),
-      polo: countBy(ProductCategoryEnum.POLO),
-      shorts: countBy(ProductCategoryEnum.SHORTS),
-      jacket: countBy(ProductCategoryEnum.JACKET),
-      pants: countBy(ProductCategoryEnum.PANTS),
-      dress: countBy(ProductCategoryEnum.DRESS),
-      sweater: countBy(ProductCategoryEnum.SWEATER),
-      hoodie: countBy(ProductCategoryEnum.HOODIE),
-      underwear: countBy(ProductCategoryEnum.UNDERWEAR),
-      footwear: countBy(ProductCategoryEnum.FOOTWEAR),
-      belt: countBy(ProductCategoryEnum.BELT),
-      wallet: countBy(ProductCategoryEnum.WALLET),
-      sunglasses: countBy(ProductCategoryEnum.SUNGLASSES),
+      all: availableProducts.length,
+      byCategory,
     };
   }, [products]);
 
   const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
     () => [
       { key: "all", label: `Todos ${counts.all}` },
-      { key: "shirt", label: "Camisa" },
-      { key: "tshirt", label: "Camiseta" },
-      { key: "polo", label: "Polo" },
-      { key: "shorts", label: "Shorts" },
-      { key: "jacket", label: "Jaqueta" },
-      { key: "pants", label: "Calça" },
-      { key: "dress", label: "Vestido" },
-      { key: "sweater", label: "Suéter" },
-      { key: "hoodie", label: "Moletom" },
-      { key: "underwear", label: "Cueca" },
-      { key: "footwear", label: "Calçado" },
-      { key: "belt", label: "Cinto" },
-      { key: "wallet", label: "Carteira" },
-      { key: "sunglasses", label: "Óculos" },
+      ...Array.from(counts.byCategory.entries())
+        .sort(([a], [b]) => a.localeCompare(b, "pt-BR"))
+        .map(([categoryName, count]) => ({
+          key: categoryName,
+          label: `${categoryName} ${count}`,
+        })),
     ],
     [counts],
   );

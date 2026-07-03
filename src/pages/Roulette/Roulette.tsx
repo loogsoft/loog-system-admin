@@ -44,24 +44,20 @@ export default function RouletteAdmin() {
   });
 
   const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
-    () => [
-      { key: "all", label: `Todos ${products.length}` },
-      { key: "shirt", label: "Camisa" },
-      { key: "tshirt", label: "Camiseta" },
-      { key: "polo", label: "Polo" },
-      { key: "shorts", label: "Shorts" },
-      { key: "jacket", label: "Jaqueta" },
-      { key: "pants", label: "Calça" },
-      { key: "dress", label: "Vestido" },
-      { key: "sweater", label: "Suéter" },
-      { key: "hoodie", label: "Moletom" },
-      { key: "underwear", label: "Cueca" },
-      { key: "footwear", label: "Calçado" },
-      { key: "belt", label: "Cinto" },
-      { key: "wallet", label: "Carteira" },
-      { key: "sunglasses", label: "Óculos" },
-    ],
-    [products.length],
+    () => {
+      const categories = Array.from(
+        new Set(products.map((product) => product.category)),
+      ).sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+      return [
+        { key: "all", label: `Todos ${products.length}` },
+        ...categories.map((categoryName) => ({
+          key: categoryName,
+          label: categoryName,
+        })),
+      ];
+    },
+    [products],
   );
   const LISTPAG = useMemo(
     () => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }],

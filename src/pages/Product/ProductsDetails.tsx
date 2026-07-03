@@ -1,30 +1,45 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styles from "./ProductDetails.module.css";
-import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 import { ProductService } from "../../service/Product.service";
 import type { ProductRequest } from "../../dtos/request/product-request.dto";
 import type { ProductVariationRequestDto } from "../../dtos/request/product-variation-request.dto";
 import type { ProductVariationResponseDto } from "../../dtos/response/product-variation-response.dto";
-import { Save, Plus, Pencil, X, Barcode } from "lucide-react";
+import { Save, Plus, Pencil, X, Barcode, Check, ChevronDown } from "lucide-react";
 import { ImageGallery } from "../../components/ImageGallery/ImageGallery";
 import EntityCard from "../../components/EntityCard/EntityCard";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 import { FiTrash2 } from "react-icons/fi";
+import { ConfirmDeleteModal } from "../../components/ConfirmaDeleteModal/ConfirmDeleteModal";
 import { toast } from "react-toastify";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
 import NewCodeBarModal from "../../components/NewCodeBarModal/NewCodeBarModal";
+import type { ProductsCategoriesResponseDto } from "../../dtos/response/products-categories-response.dto";
+import { ProductsCategoriesService } from "../../service/products-categories.service";
 
 type Variation = ProductVariationRequestDto | ProductVariationResponseDto;
 
 const PRODUCT_COLORS = [
-  { label: "Preto", hex: "#1A1A1A" },
+  { label: "Preto", hex: "#111111" },
   { label: "Branco", hex: "#FFFFFF" },
-  { label: "Cinza", hex: "#9E9E9E" },
-  { label: "Azul", hex: "#1565C0" },
-  { label: "Vermelho", hex: "#C62828" },
+  { label: "Off-white", hex: "#F4F1EA" },
+  { label: "Cinza mescla", hex: "#B8B8B8" },
+  { label: "Chumbo", hex: "#4B4F54" },
+  { label: "Azul marinho", hex: "#14213D" },
+  { label: "Azul jeans", hex: "#3F6F9F" },
+  { label: "Azul claro", hex: "#A8C7E8" },
+  { label: "Bege", hex: "#D8C3A5" },
+  { label: "Caramelo", hex: "#B47A45" },
+  { label: "Marrom", hex: "#6B4F3F" },
+  { label: "Verde militar", hex: "#596344" },
+  { label: "Verde oliva", hex: "#7A8B55" },
+  { label: "Vinho", hex: "#6F1D2F" },
+  { label: "Vermelho", hex: "#B91C1C" },
+  { label: "Rosa claro", hex: "#E8A8B8" },
+  { label: "Lilás", hex: "#B9A7D8" },
+  { label: "Amarelo mostarda", hex: "#D6A21E" },
 ];
 
 const ProductType = {
@@ -33,9 +48,11 @@ const ProductType = {
 } as const;
 
 const SIZES = ["P", "M", "G", "GG", "XG", "36", "38", "40", "42", "44", "46"];
-const CUSTOM_SIZE_VALUE = "__custom_size__";
 const normalizeSizeValue = (value: string) =>
-  value.replace(/[\r\n\t]/g, "").toUpperCase().slice(0, 50);
+  value
+    .replace(/[\r\n\t]/g, "")
+    .toUpperCase()
+    .slice(0, 50);
 
 export function ProductsDetails() {
   const navigate = useNavigate();
@@ -47,6 +64,9 @@ export function ProductsDetails() {
   const barCodeInputRef = useRef<HTMLInputElement | null>(null);
   const variationBarCodeInputRef = useRef<HTMLInputElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
+  const categoryDropdownRef = useRef<HTMLDivElement | null>(null);
+  const sizeDropdownRef = useRef<HTMLDivElement | null>(null);
+  const variationSizeDropdownRef = useRef<HTMLDivElement | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [editingColor, setEditingColor] = useState(false);
   const [barCode, setBarCode] = useState("");
@@ -60,8 +80,19 @@ export function ProductsDetails() {
   const [productType, setProductType] = useState<
     (typeof ProductType)[keyof typeof ProductType]
   >(ProductType.UNIQUE);
-  const [category, setCategory] = useState<ProductCategoryEnum>(
-    ProductCategoryEnum.SHIRT,
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<
+    ProductsCategoriesResponseDto[]
+  >([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] =
+    useState<ProductsCategoriesResponseDto | null>(null);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(
+    null,
   );
   const [status, setStatus] = useState<ProductStatusEnum>(
     ProductStatusEnum.ACTIVED,
@@ -70,6 +101,10 @@ export function ProductsDetails() {
   const [promoPrice, setPromoPrice] = useState("");
   const [color, setColor] = useState("");
   const [size, setSize] = useState("P");
+  const [sizeDropdownOpen, setSizeDropdownOpen] = useState(false);
+  const [usingCustomSize, setUsingCustomSize] = useState(false);
+  const [customSizeDraft, setCustomSizeDraft] = useState("");
+  const [customSizes, setCustomSizes] = useState<string[]>([]);
   const [lowStock, setLowStock] = useState("5");
   const [activeLowStock, setActiveLowStock] = useState(true);
   const [stock, setStock] = useState("");
@@ -117,6 +152,11 @@ export function ProductsDetails() {
   const [showVariationColorPicker, setShowVariationColorPicker] =
     useState(false);
   const [variationSize, setVariationSize] = useState("");
+  const [variationSizeDropdownOpen, setVariationSizeDropdownOpen] =
+    useState(false);
+  const [usingCustomVariationSize, setUsingCustomVariationSize] =
+    useState(false);
+  const [customVariationSizeDraft, setCustomVariationSizeDraft] = useState("");
   const [variationIsActive, setVariationIsActive] = useState(true);
   const [variationLowStockAlertEnabled, setVariationLowStockAlertEnabled] =
     useState(false);
@@ -130,7 +170,20 @@ export function ProductsDetails() {
   const [editingVariationIndex, setEditingVariationIndex] = useState<
     number | null
   >(null);
-  const categoryOptions = useMemo(() => Object.values(ProductCategoryEnum), []);
+  const categoryOptions = useMemo(() => {
+    if (
+      category.trim() &&
+      !categories.some((option) => option.name === category)
+    ) {
+      return [
+        { id: category, name: category, companyId: "" },
+        ...categories,
+      ];
+    }
+
+    return categories;
+  }, [categories, category]);
+  const sizeOptions = useMemo(() => [...SIZES, ...customSizes], [customSizes]);
   const statusOptions = useMemo(() => Object.values(ProductStatusEnum), []);
 
   const getStatusLabel = (status: ProductStatusEnum) => {
@@ -162,6 +215,52 @@ export function ProductsDetails() {
   }, []);
 
   useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await ProductsCategoriesService.findAll();
+        const loadedCategories = Array.isArray(response) ? response : [];
+
+        setCategories(loadedCategories);
+        setCategory((current) => current || loadedCategories[0]?.name || "");
+      } catch {
+        toast.error("Não foi possível carregar as categorias.");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    void loadCategories();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        categoryDropdownRef.current &&
+        !categoryDropdownRef.current.contains(event.target as Node)
+      ) {
+        setCategoryDropdownOpen(false);
+      }
+
+      if (
+        sizeDropdownRef.current &&
+        !sizeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setSizeDropdownOpen(false);
+      }
+
+      if (
+        variationSizeDropdownRef.current &&
+        !variationSizeDropdownRef.current.contains(event.target as Node)
+      ) {
+        setVariationSizeDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     const loadProduct = async () => {
       if (!isEdit || !id) {
         return;
@@ -172,14 +271,22 @@ export function ProductsDetails() {
         setBarCode(data.barCode ?? "");
         setName(data.name ?? "");
         setDescription(data.description ?? "");
-        setCategory(data.category ?? ProductCategoryEnum.SHIRT);
+        setCategory(data.category ?? "");
         setStatus(data.status ?? ProductStatusEnum.ACTIVED);
         setPrice(data.price ? String(data.price).replace(".", ",") : "");
         setPromoPrice(
           data.promoPrice ? String(data.promoPrice).replace(".", ",") : "",
         );
         setColor(data.color ?? "");
-        setSize(normalizeSizeValue(data.size ?? "P"));
+        const loadedSize = normalizeSizeValue(data.size ?? "P");
+        setSize(loadedSize);
+        if (loadedSize && !SIZES.includes(loadedSize)) {
+          setCustomSizes((prev) =>
+            prev.includes(loadedSize) ? prev : [...prev, loadedSize],
+          );
+        }
+        setUsingCustomSize(false);
+        setCustomSizeDraft("");
         setLowStock(String(data.lowStock ?? ""));
         setActiveLowStock(!!data.activeLowStock);
         setStock(String(data.stock ?? ""));
@@ -265,6 +372,8 @@ export function ProductsDetails() {
     setVariationStock("");
     setVariationColor("");
     setVariationSize("P");
+    setUsingCustomVariationSize(false);
+    setCustomVariationSizeDraft("");
     setVariationIsActive(true);
     setVariationImageFiles([]);
     setVariationImagePreviews([]);
@@ -284,6 +393,8 @@ export function ProductsDetails() {
     setSelectedVariationImageIndex(0);
     setShowVariationColorPicker(false);
     setEditingVariationIndex(null);
+    setUsingCustomVariationSize(false);
+    setCustomVariationSizeDraft("");
   };
 
   const onProductTypeChange = (
@@ -295,11 +406,177 @@ export function ProductsDetails() {
     setProductType(nextType);
   };
 
+  const addCustomSizeOption = (value: string) => {
+    setCustomSizes((prev) => {
+      if (SIZES.includes(value) || prev.includes(value)) {
+        return prev;
+      }
+
+      return [...prev, value];
+    });
+  };
+
+  const onCreateCustomSize = () => {
+    const normalizedSize = normalizeSizeValue(customSizeDraft);
+
+    if (!normalizedSize) {
+      toast.error("Informe o tamanho.");
+      return;
+    }
+
+    addCustomSizeOption(normalizedSize);
+    setSize(normalizedSize);
+    setCustomSizeDraft("");
+    setUsingCustomSize(false);
+  };
+
+  const onCancelCustomSize = () => {
+    setCustomSizeDraft("");
+    setUsingCustomSize(false);
+  };
+
+  const onSelectSize = (nextSize: string) => {
+    setUsingCustomSize(false);
+    setCustomSizeDraft("");
+    setSize(nextSize);
+    setSizeDropdownOpen(false);
+  };
+
+  const onOpenCreateSize = () => {
+    setUsingCustomSize(true);
+    setCustomSizeDraft("");
+    setSizeDropdownOpen(false);
+  };
+
+  const onCreateCustomVariationSize = () => {
+    const normalizedSize = normalizeSizeValue(customVariationSizeDraft);
+
+    if (!normalizedSize) {
+      toast.error("Informe o tamanho da variação.");
+      return;
+    }
+
+    addCustomSizeOption(normalizedSize);
+    setVariationSize(normalizedSize);
+    setCustomVariationSizeDraft("");
+    setUsingCustomVariationSize(false);
+  };
+
+  const onCancelCustomVariationSize = () => {
+    setCustomVariationSizeDraft("");
+    setUsingCustomVariationSize(false);
+  };
+
+  const onSelectVariationSize = (nextSize: string) => {
+    setUsingCustomVariationSize(false);
+    setCustomVariationSizeDraft("");
+    setVariationSize(nextSize);
+    setVariationSizeDropdownOpen(false);
+  };
+
+  const onOpenCreateVariationSize = () => {
+    setUsingCustomVariationSize(true);
+    setCustomVariationSizeDraft("");
+    setVariationSizeDropdownOpen(false);
+  };
+
+  const onSelectCategory = (option: ProductsCategoriesResponseDto) => {
+    setCategory(option.name);
+    setAddingCategory(false);
+    setNewCategoryName("");
+    setCategoryDropdownOpen(false);
+  };
+
+  const onOpenCreateCategory = () => {
+    setAddingCategory(true);
+    setNewCategoryName("");
+    setCategoryDropdownOpen(false);
+  };
+
+  const onDeleteCategory = async () => {
+    const target = categoryToDelete;
+    if (!target || deletingCategoryId) return;
+
+    try {
+      setDeletingCategoryId(target.id);
+      await ProductsCategoriesService.delete(target.id);
+
+      const nextCategories = categories.filter(
+        (option) => option.id !== target.id,
+      );
+      setCategories(nextCategories);
+
+      if (category === target.name) {
+        setCategory(nextCategories[0]?.name ?? "");
+      }
+
+      if (newCategoryName.trim().toLowerCase() === target.name.toLowerCase()) {
+        setNewCategoryName("");
+      }
+
+      toast.success("Categoria removida com sucesso.");
+    } catch {
+      toast.error("Não foi possível remover a categoria.");
+    } finally {
+      setDeletingCategoryId(null);
+      setCategoryToDelete(null);
+    }
+  };
+
+  const onCreateCategory = async () => {
+    if (savingCategory) return;
+
+    const trimmedName = newCategoryName.trim();
+
+    if (!trimmedName) {
+      toast.error("Informe o nome da categoria.");
+      return;
+    }
+
+    const existingCategory = categories.find(
+      (option) => option.name.toLowerCase() === trimmedName.toLowerCase(),
+    );
+
+    if (existingCategory) {
+      setCategory(existingCategory.name);
+      setNewCategoryName("");
+      setAddingCategory(false);
+      return;
+    }
+
+    try {
+      setSavingCategory(true);
+      const created = await ProductsCategoriesService.create({
+        name: trimmedName,
+      });
+
+      setCategories((prev) =>
+        [...prev, created].sort((a, b) =>
+          a.name.localeCompare(b.name, "pt-BR"),
+        ),
+      );
+      setCategory(created.name);
+      setNewCategoryName("");
+      setAddingCategory(false);
+      toast.success("Categoria criada com sucesso.");
+    } catch {
+      toast.error("Não foi possível criar a categoria.");
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
   const onEditVariation = (index: number) => {
     const v = variations[index];
     setVariationBarCode(v.barCode || "");
     setVariationColor(v.color || "");
-    setVariationSize(normalizeSizeValue(v.size || ""));
+    const loadedVariationSize = normalizeSizeValue(v.size || "");
+    setVariationSize(loadedVariationSize);
+    if (loadedVariationSize && !SIZES.includes(loadedVariationSize)) {
+      addCustomSizeOption(loadedVariationSize);
+    }
+    setUsingCustomVariationSize(false);
+    setCustomVariationSizeDraft("");
     setVariationPrice(v.price ? String(v.price).replace(".", ",") : "");
     setVariationStock(
       v.stock !== undefined && v.stock !== null ? String(v.stock) : "",
@@ -373,6 +650,11 @@ export function ProductsDetails() {
       return;
     }
 
+    if (usingCustomVariationSize) {
+      toast.error("Clique em Criar para confirmar o tamanho da variação.");
+      return;
+    }
+
     if (!variationStock.trim()) {
       toast.error("Informe o estoque da variação.");
       return;
@@ -423,8 +705,7 @@ export function ProductsDetails() {
     const duplicateBarCode = variations.some(
       (v, i) =>
         v.barCode?.trim().toLowerCase() ===
-          variationBarCode.trim().toLowerCase() &&
-        i !== editingVariationIndex,
+          variationBarCode.trim().toLowerCase() && i !== editingVariationIndex,
     );
 
     if (duplicateBarCode) {
@@ -492,6 +773,11 @@ export function ProductsDetails() {
       return;
     }
 
+    if (!category.trim()) {
+      toast.error("Selecione ou crie uma categoria para o produto.");
+      return;
+    }
+
     if (productType === ProductType.UNIQUE) {
       if (!price.trim()) {
         toast.error("Informe o preço do produto.");
@@ -508,6 +794,10 @@ export function ProductsDetails() {
       }
       if (!color.trim()) {
         toast.error("Selecione a cor do produto.");
+        return;
+      }
+      if (usingCustomSize) {
+        toast.error("Clique em Criar para confirmar o tamanho.");
         return;
       }
       if (!stock.trim()) {
@@ -587,11 +877,10 @@ export function ProductsDetails() {
           })
         : undefined;
     const payload: ProductRequest = {
-      barCode:
-        productType === ProductType.UNIQUE ? barCode.trim() : undefined,
+      barCode: productType === ProductType.UNIQUE ? barCode.trim() : undefined,
       name: name.trim(),
       description: description.trim() || undefined,
-      category,
+      category: { name: category.trim() },
       status,
       promoPrice:
         productType === ProductType.UNIQUE && promoPrice.trim()
@@ -656,10 +945,18 @@ export function ProductsDetails() {
 
   const actionLabel = isEdit ? "Salvar alterações" : "Criar produto";
   const loadingLabel = isEdit ? "Salvando..." : "Criando...";
-  const sizeSelectValue = SIZES.includes(size) ? size : CUSTOM_SIZE_VALUE;
-  const variationSizeSelectValue = SIZES.includes(variationSize)
-    ? variationSize
-    : CUSTOM_SIZE_VALUE;
+  const categorySelectLabel = addingCategory
+    ? "Adicionar categoria..."
+    : category ||
+      (loadingCategories
+        ? "Carregando categorias..."
+        : "Selecione uma categoria");
+  const sizeSelectLabel = usingCustomSize
+    ? "Outro tamanho..."
+    : size || "Selecione um tamanho";
+  const variationSizeSelectLabel = usingCustomVariationSize
+    ? "Outro tamanho..."
+    : variationSize || "Selecione um tamanho";
 
   return (
     <div className={styles.page}>
@@ -857,6 +1154,15 @@ export function ProductsDetails() {
                 }}
               />
 
+              <ConfirmDeleteModal
+                isOpen={!!categoryToDelete}
+                onClose={() => setCategoryToDelete(null)}
+                onConfirm={() => void onDeleteCategory()}
+                title="Remover categoria"
+                message="Tem certeza que deseja remover esta categoria da lista?"
+                itemName={categoryToDelete?.name}
+              />
+
               <label className={styles.field}>
                 <span className={styles.label}>Nome *</span>
                 <input
@@ -882,23 +1188,154 @@ export function ProductsDetails() {
               </label>
 
               <div className={styles.row2}>
-                <label className={styles.field}>
-                  <span className={styles.label}>Categoria</span>
-                  <select
-                    className={styles.select}
-                    value={category}
-                    onChange={(event) =>
-                      setCategory(event.target.value as ProductCategoryEnum)
-                    }
-                    disabled={loadingProduct}
+                <div className={styles.field}>
+                  <span className={styles.label}>Categoria *</span>
+                  <div
+                    className={styles.categoryDropdown}
+                    ref={categoryDropdownRef}
                   >
-                    {categoryOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    <button
+                      className={`${styles.categoryTrigger} ${
+                        categoryDropdownOpen ? styles.categoryTriggerOpen : ""
+                      }`}
+                      type="button"
+                      onClick={() =>
+                        setCategoryDropdownOpen((current) => !current)
+                      }
+                      disabled={
+                        loadingProduct || loadingCategories || savingCategory
+                      }
+                    >
+                      <span>{categorySelectLabel}</span>
+                      <ChevronDown
+                        className={`${styles.categoryChevron} ${
+                          categoryDropdownOpen
+                            ? styles.categoryChevronOpen
+                            : ""
+                        }`}
+                        size={18}
+                      />
+                    </button>
+                    {categoryDropdownOpen && (
+                      <div className={styles.categoryMenu}>
+                        <button
+                          className={`${styles.categoryOption} ${
+                            !category && !addingCategory
+                              ? styles.categoryOptionMuted
+                              : ""
+                          }`}
+                          type="button"
+                          onClick={() => {
+                            setCategory("");
+                            setAddingCategory(false);
+                            setNewCategoryName("");
+                            setCategoryDropdownOpen(false);
+                          }}
+                          disabled={!category && !addingCategory}
+                        >
+                          Selecione uma categoria
+                        </button>
+                        {categoryOptions.map((option) => {
+                          const isSelected =
+                            !addingCategory && option.name === category;
+                          const canDelete = categories.some(
+                            (item) => item.id === option.id,
+                          );
+
+                          return (
+                            <div
+                              className={`${styles.categoryOptionRow} ${
+                                isSelected
+                                  ? styles.categoryOptionRowSelected
+                                  : ""
+                              }`}
+                              key={option.id}
+                            >
+                              <button
+                                className={styles.categoryOptionButton}
+                                type="button"
+                                onClick={() => onSelectCategory(option)}
+                              >
+                                <span className={styles.categoryOptionCheck}>
+                                  {isSelected ? <Check size={16} /> : null}
+                                </span>
+                                <span>{option.name}</span>
+                              </button>
+                              {canDelete && (
+                                <button
+                                  className={styles.categoryDeleteButton}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setCategoryToDelete(option);
+                                    setCategoryDropdownOpen(false);
+                                  }}
+                                  disabled={deletingCategoryId === option.id}
+                                  aria-label={`Remover categoria ${option.name}`}
+                                  title="Remover categoria"
+                                >
+                                  <FiTrash2 size={15} />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                        <button
+                          className={`${styles.categoryOption} ${styles.categoryCreateOption}`}
+                          type="button"
+                          onClick={onOpenCreateCategory}
+                        >
+                          Adicionar categoria...
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {addingCategory && (
+                    <div className={styles.categoryCreateRow}>
+                      <input
+                        className={styles.input}
+                        placeholder="Nome da nova categoria"
+                        value={newCategoryName}
+                        onChange={(event) =>
+                          setNewCategoryName(event.target.value)
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            void onCreateCategory();
+                          }
+
+                          if (event.key === "Escape") {
+                            setAddingCategory(false);
+                            setNewCategoryName("");
+                          }
+                        }}
+                        maxLength={100}
+                        disabled={savingCategory}
+                      />
+                      <button
+                        className={styles.categoryCreateButton}
+                        type="button"
+                        onClick={() => void onCreateCategory()}
+                        disabled={savingCategory}
+                      >
+                        {savingCategory ? "Criando..." : "Criar"}
+                      </button>
+                      <button
+                        className={styles.categoryCancelButton}
+                        type="button"
+                        onClick={() => {
+                          setAddingCategory(false);
+                          setNewCategoryName("");
+                        }}
+                        disabled={savingCategory}
+                        aria-label="Cancelar criação de categoria"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <label className={styles.field}>
                   <span className={styles.label}>Status</span>
                   <select
@@ -1037,47 +1474,113 @@ export function ProductsDetails() {
                       )}
                     </div>
 
-                    {/* <label className={styles.field}>
-                      <span className={styles.label}>Tamanho</span>
-                      <input
-                        className={styles.input}
-                        placeholder="Ex: M, G, 42"
-                        value={size}
-                        onChange={(event) => setSize(event.target.value)}
-                      />
-                    </label> */}
                     <div className={styles.fieldGroup}>
                       <label className={styles.label}>TAMANHO</label>
-                      <select
-                        className={styles.select}
-                        value={sizeSelectValue}
-                        onChange={(e) =>
-                          setSize(
-                            e.target.value === CUSTOM_SIZE_VALUE
-                              ? ""
-                              : e.target.value,
-                          )
-                        }
+                      <div
+                        className={styles.categoryDropdown}
+                        ref={sizeDropdownRef}
                       >
-                        {SIZES.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                        <option value={CUSTOM_SIZE_VALUE}>
-                          Outro tamanho...
-                        </option>
-                      </select>
-                      {sizeSelectValue === CUSTOM_SIZE_VALUE && (
-                        <input
-                          className={styles.input}
-                          placeholder="Ex: PP, XGG ou 48"
-                          value={size}
-                          onChange={(event) =>
-                            setSize(normalizeSizeValue(event.target.value))
+                        <button
+                          className={`${styles.categoryTrigger} ${
+                            sizeDropdownOpen
+                              ? styles.categoryTriggerOpen
+                              : ""
+                          }`}
+                          type="button"
+                          onClick={() =>
+                            setSizeDropdownOpen((current) => !current)
                           }
-                          maxLength={50}
-                        />
+                        >
+                          <span>{sizeSelectLabel}</span>
+                          <ChevronDown
+                            className={`${styles.categoryChevron} ${
+                              sizeDropdownOpen
+                                ? styles.categoryChevronOpen
+                                : ""
+                            }`}
+                            size={18}
+                          />
+                        </button>
+                        {sizeDropdownOpen && (
+                          <div className={styles.categoryMenu}>
+                            <button
+                              className={`${styles.categoryOption} ${styles.categoryOptionMuted}`}
+                              type="button"
+                              disabled
+                            >
+                              Selecione um tamanho
+                            </button>
+                            {sizeOptions.map((option) => {
+                              const isSelected =
+                                !usingCustomSize && option === size;
+
+                              return (
+                                <button
+                                  className={`${styles.sizeOptionRow} ${
+                                    isSelected
+                                      ? styles.categoryOptionRowSelected
+                                      : ""
+                                  }`}
+                                  key={option}
+                                  type="button"
+                                  onClick={() => onSelectSize(option)}
+                                >
+                                  <span className={styles.categoryOptionCheck}>
+                                    {isSelected ? <Check size={16} /> : null}
+                                  </span>
+                                  <span>{option}</span>
+                                </button>
+                              );
+                            })}
+                            <button
+                              className={`${styles.categoryOption} ${styles.categoryCreateOption}`}
+                              type="button"
+                              onClick={onOpenCreateSize}
+                            >
+                              Outro tamanho...
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {usingCustomSize && (
+                        <div className={styles.categoryCreateRow}>
+                          <input
+                            className={styles.input}
+                            placeholder="Ex: PP, XGG ou 48"
+                            value={customSizeDraft}
+                            onChange={(event) =>
+                              setCustomSizeDraft(
+                                normalizeSizeValue(event.target.value),
+                              )
+                            }
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                onCreateCustomSize();
+                              }
+
+                              if (event.key === "Escape") {
+                                onCancelCustomSize();
+                              }
+                            }}
+                            maxLength={50}
+                          />
+                          <button
+                            className={styles.categoryCreateButton}
+                            type="button"
+                            onClick={onCreateCustomSize}
+                          >
+                            Criar
+                          </button>
+                          <button
+                            className={styles.categoryCancelButton}
+                            type="button"
+                            onClick={onCancelCustomSize}
+                            aria-label="Cancelar criação de tamanho"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1391,39 +1894,124 @@ export function ProductsDetails() {
                               </div>
                               <label className={styles.field}>
                                 <span className={styles.label}>Tamanho *</span>
-                                <select
-                                  className={styles.select}
-                                  value={variationSizeSelectValue}
-                                  onChange={(event) =>
-                                    setVariationSize(
-                                      event.target.value === CUSTOM_SIZE_VALUE
-                                        ? ""
-                                        : event.target.value,
-                                    )
-                                  }
+                                <div
+                                  className={styles.categoryDropdown}
+                                  ref={variationSizeDropdownRef}
                                 >
-                                  {SIZES.map((s) => (
-                                    <option key={s} value={s}>
-                                      {s}
-                                    </option>
-                                  ))}
-                                  <option value={CUSTOM_SIZE_VALUE}>
-                                    Outro tamanho...
-                                  </option>
-                                </select>
-                                {variationSizeSelectValue ===
-                                  CUSTOM_SIZE_VALUE && (
-                                  <input
-                                    className={styles.input}
-                                    placeholder="Ex: PP, XGG ou 48"
-                                    value={variationSize}
-                                    onChange={(event) =>
-                                      setVariationSize(
-                                        normalizeSizeValue(event.target.value),
+                                  <button
+                                    className={`${styles.categoryTrigger} ${
+                                      variationSizeDropdownOpen
+                                        ? styles.categoryTriggerOpen
+                                        : ""
+                                    }`}
+                                    type="button"
+                                    onClick={() =>
+                                      setVariationSizeDropdownOpen(
+                                        (current) => !current,
                                       )
                                     }
-                                    maxLength={50}
-                                  />
+                                  >
+                                    <span>{variationSizeSelectLabel}</span>
+                                    <ChevronDown
+                                      className={`${styles.categoryChevron} ${
+                                        variationSizeDropdownOpen
+                                          ? styles.categoryChevronOpen
+                                          : ""
+                                      }`}
+                                      size={18}
+                                    />
+                                  </button>
+                                  {variationSizeDropdownOpen && (
+                                    <div className={styles.categoryMenu}>
+                                      <button
+                                        className={`${styles.categoryOption} ${styles.categoryOptionMuted}`}
+                                        type="button"
+                                        disabled
+                                      >
+                                        Selecione um tamanho
+                                      </button>
+                                      {sizeOptions.map((option) => {
+                                        const isSelected =
+                                          !usingCustomVariationSize &&
+                                          option === variationSize;
+
+                                        return (
+                                          <button
+                                            className={`${styles.sizeOptionRow} ${
+                                              isSelected
+                                                ? styles.categoryOptionRowSelected
+                                                : ""
+                                            }`}
+                                            key={option}
+                                            type="button"
+                                            onClick={() =>
+                                              onSelectVariationSize(option)
+                                            }
+                                          >
+                                            <span
+                                              className={
+                                                styles.categoryOptionCheck
+                                              }
+                                            >
+                                              {isSelected ? (
+                                                <Check size={16} />
+                                              ) : null}
+                                            </span>
+                                            <span>{option}</span>
+                                          </button>
+                                        );
+                                      })}
+                                      <button
+                                        className={`${styles.categoryOption} ${styles.categoryCreateOption}`}
+                                        type="button"
+                                        onClick={onOpenCreateVariationSize}
+                                      >
+                                        Outro tamanho...
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                {usingCustomVariationSize && (
+                                  <div className={styles.categoryCreateRow}>
+                                    <input
+                                      className={styles.input}
+                                      placeholder="Ex: PP, XGG ou 48"
+                                      value={customVariationSizeDraft}
+                                      onChange={(event) =>
+                                        setCustomVariationSizeDraft(
+                                          normalizeSizeValue(
+                                            event.target.value,
+                                          ),
+                                        )
+                                      }
+                                      onKeyDown={(event) => {
+                                        if (event.key === "Enter") {
+                                          event.preventDefault();
+                                          onCreateCustomVariationSize();
+                                        }
+
+                                        if (event.key === "Escape") {
+                                          onCancelCustomVariationSize();
+                                        }
+                                      }}
+                                      maxLength={50}
+                                    />
+                                    <button
+                                      className={styles.categoryCreateButton}
+                                      type="button"
+                                      onClick={onCreateCustomVariationSize}
+                                    >
+                                      Criar
+                                    </button>
+                                    <button
+                                      className={styles.categoryCancelButton}
+                                      type="button"
+                                      onClick={onCancelCustomVariationSize}
+                                      aria-label="Cancelar criação de tamanho da variação"
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </div>
                                 )}
                               </label>
                             </div>

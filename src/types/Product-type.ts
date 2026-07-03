@@ -1,21 +1,6 @@
 import type { ProductStatusEnum } from "../dtos/enums/product-status.enum";
 
-export type CategoryKey =
-  | "all"
-  | "shirt"
-  | "tshirt"
-  | "polo"
-  | "shorts"
-  | "jacket"
-  | "pants"
-  | "dress"
-  | "sweater"
-  | "hoodie"
-  | "underwear"
-  | "footwear"
-  | "belt"
-  | "wallet"
-  | "sunglasses";
+export type CategoryKey = string;
 
 export interface Product {
   id: string;

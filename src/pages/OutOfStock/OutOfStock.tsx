@@ -13,7 +13,6 @@ import { FilterModal } from "../../components/FilterModal/FilterModal";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
-import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -52,41 +51,6 @@ export function OutOfStock() {
     sortBy: null,
   });
 
-  const categoryFromKey = (key: CategoryKey) => {
-    switch (key) {
-      case "shirt":
-        return ProductCategoryEnum.SHIRT;
-      case "tshirt":
-        return ProductCategoryEnum.TSHIRT;
-      case "polo":
-        return ProductCategoryEnum.POLO;
-      case "shorts":
-        return ProductCategoryEnum.SHORTS;
-      case "jacket":
-        return ProductCategoryEnum.JACKET;
-      case "pants":
-        return ProductCategoryEnum.PANTS;
-      case "dress":
-        return ProductCategoryEnum.DRESS;
-      case "sweater":
-        return ProductCategoryEnum.SWEATER;
-      case "hoodie":
-        return ProductCategoryEnum.HOODIE;
-      case "underwear":
-        return ProductCategoryEnum.UNDERWEAR;
-      case "footwear":
-        return ProductCategoryEnum.FOOTWEAR;
-      case "belt":
-        return ProductCategoryEnum.BELT;
-      case "wallet":
-        return ProductCategoryEnum.WALLET;
-      case "sunglasses":
-        return ProductCategoryEnum.SUNGLASSES;
-      default:
-        return null;
-    }
-  };
-
   const outOfStockProducts = useMemo(() => {
     return products.filter((product) => getOutOfStockEntries(product).length > 0);
   }, [products]);
@@ -97,10 +61,7 @@ export function OutOfStock() {
     const categoryToFilter =
       filters.category !== "all" ? filters.category : activeCat;
     if (categoryToFilter !== "all") {
-      const category = categoryFromKey(categoryToFilter);
-      if (category) {
-        current = current.filter((p) => p.category === category);
-      }
+      current = current.filter((p) => p.category === categoryToFilter);
     }
 
     const trimmed = query.trim().toLowerCase();

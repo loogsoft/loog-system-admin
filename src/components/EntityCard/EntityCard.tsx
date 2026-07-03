@@ -17,7 +17,6 @@ import {
 import { GiTrousers, GiTShirt } from "react-icons/gi";
 import { FiUser } from "react-icons/fi";
 import type { CSSProperties } from "react";
-import type { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import type { ImageResponse } from "../../dtos/response/image-response.dto";
 import type { ProductVariationResponseDto } from "../../dtos/response/product-variation-response.dto";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
@@ -36,7 +35,7 @@ type ProductProps = BaseProps & {
   type?: "product";
   name: string;
   description: string | undefined;
-  category: ProductCategoryEnum;
+  category: string;
   price: number | string;
   promoPrice?: number | string;
   imageUrl: ImageResponse[];

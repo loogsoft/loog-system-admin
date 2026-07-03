@@ -1,12 +1,12 @@
-import type { ProductCategoryEnum } from "../enums/product-category.enum";
 import type { ProductStatusEnum } from "../enums/product-status.enum";
 import type { ProductVariationRequestDto } from "./product-variation-request.dto";
+import type { ProductsCategoriesRequestDto } from "./products-categories-request.dto";
 
 export interface ProductRequest {
   barCode?: string;
   name: string;
   description?: string;
-  category: ProductCategoryEnum;
+  category: ProductsCategoriesRequestDto;
   status?: ProductStatusEnum;
   price?: number | null;
   color?: string | null;

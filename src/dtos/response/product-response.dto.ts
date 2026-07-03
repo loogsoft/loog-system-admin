@@ -1,4 +1,3 @@
-import type { ProductCategoryEnum } from "../enums/product-category.enum";
 import type { ProductStatusEnum } from "../enums/product-status.enum";
 import type { ImageResponse } from "./image-response.dto";
 import type { ProductVariationResponseDto } from "./product-variation-response.dto";
@@ -9,7 +8,7 @@ export interface ProductResponse {
   barCode?: string;
   name: string;
   description?: string;
-  category: ProductCategoryEnum;
+  category: string;
   price: number;
   color?: string;
   size?: string;
