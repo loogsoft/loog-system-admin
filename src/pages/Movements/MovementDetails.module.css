@@ -245,6 +245,204 @@
   white-space: nowrap;
 }
 
+.creditCustomerBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-muted);
+  min-width: 0;
+}
+
+.creditAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--highlight-secondary);
+  color: var(--highlight-primary);
+  font-size: 12px;
+  font-weight: 900;
+  flex: 0 0 auto;
+}
+
+.creditCustomerInfo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.creditCustomerInfo strong {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creditCustomerInfo span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.creditCustomerInfo svg {
+  color: var(--highlight-primary);
+  flex: 0 0 auto;
+}
+
+.creditFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.creditFacts div {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-muted);
+  min-width: 0;
+}
+
+.creditFacts span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.creditFacts strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.installmentsList {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.installmentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  background: var(--surface-muted);
+  min-width: 0;
+}
+
+.installmentMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.installmentNumber {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  color: var(--highlight-primary);
+  font-size: 12px;
+  font-weight: 900;
+  flex: 0 0 auto;
+}
+
+.installmentMain strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.installmentMain span:last-child {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.installmentAside {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.installmentAside strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.installmentStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.installmentPending {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+}
+
+.installmentPaid {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+}
+
+.installmentOverdue {
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
+}
+
+.emptyCredit {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--border-default);
+  border-radius: 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .fieldsGrid {
   display: grid;
   gap: 10px;
@@ -370,6 +568,7 @@
   }
 
   .summaryGrid,
+  .creditFacts,
   .itemRow {
     grid-template-columns: 1fr;
   }
@@ -377,5 +576,15 @@
   .itemNumbers {
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+
+  .installmentRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .installmentAside {
+    width: 100%;
+    justify-items: start;
   }
 }

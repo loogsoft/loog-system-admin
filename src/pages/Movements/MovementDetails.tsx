@@ -7,12 +7,16 @@ import {
   Hash,
   Mail,
   Package,
+  Phone,
   ReceiptText,
   UserRound,
 } from "lucide-react";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
+import { CreditSaleInstallmentStatusEnum } from "../../dtos/enums/credit-sale-installment-status.enum";
+import type { CreditSaleResponseDto } from "../../dtos/response/credit-sale-response.dto";
 import type { StockMovementResponseDto } from "../../dtos/response/stock-movement-response.dto";
 import type { StockOperationResponseDto } from "../../dtos/response/stock-operation-response.dto";
+import { CreditSaleService } from "../../service/Credit-sale.service";
 import { StockMovementService } from "../../service/Stock-movement.service";
 import styles from "./MovementDetails.module.css";
 
@@ -40,6 +44,35 @@ function formatDateTime(value?: Date | string | null) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+function formatDate(value?: Date | string | null) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatCpf(value?: string | null) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  if (digits.length !== 11) return value || "-";
+  return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+}
+
+function formatPhone(value?: string | null) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  if (digits.length === 11) {
+    return digits.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  }
+  if (digits.length === 10) {
+    return digits.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  }
+  return value || "-";
 }
 
 function getMovementTotal(movement: StockMovementResponseDto) {
@@ -82,8 +115,88 @@ function getOperationQuantity(operation: StockOperationResponseDto) {
   );
 }
 
+function getOperationProductIds(operation: StockOperationResponseDto) {
+  return new Set(
+    (operation.movements ?? [])
+      .map((movement) => movement.product?.id)
+      .filter((productId): productId is string => Boolean(productId)),
+  );
+}
+
+function findMatchingCreditSale(
+  operation: StockOperationResponseDto,
+  creditSales: CreditSaleResponseDto[],
+) {
+  const operationTotalCents = Math.round(getOperationTotal(operation) * 100);
+  const operationDate = new Date(operation.createdAt).getTime();
+  const productIds = getOperationProductIds(operation);
+
+  if (!operationTotalCents || Number.isNaN(operationDate)) return undefined;
+
+  return creditSales
+    .map((creditSale) => {
+      const saleDate = new Date(creditSale.date).getTime();
+      const saleTotalCents = Math.round(toNumber(creditSale.totalAmount) * 100);
+      const hasSameProduct =
+        productIds.size === 0 ||
+        (creditSale.products ?? []).some((product) => productIds.has(product.id));
+
+      return {
+        creditSale,
+        timeDiff: Math.abs(saleDate - operationDate),
+        saleTotalCents,
+        hasSameProduct,
+      };
+    })
+    .filter(
+      (candidate) =>
+        candidate.saleTotalCents === operationTotalCents &&
+        candidate.hasSameProduct &&
+        candidate.timeDiff <= 60 * 60 * 1000,
+    )
+    .sort((first, second) => first.timeDiff - second.timeDiff)[0]?.creditSale;
+}
+
 function getShortId(id?: string) {
   return id ? id.slice(0, 8).toUpperCase() : "-";
+}
+
+function getInitials(name?: string) {
+  return (name || "?")
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function getInstallmentStatusLabel(status?: CreditSaleInstallmentStatusEnum) {
+  if (status === CreditSaleInstallmentStatusEnum.PAID) return "Pago";
+  if (status === CreditSaleInstallmentStatusEnum.OVERDUE) return "Atrasado";
+  return "Pendente";
+}
+
+function getInstallmentStatusClass(status?: CreditSaleInstallmentStatusEnum) {
+  if (status === CreditSaleInstallmentStatusEnum.PAID) {
+    return styles.installmentPaid;
+  }
+  if (status === CreditSaleInstallmentStatusEnum.OVERDUE) {
+    return styles.installmentOverdue;
+  }
+  return styles.installmentPending;
+}
+
+function getInstallmentDateLabel(installment: {
+  dueDate?: Date | string | null;
+  paidAt?: Date | string | null;
+  status?: CreditSaleInstallmentStatusEnum;
+}) {
+  if (installment.status === CreditSaleInstallmentStatusEnum.PAID) {
+    return installment.paidAt
+      ? `Pago em ${formatDate(installment.paidAt)}`
+      : "Pago";
+  }
+
+  return `Vence em ${formatDate(installment.dueDate)}`;
 }
 
 export function MovementDetails() {
@@ -97,23 +210,50 @@ export function MovementDetails() {
   } | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    const operationId = id;
+    if (!operationId) return;
     let isActive = true;
 
-    StockMovementService.findOperationById(id)
-      .then((data) => {
+    async function loadOperation(selectedOperationId: string) {
+      try {
+        const data =
+          await StockMovementService.findOperationById(selectedOperationId);
         if (!isActive) return;
-        setOperation(data);
+
+        const creditSaleId = data.creditSaleId;
+
+        if (
+          creditSaleId &&
+          (!data.creditSale || !data.creditSale.installments?.length)
+        ) {
+          const creditSale = await CreditSaleService.findOne(creditSaleId);
+          if (!isActive) return;
+          setOperation({ ...data, creditSale });
+        } else if (!data.creditSale && data.paymentMethod === "Crediario") {
+          const creditSales = await CreditSaleService.findAll();
+          if (!isActive) return;
+          const creditSale = findMatchingCreditSale(data, creditSales);
+          setOperation(
+            creditSale
+              ? { ...data, creditSaleId: creditSale.id, creditSale }
+              : data,
+          );
+        } else {
+          setOperation(data);
+        }
+
         setFetchError(null);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error(err);
         if (!isActive) return;
         setFetchError({
-          id,
+          id: selectedOperationId,
           message: "Nao foi possivel carregar a movimentacao.",
         });
-      });
+      }
+    }
+
+    loadOperation(operationId);
 
     return () => {
       isActive = false;
@@ -133,6 +273,17 @@ export function MovementDetails() {
     () => (operation ? getOperationQuantity(operation) : 0),
     [operation],
   );
+  const creditInstallments = useMemo(
+    () =>
+      [...(operation?.creditSale?.installments ?? [])].sort(
+        (first, second) => first.installmentNumber - second.installmentNumber,
+      ),
+    [operation?.creditSale?.installments],
+  );
+  const creditSale = operation?.creditSale;
+  const creditCustomer = creditSale?.customer;
+  const isCreditOperation =
+    Boolean(creditSale) || operation?.paymentMethod === "Crediario";
 
   if (loading) {
     return (
@@ -279,6 +430,88 @@ export function MovementDetails() {
               </div>
             </div>
           </div>
+
+          {isCreditOperation ? (
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>
+                  <CreditCard size={17} />
+                  Crediario
+                </div>
+                <span className={styles.cardMeta}>
+                  {creditInstallments.length || creditSale?.installment || 0}{" "}
+                  parcelas
+                </span>
+              </div>
+
+              <div className={styles.creditCustomerBlock}>
+                <div className={styles.creditAvatar}>
+                  {getInitials(creditCustomer?.customerName)}
+                </div>
+                <div className={styles.creditCustomerInfo}>
+                  <strong>{creditCustomer?.customerName || "-"}</strong>
+                  <span>
+                    <Mail size={14} />
+                    {creditCustomer?.customerEmail || "-"}
+                  </span>
+                  <span>
+                    <Phone size={14} />
+                    {formatPhone(creditCustomer?.phone)}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.creditFacts}>
+                <div>
+                  <span>CPF</span>
+                  <strong>{formatCpf(creditCustomer?.CPF)}</strong>
+                </div>
+                <div>
+                  <span>Total</span>
+                  <strong>{formatBRL(creditSale?.totalAmount ?? total)}</strong>
+                </div>
+                <div>
+                  <span>Venda</span>
+                  <strong>#{getShortId(creditSale?.id)}</strong>
+                </div>
+              </div>
+
+              {creditInstallments.length > 0 ? (
+                <div className={styles.installmentsList}>
+                  {creditInstallments.map((installment) => (
+                    <div key={installment.id} className={styles.installmentRow}>
+                      <div className={styles.installmentMain}>
+                        <span className={styles.installmentNumber}>
+                          {installment.installmentNumber}
+                        </span>
+                        <div>
+                          <strong>
+                            Parcela {installment.installmentNumber}
+                          </strong>
+                          <span>{getInstallmentDateLabel(installment)}</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.installmentAside}>
+                        <span
+                          className={`${styles.installmentStatus} ${getInstallmentStatusClass(
+                            installment.status,
+                          )}`}
+                        >
+                          {getInstallmentStatusLabel(installment.status)}
+                        </span>
+                        <strong>{formatBRL(installment.amount)}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyCredit}>
+                  Parcelas nao encontradas
+                </div>
+              )}
+            </div>
+          ) : null}
         </section>
 
         <aside className={styles.rightCol}>

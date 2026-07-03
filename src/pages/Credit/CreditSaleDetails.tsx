@@ -523,6 +523,18 @@ export function CreditSaleDetails() {
     };
   };
 
+  const getInstallmentDateLabel = (
+    installment: CreditSaleInstallmentResponseDto,
+  ) => {
+    if (installment.status === CreditSaleInstallmentStatusEnum.PAID) {
+      return installment.paidAt
+        ? `Pago em ${formatDate(installment.paidAt)}`
+        : "Pago";
+    }
+
+    return `Previsão ${formatDate(installment.dueDate)}`;
+  };
+
   const monthInstallmentStatusMeta = useMemo(() => {
     const installmentNumber = creditSale
       ? getInstallmentNumberForMonth(creditSale, displayInstallments)
@@ -1140,7 +1152,7 @@ export function CreditSaleDetails() {
                       </div>
                       <div className={styles.installmentInfo}>
                         <strong>Parcela {installment.installmentNumber}</strong>
-                        <span>Previsão {formatDate(installment.dueDate)}</span>
+                        <span>{getInstallmentDateLabel(installment)}</span>
                       </div>
                       <strong className={styles.installmentAmount}>
                         {formatBRL(installment.amount)}
