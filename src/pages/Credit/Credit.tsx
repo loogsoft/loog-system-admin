@@ -940,7 +940,7 @@ export function Credit() {
                   <div>Itens</div>
                   <div>Status</div>
                   <div>Parcela</div>
-                  <div>Aberto</div>
+                  <div>Em aberto</div>
                 </div>
 
                 {paginatedCreditSales.map((sale) => {
