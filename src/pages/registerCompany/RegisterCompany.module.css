@@ -109,28 +109,18 @@
 }
 
 .grid2,
-.grid4,
-.gridAddress {
+.grid4 {
   display: grid;
   gap: 18px 24px;
   margin-bottom: 18px;
 }
 
-.grid2,
-.gridAddress {
+.grid2 {
   grid-template-columns: 1fr 1fr;
 }
 
 .grid4 {
   grid-template-columns: repeat(4, 1fr);
-}
-
-.street {
-  grid-column: 1 / 2;
-}
-
-.number {
-  grid-column: 2 / 3;
 }
 
 .brandTypeArea {
@@ -316,14 +306,8 @@
   }
 
   .grid2,
-  .grid4,
-  .gridAddress {
+  .grid4 {
     grid-template-columns: 1fr;
-  }
-
-  .street,
-  .number {
-    grid-column: auto;
   }
 
   .termsLabel {

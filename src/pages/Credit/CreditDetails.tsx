@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 import styles from "./CreditDetails.module.css";
 import {
   BadgeCheck,
@@ -7,10 +8,22 @@ import {
   MapPin,
   Phone,
   Save,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 import { CreditCustomerService } from "../../service/Credit-customer.service";
+import { ConfirmDeleteModal } from "../../components/ConfirmaDeleteModal/ConfirmDeleteModal";
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    const message = error.response?.data?.message;
+    if (Array.isArray(message)) return message.join("\n");
+    if (typeof message === "string") return message;
+  }
+
+  return fallback;
+}
 
 function phoneMask(value: string): string {
   if (!value) return "";
@@ -62,6 +75,7 @@ export function CreditDetails() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [modalDelete, setModalDelete] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -144,6 +158,16 @@ export function CreditDetails() {
         await CreditCustomerService.create(payload);
       }
       navigate(-1);
+    } catch (error) {
+      console.error(error);
+      alert(
+        getApiErrorMessage(
+          error,
+          isEdit
+            ? "Não foi possível salvar as alterações."
+            : "Não foi possível cadastrar o cliente.",
+        ),
+      );
     } finally {
       setSaving(false);
     }
@@ -171,8 +195,33 @@ export function CreditDetails() {
     .filter(Boolean)
     .join(", ");
 
+  const deleteClient = async (customerId: string | undefined) => {
+    if (!customerId || saving) return;
+
+    try {
+      setSaving(true);
+      await CreditCustomerService.delete(customerId);
+      navigate(-1);
+    } catch (error) {
+      console.error(error);
+      alert(getApiErrorMessage(error, "Não foi possível excluir o cliente."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className={styles.page}>
+      {isEdit && (
+        <ConfirmDeleteModal
+          message="Tem certeza que deseja remover este cliente?"
+          onConfirm={() => {
+            void deleteClient(id);
+          }}
+          isOpen={modalDelete}
+          onClose={() => setModalDelete(false)}
+        />
+      )}
       <div className={styles.shell}>
         <header className={styles.top}>
           <div className={styles.heroContent}>
@@ -190,6 +239,17 @@ export function CreditDetails() {
             </div>
           </div>
           <div className={styles.topActions}>
+            {isEdit && (
+              <button
+                className={styles.deleteButton}
+                type="button"
+                disabled={saving || loadingCustomer}
+                onClick={() => setModalDelete(true)}
+              >
+                <Trash2 size={16} />
+                Excluir cliente
+              </button>
+            )}
             <button
               className={styles.discard}
               type="button"
@@ -311,9 +371,7 @@ export function CreditDetails() {
                   placeholder="(00) 00000-0000"
                   value={phoneMask(phone)}
                   onChange={(event) =>
-                    setPhone(
-                      event.target.value.replace(/\D/g, "").slice(0, 11),
-                    )
+                    setPhone(event.target.value.replace(/\D/g, "").slice(0, 11))
                   }
                   autoComplete="tel"
                   inputMode="tel"

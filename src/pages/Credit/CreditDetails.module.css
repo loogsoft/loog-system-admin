@@ -64,6 +64,7 @@
 }
 
 .discard,
+.deleteButton,
 .save {
   height: 40px;
   padding: 0 18px;
@@ -95,6 +96,18 @@
   background: var(--surface-muted);
 }
 
+.deleteButton {
+  border: 1px solid color-mix(in srgb, var(--status-danger, #ef4444) 34%, var(--border-default));
+  background: color-mix(in srgb, var(--status-danger, #ef4444) 8%, var(--surface));
+  color: var(--status-danger, #dc2626);
+}
+
+.deleteButton:hover {
+  border-color: color-mix(in srgb, var(--status-danger, #ef4444) 58%, var(--border-default));
+  background: color-mix(in srgb, var(--status-danger, #ef4444) 13%, var(--surface));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--status-danger, #ef4444) 10%, transparent);
+}
+
 .save {
   border: 1px solid var(--highlight-primary);
   background: var(--highlight-primary);
@@ -108,7 +121,8 @@
 }
 
 .save:disabled,
-.discard:disabled {
+.discard:disabled,
+.deleteButton:disabled {
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
@@ -388,6 +402,7 @@
   }
 
   .discard,
+  .deleteButton,
   .save {
     min-width: 150px;
   }
@@ -429,6 +444,7 @@
   }
 
   .discard,
+  .deleteButton,
   .save {
     min-width: 0;
     flex: 1;

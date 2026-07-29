@@ -13,6 +13,9 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiChevronDown,
+  FiDroplet,
+  FiArchive,
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { GiTrousers, GiTShirt } from "react-icons/gi";
 import { FiUser } from "react-icons/fi";
@@ -40,7 +43,7 @@ type ProductProps = BaseProps & {
   promoPrice?: number | string;
   imageUrl: ImageResponse[];
   stock: number | undefined;
-  lowStock: number;
+  lowStock?: number;
   available: boolean;
   color?: string;
   colors?: string[];
@@ -127,7 +130,9 @@ export default function EntityCard(props: Props) {
             className={`${styles.avatar} ${styles.creditCustomerAvatar || ""}`}
             style={avatarStyle}
           >
-            <span className={styles.creditCustomerInitials}>{props.initials}</span>
+            <span className={styles.creditCustomerInitials}>
+              {props.initials}
+            </span>
           </div>
           {props.onDelete ? (
             <div className={styles.cardActions}>
@@ -152,83 +157,123 @@ export default function EntityCard(props: Props) {
           <div className={styles.category}>{props.category}</div>
           <div className={styles.creditCustomerMeta || ""}>
             {props.cpf && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <div className={styles.creditCustomerMetaContent}>
                   <span className={styles.creditCustomerMetaLabel}>CPF</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.cpf}</span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.cpf}
+                  </span>
                 </div>
               </div>
             )}
             {props.email && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <span className={styles.creditCustomerMetaIconWrap}>
                   <FiMail className={styles.metaIcon} />
                 </span>
                 <div className={styles.creditCustomerMetaContent}>
                   <span className={styles.creditCustomerMetaLabel}>E-mail</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.email}</span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.email}
+                  </span>
                 </div>
               </div>
             )}
             {props.phone && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <span className={styles.creditCustomerMetaIconWrap}>
                   <FiPhone className={styles.metaIcon} />
                 </span>
                 <div className={styles.creditCustomerMetaContent}>
-                  <span className={styles.creditCustomerMetaLabel}>Telefone</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.phone}</span>
+                  <span className={styles.creditCustomerMetaLabel}>
+                    Telefone
+                  </span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.phone}
+                  </span>
                 </div>
               </div>
             )}
             {props.location && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <span className={styles.creditCustomerMetaIconWrap}>
                   <FiMapPin className={styles.metaIcon} />
                 </span>
                 <div className={styles.creditCustomerMetaContent}>
-                  <span className={styles.creditCustomerMetaLabel}>Endereço</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.location}</span>
+                  <span className={styles.creditCustomerMetaLabel}>
+                    Endereço
+                  </span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.location}
+                  </span>
                 </div>
               </div>
             )}
             {props.number && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <div className={styles.creditCustomerMetaContent}>
                   <span className={styles.creditCustomerMetaLabel}>Número</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.number}</span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.number}
+                  </span>
                 </div>
               </div>
             )}
             {props.neighborhood && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <div className={styles.creditCustomerMetaContent}>
                   <span className={styles.creditCustomerMetaLabel}>Bairro</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.neighborhood}</span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.neighborhood}
+                  </span>
                 </div>
               </div>
             )}
             {props.city && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <div className={styles.creditCustomerMetaContent}>
                   <span className={styles.creditCustomerMetaLabel}>Cidade</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.city}</span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.city}
+                  </span>
                 </div>
               </div>
             )}
             {props.state && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <div className={styles.creditCustomerMetaContent}>
                   <span className={styles.creditCustomerMetaLabel}>Estado</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.state}</span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.state}
+                  </span>
                 </div>
               </div>
             )}
             {props.zipCode && (
-              <div className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}>
+              <div
+                className={`${styles.metaItem} ${styles.creditCustomerMetaItem}`}
+              >
                 <div className={styles.creditCustomerMetaContent}>
                   <span className={styles.creditCustomerMetaLabel}>CEP</span>
-                  <span className={styles.creditCustomerMetaValue}>{props.zipCode}</span>
+                  <span className={styles.creditCustomerMetaValue}>
+                    {props.zipCode}
+                  </span>
                 </div>
               </div>
             )}
@@ -460,9 +505,9 @@ export default function EntityCard(props: Props) {
   const currentVariationLowStock = Number(currentVariation?.lowStock ?? 0);
   const currentVariationIsLow = Boolean(
     currentVariation?.activeLowStock === true &&
-      currentVariationLowStock > 0 &&
-      currentVariationStock > 0 &&
-      currentVariationStock <= currentVariationLowStock,
+    currentVariationLowStock > 0 &&
+    currentVariationStock > 0 &&
+    currentVariationStock <= currentVariationLowStock,
   );
   const simpleProductIsLow =
     !hasVariations &&
@@ -507,8 +552,7 @@ export default function EntityCard(props: Props) {
       }
     >
       <div className={`${styles.media} ${styles.productMedia}`}>
-        {!isCreditCustomer &&
-        stockBadge ? (
+        {!isCreditCustomer && stockBadge ? (
           <div className={styles.lowStock}>{stockBadge}</div>
         ) : null}
         {!isCreditCustomer && isSoldOut ? (
@@ -601,17 +645,25 @@ export default function EntityCard(props: Props) {
         </div>
 
         <div className={styles.productMeta}>
-          {!hasVariations && (
-            props.promoPrice && Number(props.promoPrice) > 0 ? (
+          {!hasVariations &&
+            (props.promoPrice && Number(props.promoPrice) > 0 ? (
               <>
                 <div className={styles.metaItem}>
-                  <FiDollarSign className={styles.metaIcon} />
+                  <span
+                    className={`${styles.metaIconBadge} ${styles.metaIconPrice}`}
+                  >
+                    <FiDollarSign className={styles.metaIcon} />
+                  </span>
                   <span className={styles.originalPrice}>
                     {currencyBRL(Number(props.price))}
                   </span>
                 </div>
                 <div className={`${styles.metaItem} ${styles.promoItem}`}>
-                  <FiDollarSign className={styles.metaIcon} />
+                  <span
+                    className={`${styles.metaIconBadge} ${styles.metaIconPrice}`}
+                  >
+                    <FiDollarSign className={styles.metaIcon} />
+                  </span>
                   <span className={styles.promoPrice}>
                     {currencyBRL(Number(props.promoPrice))}
                   </span>
@@ -628,14 +680,21 @@ export default function EntityCard(props: Props) {
               </>
             ) : (
               <div className={styles.metaItem}>
-                <FiDollarSign className={styles.metaIcon} />
+                <span
+                  className={`${styles.metaIconBadge} ${styles.metaIconPrice}`}
+                >
+                  <FiDollarSign className={styles.metaIcon} />
+                </span>
                 {currencyBRL(Number(props.price))}
               </div>
-            )
-          )}
-          {props.lowStock > 0 && (
+            ))}
+          {(props.lowStock ?? 0) > 0 && (
             <div className={styles.metaItem}>
-              <FiBox className={styles.metaIcon} />
+              <span
+                className={`${styles.metaIconBadge} ${styles.metaIconAlert}`}
+              >
+                <FiAlertTriangle className={styles.metaIcon} />
+              </span>
               {`Alerta de estoque: ${props.lowStock}`}
             </div>
           )}
@@ -644,7 +703,11 @@ export default function EntityCard(props: Props) {
             <>
               {availableVariationColors.length > 0 && (
                 <div className={styles.metaItem}>
-                  <FiBox className={styles.metaIcon} />
+                  <span
+                    className={`${styles.metaIconBadge} ${styles.metaIconColors}`}
+                  >
+                    <FiBox className={styles.metaIcon} />
+                  </span>
                   <span>Cores disponíveis:</span>
                   <span className={styles.variationColors}>
                     {availableVariationColors.map((color) => (
@@ -670,7 +733,7 @@ export default function EntityCard(props: Props) {
                   aria-expanded={showVariations}
                   aria-controls="variation-list"
                 >
-                  <FiLayers className={styles.variationToggleIcon} />
+                  <FiLayers className={styles.variationToggleIcon} size={10} />
                   <span className={styles.variationToggleLabel}>Variações</span>
                   <FiChevronDown
                     className={styles.variationChevron}
@@ -693,12 +756,12 @@ export default function EntityCard(props: Props) {
                           <span className={styles.variationColors}>
                             {(v.color ? [v.color] : []).map(
                               (color: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className={styles.variationColorDot}
-                                style={{ background: color || "#ccc" }}
-                                title={color || ""}
-                              />
+                                <span
+                                  key={idx}
+                                  className={styles.variationColorDot}
+                                  style={{ background: color || "#ccc" }}
+                                  title={color || ""}
+                                />
                               ),
                             )}
                           </span>
@@ -710,11 +773,12 @@ export default function EntityCard(props: Props) {
                               {v.stock ?? 0}
                             </span>
                           </span>
-                          {v.price && Number(v.price) !== Number(props.price) && (
-                            <span className={styles.variationPrice}>
-                              {currencyBRL(Number(v.price))}
-                            </span>
-                          )}
+                          {v.price &&
+                            Number(v.price) !== Number(props.price) && (
+                              <span className={styles.variationPrice}>
+                                {currencyBRL(Number(v.price))}
+                              </span>
+                            )}
                         </div>
                       </div>
                     ))}
@@ -725,12 +789,30 @@ export default function EntityCard(props: Props) {
           ) : (
             <>
               <div className={styles.metaItem}>
-                <FiLayers className={styles.metaIcon} />
+                <span
+                  className={`${styles.metaIconBadge} ${styles.metaIconSize}`}
+                >
+                  <FiLayers className={styles.metaIcon} />
+                </span>
                 {`Tamanho: ${props.size || "-"}`}
               </div>
+              {!showVariations && (
+                <div className={styles.metaItem}>
+                  <span
+                    className={`${styles.metaIconBadge} ${styles.metaIconStock}`}
+                  >
+                    <FiArchive className={styles.metaIcon} />
+                  </span>
+                  {`Estoque: ${props.stock || "-"}`}
+                </div>
+              )}
               {((props.colors && props.colors.length > 0) || props.color) && (
                 <div className={styles.metaItem}>
-                  <FiBox className={styles.metaIcon} />
+                  <span
+                    className={`${styles.metaIconBadge} ${styles.metaIconColor}`}
+                  >
+                    <FiDroplet className={styles.metaIcon} />
+                  </span>
                   <span>Cor:</span>
                   <span className={styles.variationColors}>
                     {(props.colors && props.colors.length > 0

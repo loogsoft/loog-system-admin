@@ -121,8 +121,9 @@ export function DiscountStock() {
   const [loading, setLoading] = useState(true);
   const [voltarEstoqueItem, setVoltarEstoqueItem] =
     useState<StockHistoryItem | null>(null);
-  const [stockHistory, setStockHistory] =
-    useState<StockMovementResponseDto[]>([]);
+  const [stockHistory, setStockHistory] = useState<StockMovementResponseDto[]>(
+    [],
+  );
   const [stockOperations, setStockOperations] = useState<
     StockOperationResponseDto[]
   >([]);
@@ -220,23 +221,23 @@ export function DiscountStock() {
     [],
   );
 
+  const stockCardItems = useMemo<DiscountStockCardItem[]>(
+    () =>
+      products.flatMap((product) => {
+        return getProductStockEntries(product)
+          .filter((entry) => entry.stock > 0)
+          .map((entry) => ({ product, entry }));
+      }),
+    [products],
+  );
+
   const categories = useMemo(() => {
     const unique = Array.from(new Set(products.map((p) => p.category))).sort();
     return [
-      { value: "all", label: `Todos ${products.length}` },
+      { value: "all", label: `Todos ${stockCardItems.length}` },
       ...unique.map((cat) => ({ value: cat, label: cat })),
     ];
-  }, [products]);
-
-  const stockCardItems = useMemo<DiscountStockCardItem[]>(
-    () =>
-      products.flatMap((product) =>
-        getProductStockEntries(product)
-          .filter((entry) => entry.stock > 0)
-          .map((entry) => ({ product, entry })),
-      ),
-    [products],
-  );
+  }, [products, stockCardItems.length]);
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -511,8 +512,7 @@ export function DiscountStock() {
   // Calcula o faturamento total
   const faturamento = useMemo(() => {
     return stockHistory.reduce(
-      (acc, h) =>
-        acc + Number(h.price || h.variation?.price || 0) * h.quantity,
+      (acc, h) => acc + Number(h.price || h.variation?.price || 0) * h.quantity,
       0,
     );
   }, [stockHistory]);
@@ -544,7 +544,7 @@ export function DiscountStock() {
       <section className={styles.metrics}>
         <StatCard
           label="Total de produtos"
-          value={products.length}
+          value={stockCardItems.length}
           sub="Produtos cadastrados"
           icon={<FiPackage />}
           iconColor="#EFF6FF"
@@ -689,12 +689,12 @@ export function DiscountStock() {
                     }
                     imageUrl={getStockCardImages(product, entry)}
                     stock={entry.stock}
-                    lowStock={entry.lowStock}
                     available={
                       product.status === ProductStatusEnum.ACTIVED &&
                       entry.stock > 0
                     }
                     color={cardColor}
+                    height={450}
                     colors={cardColor ? [cardColor] : undefined}
                     size={cardSize}
                     sizes={cardSize ? [cardSize] : undefined}

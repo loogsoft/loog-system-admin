@@ -259,12 +259,6 @@
   margin-bottom: 14px;
 }
 
-.fieldGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .fieldGroupFull {
   display: flex;
   flex-direction: column;

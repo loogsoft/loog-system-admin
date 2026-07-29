@@ -128,6 +128,10 @@ export function Products() {
     };
   }, [products]);
 
+  const totalVariations = useMemo(() => {
+    return products.reduce((sum, p) => sum + ((p.variations || []).length || 0), 0);
+  }, [products]);
+
   const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
     () => [
       { key: "all", label: `Todos ${counts.all}` },
@@ -243,7 +247,16 @@ export function Products() {
       <div className={styles.stats}>
         <StatCard
           label="TOTAL DE PRODUTOS"
-          value={counts.all.toLocaleString("pt-BR")}
+          value={
+            <span>
+              {counts.all.toLocaleString("pt-BR")}
+              {totalVariations > 0 ? (
+                <span style={{ marginLeft: 8, fontSize: 12, color: "#6b7280" }}>
+                  +{totalVariations.toLocaleString("pt-BR")} variações
+                </span>
+              ) : null}
+            </span>
+          }
           icon={<FiBox />}
           iconColor="#EFF6FF"
           iconBackgroundColor="#3B82F6"
@@ -371,6 +384,7 @@ export function Products() {
                 description={p.description}
                 category={p.category}
                 price={p.price}
+                height={400}
                 promoPrice={p.promoPrice}
                 imageUrl={[
                   ...(p.images || []),

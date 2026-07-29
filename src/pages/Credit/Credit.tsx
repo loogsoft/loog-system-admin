@@ -616,7 +616,7 @@ export function Credit() {
           <button
             className={styles.addBtn}
             type="button"
-            onClick={() => navigate("/credit-sale-details")}
+            onClick={() => navigate("/credit-details")}
           >
             <Plus size={16} />
             Abrir Crediario

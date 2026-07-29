@@ -40,34 +40,10 @@
   object-fit: contain;
 }
 
-.brandIcon {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-}
-
-.brandIconInner {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--border-default);
-}
-
 .brandTitle {
   letter-spacing: 0.8px;
   font-weight: 600;
   color: var(--text-primary);
-}
-
-.brandSubtitle {
-  display: block;
-  font-size: 12px;
-  color: var(--text-secondary);
 }
 
 .menu {
@@ -75,108 +51,6 @@
   flex-direction: column;
   gap: 8px;
   margin-top: 20px;
-}
-
-.submenuToggle {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.submenuToggle:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-1);
-}
-
-.submenuTitle {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.submenuChevron {
-  transition: transform 0.2s ease;
-}
-
-.submenuChevronOpen {
-  transform: rotate(180deg);
-  transition: transform 0.2s ease;
-}
-
-.submenuList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 2px 0 4px 26px;
-  max-height: 400px;
-  opacity: 1;
-  transition: max-height 0.25s ease, opacity 0.2s ease;
-}
-
-.submenuListHidden {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  padding: 0 0 0 26px;
-  transition: max-height 0.25s ease, opacity 0.2s ease;
-}
-
-.subLink {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-.subLink:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-1);
-}
-
-.subLinkActive {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: var(--active-bg);
-  color: var(--text-primary);
-  text-decoration: none;
-  border-radius: 10px;
-  font-size: 13px;
-}
-
-.subIcon {
-  width: 25px;
-  height: 25px;
-  border-radius: 8px;
-  background-color: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: currentColor;
-  opacity: 0.65;
-}
-
-.sectionTitle {
-  margin: 12px 0 4px;
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--text-muted);
 }
 
 .link {
@@ -191,54 +65,12 @@
   position: relative;
   
 }
-.linkk {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px 20px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  border-radius: 12px;
-  font-size: 15px;
-  position: relative;
-  width: 100%;
-  background: none;
-  border: none;
-  font-weight: 400;
-  font-size: 14px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-  margin-bottom: 10px;
-  padding: 17px 20px;
-
-}
 
 .link:hover {
   background: var(--hover-bg);
   color: var(--text-primary);
   box-shadow: var(--shadow-1);
 
-}
-.linkk:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-1);
-  padding: 17px 20px;
-}
-
-.linkStyle {
-  gap: 12;
-  width: 100%;
-  background: none;
-  border: none;
-  font-weight: 400;
-  font-size: 14px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
 }
 
 .link:hover {
@@ -260,12 +92,6 @@
 }
 
 :global([data-theme="dark"]) .active {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-on-dark);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-}
-
-:global([data-theme="dark"]) .subLinkActive {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-on-dark);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
@@ -305,30 +131,9 @@
   box-shadow: var(--shadow-1);
 }
 
-.linkButtonDisabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.linkButtonDisabled:hover {
-  background: transparent;
-  color: var(--text-secondary);
-  box-shadow: none;
-}
-
 .icon {
   font-size: 15px;
   color: currentColor;
-}
-
-.badge {
-  margin-left: auto;
-  background: var(--highlight-primary);
-  color: var(--text-on-dark);
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 999px;
 }
 
 .footer {
@@ -397,29 +202,4 @@
   height: 1px;
   background: var(--border-default);
   margin: 20px 0 10px;
-}
-
-.user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-default);
-}
-
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-}
-
-.user strong {
-  font-size: 13px;
-  color: var(--text-primary);
-}
-
-.user span {
-  display: block;
-  font-size: 11px;
-  color: var(--text-secondary);
 }

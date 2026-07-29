@@ -6,7 +6,15 @@ import { ProductService } from "../../service/Product.service";
 import type { ProductRequest } from "../../dtos/request/product-request.dto";
 import type { ProductVariationRequestDto } from "../../dtos/request/product-variation-request.dto";
 import type { ProductVariationResponseDto } from "../../dtos/response/product-variation-response.dto";
-import { Save, Plus, Pencil, X, Barcode, Check, ChevronDown } from "lucide-react";
+import {
+  Save,
+  Plus,
+  Pencil,
+  X,
+  Barcode,
+  Check,
+  ChevronDown,
+} from "lucide-react";
 import { ImageGallery } from "../../components/ImageGallery/ImageGallery";
 import EntityCard from "../../components/EntityCard/EntityCard";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
@@ -81,9 +89,9 @@ export function ProductsDetails() {
     (typeof ProductType)[keyof typeof ProductType]
   >(ProductType.UNIQUE);
   const [category, setCategory] = useState("");
-  const [categories, setCategories] = useState<
-    ProductsCategoriesResponseDto[]
-  >([]);
+  const [categories, setCategories] = useState<ProductsCategoriesResponseDto[]>(
+    [],
+  );
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -175,10 +183,7 @@ export function ProductsDetails() {
       category.trim() &&
       !categories.some((option) => option.name === category)
     ) {
-      return [
-        { id: category, name: category, companyId: "" },
-        ...categories,
-      ];
+      return [{ id: category, name: category, companyId: "" }, ...categories];
     }
 
     return categories;
@@ -1209,9 +1214,7 @@ export function ProductsDetails() {
                       <span>{categorySelectLabel}</span>
                       <ChevronDown
                         className={`${styles.categoryChevron} ${
-                          categoryDropdownOpen
-                            ? styles.categoryChevronOpen
-                            : ""
+                          categoryDropdownOpen ? styles.categoryChevronOpen : ""
                         }`}
                         size={18}
                       />
@@ -1482,9 +1485,7 @@ export function ProductsDetails() {
                       >
                         <button
                           className={`${styles.categoryTrigger} ${
-                            sizeDropdownOpen
-                              ? styles.categoryTriggerOpen
-                              : ""
+                            sizeDropdownOpen ? styles.categoryTriggerOpen : ""
                           }`}
                           type="button"
                           onClick={() =>
@@ -1494,9 +1495,7 @@ export function ProductsDetails() {
                           <span>{sizeSelectLabel}</span>
                           <ChevronDown
                             className={`${styles.categoryChevron} ${
-                              sizeDropdownOpen
-                                ? styles.categoryChevronOpen
-                                : ""
+                              sizeDropdownOpen ? styles.categoryChevronOpen : ""
                             }`}
                             size={18}
                           />
@@ -2283,7 +2282,7 @@ export function ProductsDetails() {
                           <EntityCard
                             id={String(index)}
                             name={
-                              variation.name ||
+                              name ||
                               `${variation.color ?? ""} ${variation.size ?? ""}`.trim() ||
                               `Variação ${index + 1}`
                             }

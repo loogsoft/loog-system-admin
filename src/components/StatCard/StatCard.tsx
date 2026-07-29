@@ -3,7 +3,7 @@ import styles from "./StatCard.module.css";
 
 type StatCardProps = {
   label: string;
-  value: string | number;
+  value: ReactNode;
   badge?: string;
   badgeTone?: "success" | "neutral";
   icon?: ReactNode;

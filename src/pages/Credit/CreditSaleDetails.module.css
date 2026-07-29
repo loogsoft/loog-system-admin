@@ -133,7 +133,6 @@
 }
 
 .statusBadge,
-.installmentStatus,
 .installmentStatusButton {
   min-height: 26px;
   padding: 0 9px;
@@ -1167,7 +1166,6 @@
   }
 
   .installmentAmount,
-  .installmentStatus,
   .installmentStatusWrap {
     grid-column: 2;
     justify-self: start;

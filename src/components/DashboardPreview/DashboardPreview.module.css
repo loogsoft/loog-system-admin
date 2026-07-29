@@ -155,22 +155,6 @@
   display: flex;
   flex-direction: column;
 }
-.header {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.userName {
-  font-weight: 600;
-  font-size: 7px;
-  margin-right: 8px;
-  color: var(--text-primary);
-}
-.logoMini {
-  font-size: 12px;
-  font-weight: 700;
-}
 .cardsRow {
   display: flex;
   gap: 6px;

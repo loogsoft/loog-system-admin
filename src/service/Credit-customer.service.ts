@@ -4,12 +4,17 @@ import api from "./api";
 
 export const CreditCustomerService = {
   create: async (dto: CreditCustomerRequestDto) => {
-    const response = await api.post<CreditCustomerResponseDto>("/credit-customer", dto);
+    const response = await api.post<CreditCustomerResponseDto>(
+      "/credit-customer",
+      dto,
+    );
     return response.data;
   },
 
   findOne: async (id: string): Promise<CreditCustomerResponseDto> => {
-    const response = await api.get<CreditCustomerResponseDto>(`/credit-customer/${id}`);
+    const response = await api.get<CreditCustomerResponseDto>(
+      `/credit-customer/${id}`,
+    );
     return response.data;
   },
 
@@ -25,7 +30,13 @@ export const CreditCustomerService = {
   },
 
   findAll: async (): Promise<CreditCustomerResponseDto[]> => {
-    const response = await api.get<CreditCustomerResponseDto[]>("/credit-customer");
+    const response =
+      await api.get<CreditCustomerResponseDto[]>("/credit-customer");
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<string> => {
+    const response = await api.delete<string>(`/credit-customer/${id}`);
     return response.data;
   },
 };

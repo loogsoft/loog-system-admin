@@ -34,12 +34,12 @@ export function DiscountStockCard({
     currency: "BRL",
   });
 
-  const statusClass =
+  const statusClassName =
     {
-      [DiscountStockStatusEnum.NEW]: "btnNew",
-      [DiscountStockStatusEnum.ON_ROUTE]: "btnOnRoute",
-      [DiscountStockStatusEnum.PREPARING]: "btnPreparing",
-    }[status] ?? "btnDefault";
+      [DiscountStockStatusEnum.NEW]: styles.btnNew,
+      [DiscountStockStatusEnum.ON_ROUTE]: styles.btnOnRoute,
+      [DiscountStockStatusEnum.PREPARING]: styles.btnPreparing,
+    }[status] ?? styles.btnDefault;
 
   const navigate = useNavigate();
   return (
@@ -69,7 +69,7 @@ export function DiscountStockCard({
       <div className={styles.footer}>
         <div className={styles.price}>{price}</div>
 
-        <button className={styles[statusClass]} onClick={onAccept}>
+        <button className={statusClassName} onClick={onAccept}>
           {status === DiscountStockStatusEnum.NEW
             ? "Aceitar"
             : status === DiscountStockStatusEnum.PREPARING

@@ -172,7 +172,7 @@ function getInitials(name?: string) {
 function getInstallmentStatusLabel(status?: CreditSaleInstallmentStatusEnum) {
   if (status === CreditSaleInstallmentStatusEnum.PAID) return "Pago";
   if (status === CreditSaleInstallmentStatusEnum.OVERDUE) return "Atrasado";
-  return "Pendente";
+  return "Em aberto";
 }
 
 function getInstallmentStatusClass(status?: CreditSaleInstallmentStatusEnum) {

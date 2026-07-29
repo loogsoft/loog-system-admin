@@ -20,6 +20,7 @@ import type { CreditCustomerResponseDto } from "../../dtos/response/credit-custo
 import { CreditCustomerService } from "../../service/Credit-customer.service";
 import { useAuth } from "../../contexts/useAuth";
 import styles from "./StockScanCart.module.css";
+import axios from "axios";
 
 export type StockScanCartItem = {
   product: ProductResponse;
@@ -59,13 +60,58 @@ const INSTALLMENT_LIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const DISCOUNT_STEP_PERCENT = 1;
 const INITIAL_DISCOUNT_PERCENT = 5;
 const MAX_DISCOUNT_PERCENT = 100;
+const MAX_SHORT_TEXT_LENGTH = 80;
+const MAX_TEXT_LENGTH = 120;
+const MAX_EMAIL_LENGTH = 160;
+const MAX_OBSERVATION_LENGTH = 500;
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+const sanitizeDigits = (value: string, maxLength: number) =>
+  value.replace(/\D/g, "").slice(0, maxLength);
+
+const stripControlCharacters = (value: string) =>
+  Array.from(value)
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      return code >= 32 && code !== 127;
+    })
+    .join("");
+
+const sanitizeText = (value: string, maxLength = MAX_TEXT_LENGTH) =>
+  stripControlCharacters(value)
+    .replace(/\s{2,}/g, " ")
+    .slice(0, maxLength);
+
+const sanitizeName = (value: string, maxLength = MAX_TEXT_LENGTH) =>
+  sanitizeText(value.replace(/[^\p{L}\p{M}\s.'-]/gu, ""), maxLength);
+
+const sanitizeEmail = (value: string) =>
+  value
+    .replace(/\s/g, "")
+    .replace(/[^A-Za-z0-9.!#$%&'*+/=?^_`{|}~@-]/g, "")
+    .toLowerCase()
+    .slice(0, MAX_EMAIL_LENGTH);
+
+const sanitizeState = (value: string) =>
+  value
+    .replace(/[^A-Za-z]/g, "")
+    .toUpperCase()
+    .slice(0, 2);
+
+const sanitizeAddressNumber = (value: string) =>
+  sanitizeText(value.replace(/[^\p{L}\p{M}\p{N}\s./-]/gu, ""), 20);
+
+const normalizeSearchText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 function phoneMask(value: string): string {
   if (!value) return "";
-  const normalized = value.replace(/\D/g, "").slice(0, 11);
+  const normalized = sanitizeDigits(value, 11);
   if (normalized.length <= 10) {
     return normalized
       .replace(/^(\d{2})(\d)/g, "($1) $2")
@@ -78,9 +124,7 @@ function phoneMask(value: string): string {
 
 function cpfMask(value: string): string {
   if (!value) return "";
-  return value
-    .replace(/\D/g, "")
-    .slice(0, 11)
+  return sanitizeDigits(value, 11)
     .replace(/^(\d{3})(\d)/, "$1.$2")
     .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
     .replace(/\.(\d{3})(\d)/, ".$1-$2");
@@ -88,11 +132,29 @@ function cpfMask(value: string): string {
 
 function cepMask(value: string): string {
   if (!value) return "";
-  return value
-    .replace(/\D/g, "")
-    .slice(0, 8)
-    .replace(/^(\d{5})(\d)/, "$1-$2");
+  return sanitizeDigits(value, 8).replace(/^(\d{5})(\d)/, "$1-$2");
 }
+
+const getCreditCustomerSearchText = (customer: CreditCustomerResponseDto) =>
+  normalizeSearchText(
+    [
+      customer.customerName,
+      customer.customerEmail,
+      customer.CPF,
+      cpfMask(customer.CPF),
+      customer.phone,
+      phoneMask(customer.phone),
+      customer.road,
+      customer.number,
+      customer.neighborhood,
+      customer.city,
+      customer.state,
+      customer.zipCode,
+      cepMask(customer.zipCode),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
 
 export function StockScanCart({
   isOpen,
@@ -143,6 +205,15 @@ export function StockScanCart({
     state: "",
     zipCode: "",
   });
+  const [creditCustomerSearch, setCreditCustomerSearch] = useState("");
+
+  const updateCreditForm = (field: keyof typeof creditForm, value: string) => {
+    setCreditForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+    setCreditError("");
+  };
 
   const resetCreditForm = () => {
     setCreditForm({
@@ -181,6 +252,7 @@ export function StockScanCart({
   const handleCreditModalClose = () => {
     setCreditModalOpen(false);
     setCreditModalMode("list");
+    setCreditCustomerSearch("");
     resetCreditForm();
   };
 
@@ -190,6 +262,7 @@ export function StockScanCart({
       setError("");
       setCreditModalOpen(false);
       setCreditModalMode("list");
+      setCreditCustomerSearch("");
       setSelectedCreditCustomerId(null);
       setInstallmentOpen(false);
       setDiscountPercent(INITIAL_DISCOUNT_PERCENT);
@@ -223,6 +296,16 @@ export function StockScanCart({
   const selectedCreditCustomer = creditCustomers.find(
     (customer) => String(customer.id) === String(selectedCreditCustomerId),
   );
+  const creditCustomerSearchTerm = normalizeSearchText(
+    creditCustomerSearch.trim(),
+  );
+  const filteredCreditCustomers = creditCustomerSearchTerm
+    ? creditCustomers.filter((customer) =>
+        getCreditCustomerSearchText(customer).includes(
+          creditCustomerSearchTerm,
+        ),
+      )
+    : creditCustomers;
 
   const getInitials = (name: string) =>
     name
@@ -239,64 +322,86 @@ export function StockScanCart({
   const handleCreateCredit = async () => {
     if (creditSaving) return;
 
-    if (!creditForm.customerName.trim()) {
+    const sanitizedCreditForm = {
+      customerName: sanitizeName(creditForm.customerName).trim(),
+      customerEmail: sanitizeEmail(creditForm.customerEmail).trim(),
+      CPF: sanitizeDigits(creditForm.CPF, 11),
+      phone: sanitizeDigits(creditForm.phone, 11),
+      road: sanitizeText(creditForm.road).trim(),
+      number: sanitizeAddressNumber(creditForm.number).trim(),
+      neighborhood: sanitizeText(
+        creditForm.neighborhood,
+        MAX_SHORT_TEXT_LENGTH,
+      ).trim(),
+      city: sanitizeName(creditForm.city, MAX_SHORT_TEXT_LENGTH).trim(),
+      state: sanitizeState(creditForm.state),
+      zipCode: sanitizeDigits(creditForm.zipCode, 8),
+    };
+
+    setCreditForm(sanitizedCreditForm);
+
+    if (!sanitizedCreditForm.customerName) {
       setCreditError("Informe o nome do cliente.");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (
-      !creditForm.customerEmail.trim() ||
-      !emailRegex.test(creditForm.customerEmail.trim())
+      !sanitizedCreditForm.customerEmail ||
+      !emailRegex.test(sanitizedCreditForm.customerEmail)
     ) {
       setCreditError("Informe um e-mail válido.");
       return;
     }
 
-    if (creditForm.CPF.replace(/\D/g, "").length !== 11) {
+    if (sanitizedCreditForm.CPF.length !== 11) {
       setCreditError("CPF deve conter 11 dígitos.");
       return;
     }
 
-    if (creditForm.phone.replace(/\D/g, "").length < 10) {
+    if (sanitizedCreditForm.phone.length < 10) {
       setCreditError("Informe um telefone válido.");
       return;
     }
 
     if (
-      !creditForm.road.trim() ||
-      !creditForm.number.trim() ||
-      !creditForm.neighborhood.trim() ||
-      !creditForm.city.trim() ||
-      !creditForm.state.trim() ||
-      !creditForm.zipCode.trim()
+      !sanitizedCreditForm.road ||
+      !sanitizedCreditForm.number ||
+      !sanitizedCreditForm.neighborhood ||
+      !sanitizedCreditForm.city
     ) {
       setCreditError("Preencha todos os campos obrigatórios do endereço.");
+      return;
+    }
+
+    if (sanitizedCreditForm.state.length !== 2) {
+      setCreditError("Estado deve conter a UF com 2 letras.");
+      return;
+    }
+
+    if (sanitizedCreditForm.zipCode.length !== 8) {
+      setCreditError("CEP deve conter 8 dígitos.");
       return;
     }
 
     try {
       setCreditSaving(true);
       setCreditError("");
-      const createdCustomer = await CreditCustomerService.create({
-        customerName: creditForm.customerName.trim(),
-        customerEmail: creditForm.customerEmail.trim(),
-        CPF: creditForm.CPF.replace(/\D/g, ""),
-        phone: creditForm.phone.replace(/\D/g, ""),
-        road: creditForm.road.trim(),
-        number: creditForm.number.trim(),
-        neighborhood: creditForm.neighborhood.trim(),
-        city: creditForm.city.trim(),
-        state: creditForm.state.trim(),
-        zipCode: creditForm.zipCode.replace(/\D/g, ""),
-      });
+      const createdCustomer =
+        await CreditCustomerService.create(sanitizedCreditForm);
       await fetchCreditCustomers();
       setSelectedCreditCustomerId(String(createdCustomer.id));
+      setCreditCustomerSearch("");
       resetCreditForm();
       setCreditModalMode("list");
     } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setCreditError(
+          err.response?.data?.message ||
+            "Erro ao criar crediário. Tente novamente.",
+        );
+      }
       console.error(err);
-      setCreditError("Erro ao criar crediário. Tente novamente.");
     } finally {
       setCreditSaving(false);
     }
@@ -310,8 +415,24 @@ export function StockScanCart({
       return;
     }
 
+    const reason = REASONS.includes(form.reason) ? form.reason : REASONS[0];
+    const paymentMethod = PAYMENT_METHODS.includes(form.paymentMethod)
+      ? form.paymentMethod
+      : PAYMENT_METHODS[0];
+    const safeInstallment = INSTALLMENT_LIST.includes(installment)
+      ? installment
+      : 1;
+    const safeDiscountPercent = Math.min(
+      Math.max(Number(discountPercent || 0), 0),
+      MAX_DISCOUNT_PERCENT,
+    );
+    const observation = sanitizeText(
+      form.observation,
+      MAX_OBSERVATION_LENGTH,
+    ).trim();
+
     if (
-      form.paymentMethod === "Crediario" &&
+      paymentMethod === "Crediario" &&
       !String(selectedCreditCustomerId ?? "").trim()
     ) {
       setError("Selecione um cliente do crediário antes de confirmar.");
@@ -321,14 +442,16 @@ export function StockScanCart({
     setError("");
     await onConfirm({
       ...form,
+      reason,
+      paymentMethod,
       responsibleName: operatorName,
-      observation: form.observation.trim(),
-      discountPercent,
+      observation,
+      discountPercent: safeDiscountPercent,
       creditCustomerId:
-        form.paymentMethod === "Crediario"
+        paymentMethod === "Crediario"
           ? String(selectedCreditCustomerId)
           : undefined,
-      installment: form.paymentMethod === "Crediario" ? installment : 1,
+      installment: paymentMethod === "Crediario" ? safeInstallment : 1,
     });
   };
 
@@ -541,7 +664,9 @@ export function StockScanCart({
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      reason: event.target.value,
+                      reason: REASONS.includes(event.target.value)
+                        ? event.target.value
+                        : REASONS[0],
                     }))
                   }
                 >
@@ -561,7 +686,11 @@ export function StockScanCart({
                 <select
                   value={form.paymentMethod}
                   onChange={(event) => {
-                    const paymentMethod = event.target.value;
+                    const paymentMethod = PAYMENT_METHODS.includes(
+                      event.target.value,
+                    )
+                      ? event.target.value
+                      : PAYMENT_METHODS[0];
                     setError("");
                     setForm((current) => ({
                       ...current,
@@ -571,6 +700,9 @@ export function StockScanCart({
                           ? (current.installment ?? 1)
                           : 1,
                     }));
+                    if (paymentMethod !== "Crediario") {
+                      setSelectedCreditCustomerId(null);
+                    }
                     setInstallmentOpen(false);
                     setCreditModalMode("list");
                     setCreditError("");
@@ -649,9 +781,7 @@ export function StockScanCart({
 
                         <ChevronDown
                           className={`${styles.installmentChevron} ${
-                            installmentOpen
-                              ? styles.installmentChevronOpen
-                              : ""
+                            installmentOpen ? styles.installmentChevronOpen : ""
                           }`}
                           size={18}
                         />
@@ -736,9 +866,13 @@ export function StockScanCart({
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      observation: event.target.value,
+                      observation: sanitizeText(
+                        event.target.value,
+                        MAX_OBSERVATION_LENGTH,
+                      ),
                     }))
                   }
+                  maxLength={MAX_OBSERVATION_LENGTH}
                   placeholder="Opcional"
                 />
               </label>
@@ -805,59 +939,81 @@ export function StockScanCart({
 
               <div className={styles.creditModalBody}>
                 {creditModalMode === "list" ? (
-                  creditLoading ? (
-                    <div className={styles.creditEmptyState}>
-                      Carregando clientes...
-                    </div>
-                  ) : creditCustomers.length > 0 ? (
-                    creditCustomers.map((customer) => (
-                      <button
-                        key={customer.id}
-                        type="button"
-                        className={`${styles.creditCustomerCard} ${
-                          String(selectedCreditCustomerId) ===
-                          String(customer.id)
-                            ? styles.creditCustomerCardSelected
-                            : ""
-                        }`}
-                        onClick={() => {
-                          setSelectedCreditCustomerId(String(customer.id));
-                          handleCreditModalClose();
-                        }}
-                      >
-                        <div className={styles.creditCustomerAvatar}>
-                          {getInitials(customer.customerName) || "?"}
-                        </div>
-                        <div className={styles.creditCustomerBody}>
-                          <div className={styles.creditCustomerTop}>
-                            <strong>{customer.customerName}</strong>
-                            <span>
-                              {Number(
-                                customer.totalAmounts ?? 0,
-                              ).toLocaleString("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              })}
-                            </span>
+                  <>
+                    <label className={styles.creditSearchField}>
+                      <span>Buscar cliente</span>
+                      <input
+                        value={creditCustomerSearch}
+                        onChange={(event) =>
+                          setCreditCustomerSearch(
+                            sanitizeText(event.target.value, MAX_TEXT_LENGTH),
+                          )
+                        }
+                        placeholder="Nome, CPF, telefone, cidade..."
+                        autoComplete="off"
+                        maxLength={MAX_TEXT_LENGTH}
+                      />
+                    </label>
+
+                    {creditLoading ? (
+                      <div className={styles.creditEmptyState}>
+                        Carregando clientes...
+                      </div>
+                    ) : filteredCreditCustomers.length > 0 ? (
+                      filteredCreditCustomers.map((customer) => (
+                        <button
+                          key={customer.id}
+                          type="button"
+                          className={`${styles.creditCustomerCard} ${
+                            String(selectedCreditCustomerId) ===
+                            String(customer.id)
+                              ? styles.creditCustomerCardSelected
+                              : ""
+                          }`}
+                          onClick={() => {
+                            setSelectedCreditCustomerId(String(customer.id));
+                            handleCreditModalClose();
+                          }}
+                        >
+                          <div className={styles.creditCustomerAvatar}>
+                            {getInitials(customer.customerName) || "?"}
                           </div>
-                          <small>{customer.customerEmail}</small>
-                          <small>
-                            {[customer.phone, formatCreditLocation(customer)]
-                              .filter(Boolean)
-                              .join(" • ")}
-                          </small>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className={styles.creditEmptyState}>
-                      <CreditCard size={36} />
-                      <strong>Nenhum cliente encontrado</strong>
-                      <span>
-                        Cadastre um novo cliente de crediário para continuar.
-                      </span>
-                    </div>
-                  )
+                          <div className={styles.creditCustomerBody}>
+                            <div className={styles.creditCustomerTop}>
+                              <strong>{customer.customerName}</strong>
+                              <span>
+                                {Number(
+                                  customer.totalAmounts ?? 0,
+                                ).toLocaleString("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                })}
+                              </span>
+                            </div>
+                            <small>{customer.customerEmail}</small>
+                            <small>
+                              {[
+                                phoneMask(customer.phone),
+                                formatCreditLocation(customer),
+                              ]
+                                .filter(Boolean)
+                                .join(" • ")}
+                            </small>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <div className={styles.creditEmptyState}>
+                        <CreditCard size={36} />
+                        <strong>Nenhum cliente encontrado</strong>
+                        <span>
+                          {creditCustomerSearch.trim()
+                            ? "Ajuste o filtro ou cadastre um novo cliente."
+                            : "Cadastre um novo cliente de crediário para continuar."}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className={styles.creditFormGrid}>
                     <label className={styles.creditField}>
@@ -865,25 +1021,30 @@ export function StockScanCart({
                       <input
                         value={creditForm.customerName}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            customerName: event.target.value,
-                          }))
+                          updateCreditForm(
+                            "customerName",
+                            sanitizeName(event.target.value),
+                          )
                         }
                         placeholder="Nome completo"
+                        autoComplete="name"
+                        maxLength={MAX_TEXT_LENGTH}
                       />
                     </label>
                     <label className={styles.creditField}>
                       <span>Email</span>
                       <input
+                        type="email"
                         value={creditForm.customerEmail}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            customerEmail: event.target.value,
-                          }))
+                          updateCreditForm(
+                            "customerEmail",
+                            sanitizeEmail(event.target.value),
+                          )
                         }
                         placeholder="email@cliente.com"
+                        autoComplete="email"
+                        maxLength={MAX_EMAIL_LENGTH}
                       />
                     </label>
                     <label className={styles.creditField}>
@@ -891,29 +1052,31 @@ export function StockScanCart({
                       <input
                         value={cpfMask(creditForm.CPF)}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            CPF: event.target.value
-                              .replace(/\D/g, "")
-                              .slice(0, 11),
-                          }))
+                          updateCreditForm(
+                            "CPF",
+                            sanitizeDigits(event.target.value, 11),
+                          )
                         }
                         placeholder="000.000.000-00"
+                        inputMode="numeric"
+                        maxLength={14}
                       />
                     </label>
                     <label className={styles.creditField}>
                       <span>Telefone</span>
                       <input
+                        type="tel"
                         value={phoneMask(creditForm.phone)}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            phone: event.target.value
-                              .replace(/\D/g, "")
-                              .slice(0, 11),
-                          }))
+                          updateCreditForm(
+                            "phone",
+                            sanitizeDigits(event.target.value, 11),
+                          )
                         }
                         placeholder="(00) 00000-0000"
+                        autoComplete="tel"
+                        inputMode="tel"
+                        maxLength={15}
                       />
                     </label>
                     <label
@@ -923,12 +1086,14 @@ export function StockScanCart({
                       <input
                         value={creditForm.road}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            road: event.target.value,
-                          }))
+                          updateCreditForm(
+                            "road",
+                            sanitizeText(event.target.value),
+                          )
                         }
                         placeholder="Rua do cliente"
+                        autoComplete="street-address"
+                        maxLength={MAX_TEXT_LENGTH}
                       />
                     </label>
                     <label className={styles.creditField}>
@@ -936,12 +1101,13 @@ export function StockScanCart({
                       <input
                         value={creditForm.number}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            number: event.target.value,
-                          }))
+                          updateCreditForm(
+                            "number",
+                            sanitizeAddressNumber(event.target.value),
+                          )
                         }
                         placeholder="123"
+                        maxLength={20}
                       />
                     </label>
                     <label className={styles.creditField}>
@@ -949,12 +1115,17 @@ export function StockScanCart({
                       <input
                         value={creditForm.neighborhood}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            neighborhood: event.target.value,
-                          }))
+                          updateCreditForm(
+                            "neighborhood",
+                            sanitizeText(
+                              event.target.value,
+                              MAX_SHORT_TEXT_LENGTH,
+                            ),
+                          )
                         }
                         placeholder="Bairro"
+                        autoComplete="address-level3"
+                        maxLength={MAX_SHORT_TEXT_LENGTH}
                       />
                     </label>
                     <label className={styles.creditField}>
@@ -962,12 +1133,17 @@ export function StockScanCart({
                       <input
                         value={creditForm.city}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            city: event.target.value,
-                          }))
+                          updateCreditForm(
+                            "city",
+                            sanitizeName(
+                              event.target.value,
+                              MAX_SHORT_TEXT_LENGTH,
+                            ),
+                          )
                         }
                         placeholder="Cidade"
+                        autoComplete="address-level2"
+                        maxLength={MAX_SHORT_TEXT_LENGTH}
                       />
                     </label>
                     <label className={styles.creditField}>
@@ -975,12 +1151,14 @@ export function StockScanCart({
                       <input
                         value={creditForm.state}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            state: event.target.value,
-                          }))
+                          updateCreditForm(
+                            "state",
+                            sanitizeState(event.target.value),
+                          )
                         }
                         placeholder="UF"
+                        autoComplete="address-level1"
+                        maxLength={2}
                       />
                     </label>
                     <label className={styles.creditField}>
@@ -988,14 +1166,15 @@ export function StockScanCart({
                       <input
                         value={cepMask(creditForm.zipCode)}
                         onChange={(event) =>
-                          setCreditForm((current) => ({
-                            ...current,
-                            zipCode: event.target.value
-                              .replace(/\D/g, "")
-                              .slice(0, 8),
-                          }))
+                          updateCreditForm(
+                            "zipCode",
+                            sanitizeDigits(event.target.value, 8),
+                          )
                         }
                         placeholder="00000-000"
+                        autoComplete="postal-code"
+                        inputMode="numeric"
+                        maxLength={9}
                       />
                     </label>
                   </div>
@@ -1013,6 +1192,7 @@ export function StockScanCart({
                     className={styles.creditCreateButton}
                     onClick={() => {
                       resetCreditForm();
+                      setCreditCustomerSearch("");
                       setCreditModalMode("create");
                     }}
                   >
@@ -1025,6 +1205,7 @@ export function StockScanCart({
                       className={styles.creditSecondaryButton}
                       onClick={() => {
                         resetCreditForm();
+                        setCreditCustomerSearch("");
                         setCreditModalMode("list");
                       }}
                     >
