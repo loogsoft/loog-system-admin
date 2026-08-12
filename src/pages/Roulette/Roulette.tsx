@@ -5,7 +5,7 @@ import type { PrizeResponseDto } from "../../dtos/response/prize-response.dto";
 import styles from "./Roulette.module.css";
 import { FiTrash2 } from "react-icons/fi";
 import { Edit2 } from "lucide-react";
-import { ConfirmDeleteModal } from "../../components/ConfirmaDeleteModal/ConfirmDeleteModal";
+import { ConfirmActionModal } from "../../components/ConfirmActionModal/ConfirmActionModal";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import EntityCard from "../../components/EntityCard/EntityCard";
@@ -697,10 +697,13 @@ export default function RouletteAdmin() {
                           >
                             <FiTrash2 size={15} />
                           </button>
-                          <ConfirmDeleteModal
+                          <ConfirmActionModal
                             isOpen={isDeleteModalOpen}
                             title="Deseja remover este prêmio?"
                             itemName={prizeToDelete?.name || ""}
+                            warning="Esta ação não pode ser desfeita."
+                            confirmLabel="Remover"
+                            variant="danger"
                             onClose={() => {
                               setIsDeleteModalOpen(false);
                               setDeleteId(null);

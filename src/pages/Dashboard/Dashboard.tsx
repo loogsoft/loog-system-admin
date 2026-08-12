@@ -12,18 +12,24 @@ import {
 } from "recharts";
 import {
   FiAlertTriangle,
+  FiArrowUpRight,
   FiAward,
   FiBox,
   FiDollarSign,
   FiShoppingCart,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../contexts/useTheme";
 import StatCard from "../../components/StatCard/StatCard";
 import { ProductService } from "../../service/Product.service";
 import { StockMovementService } from "../../service/Stock-movement.service";
+import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import type { StockMovementResponseDto } from "../../dtos/response/stock-movement-response.dto";
 import type { StockOperationResponseDto } from "../../dtos/response/stock-operation-response.dto";
-import { getLowStockEntries } from "../../utils/productStock";
+import {
+  getLowStockEntries,
+  getProductTotalStock,
+} from "../../utils/productStock";
 import { StockOperationsTable } from "../../components/StockOperationsTable/StockOperationsTable";
 
 type MetricCard = {
@@ -115,6 +121,25 @@ function getMovementRevenue(movement: StockMovementResponseDto) {
   return toNumber(movement.variation?.price) * Number(movement.quantity || 0);
 }
 
+function getProductDisplayPrice(product: ProductResponse | null) {
+  if (!product) return 0;
+
+  const directPrice = toNumber(product.promoPrice ?? product.price);
+  if (directPrice > 0) return directPrice;
+
+  const variationPrice = product.variations
+    ?.map((variation) => toNumber(variation.price))
+    .find((price) => price > 0);
+
+  return variationPrice ?? 0;
+}
+
+function getProductImageUrl(product: ProductResponse | null) {
+  if (!product) return "";
+
+  return product.images?.[0]?.url || product.variations?.[0]?.imageUrl || "";
+}
+
 function startOfDay(value: Date) {
   const date = new Date(value);
   date.setHours(0, 0, 0, 0);
@@ -197,9 +222,13 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
 export function Dashboard() {
   const [period, setPeriod] = useState<Period>("week");
+  const navigate = useNavigate();
   const { theme } = useTheme();
   const [stockiten, setStockIten] = useState(0);
   const [lowStock, setLowStock] = useState(0);
+  const [bestSellingProduct, setBestSellingProduct] =
+    useState<ProductResponse | null>(null);
+  const [bestSellingLoading, setBestSellingLoading] = useState(true);
   const [recentMovements, setRecentMovements] = useState<
     StockMovementResponseDto[]
   >([]);
@@ -220,8 +249,7 @@ export function Dashboard() {
   );
 
   const totalVendas = useMemo(
-    () =>
-      salesMovements.reduce((acc, movement) => acc + movement.quantity, 0),
+    () => salesMovements.reduce((acc, movement) => acc + movement.quantity, 0),
     [salesMovements],
   );
 
@@ -233,6 +261,26 @@ export function Dashboard() {
       ),
     [salesMovements],
   );
+  const bestSellingQuantity = useMemo(() => {
+    if (!bestSellingProduct) return 0;
+
+    return recentMovements
+      .filter(
+        (movement) =>
+          movement.type === "OUT" &&
+          (movement.productId === bestSellingProduct.id ||
+            movement.product?.id === bestSellingProduct.id),
+      )
+      .reduce((total, movement) => total + Number(movement.quantity || 0), 0);
+  }, [bestSellingProduct, recentMovements]);
+
+  const bestSellingStock = useMemo(
+    () => (bestSellingProduct ? getProductTotalStock(bestSellingProduct) : 0),
+    [bestSellingProduct],
+  );
+  const bestSellingVariationCount = bestSellingProduct?.variations?.length ?? 0;
+  const bestSellingPrice = getProductDisplayPrice(bestSellingProduct);
+  const bestSellingImageUrl = getProductImageUrl(bestSellingProduct);
   const periodLabel = getPeriodLabel(period);
   const chartColors = {
     revenue: "var(--highlight-primary)",
@@ -302,8 +350,7 @@ export function Dashboard() {
 
       if (period === "week") {
         index = Math.floor(
-          (startOfDay(date).getTime() - periodRange.start.getTime()) /
-            86400000,
+          (startOfDay(date).getTime() - periodRange.start.getTime()) / 86400000,
         );
       }
 
@@ -339,6 +386,23 @@ export function Dashboard() {
     };
 
     void totalProduct();
+  }, []);
+
+  useEffect(() => {
+    async function get() {
+      try {
+        setBestSellingLoading(true);
+        const data = await StockMovementService.BestSellingProducts();
+        setBestSellingProduct(data);
+      } catch (error) {
+        console.error(error);
+        setBestSellingProduct(null);
+      } finally {
+        setBestSellingLoading(false);
+      }
+    }
+
+    void get();
   }, []);
 
   useEffect(() => {
@@ -441,6 +505,72 @@ export function Dashboard() {
           iconBackgroundColor="#f50b0bd7"
           valueColor="#f50b0bd7"
         />
+
+        <section className={styles.bestSellerCard}>
+          <div className={styles.bestSellerMain}>
+            <div className={styles.bestSellerInfo}>
+              <span className={styles.bestSellerEyebrow}>
+                Produto mais vendido
+              </span>
+              <h2>
+                {bestSellingLoading
+                  ? "Carregando..."
+                  : bestSellingProduct?.name || "Nenhuma venda registrada"}
+              </h2>
+              <p>
+                {bestSellingProduct
+                  ? `${bestSellingProduct.category || "Sem categoria"} • ${formatBRL(
+                      bestSellingPrice,
+                    )}`
+                  : "Assim que houver venda, o produto campeao aparece aqui."}
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.bestSellerPhotoPanel}>
+            <div className={styles.bestSellerMedia}>
+              {bestSellingImageUrl ? (
+                <img src={bestSellingImageUrl} alt={bestSellingProduct?.name} />
+              ) : (
+                <FiAward />
+              )}
+            </div>
+          </div>
+
+          <div className={styles.bestSellerAside}>
+            <div className={styles.bestSellerStats}>
+              <div>
+                <span>Vendido</span>
+                <strong>
+                  {bestSellingQuantity.toLocaleString("pt-BR")} un.
+                </strong>
+              </div>
+              <div>
+                <span>Estoque</span>
+                <strong>{bestSellingStock.toLocaleString("pt-BR")} un.</strong>
+              </div>
+              {bestSellingVariationCount > 0 ? (
+                <div>
+                  <span>Variacoes</span>
+                  <strong>{bestSellingVariationCount}</strong>
+                </div>
+              ) : null}
+            </div>
+
+            <button
+              className={styles.bestSellerButton}
+              type="button"
+              disabled={!bestSellingProduct}
+              onClick={() =>
+                bestSellingProduct &&
+                navigate(`/product-details/${bestSellingProduct.id}`)
+              }
+            >
+              Ver produto
+              <FiArrowUpRight />
+            </button>
+          </div>
+        </section>
       </div>
 
       <div className={styles.panel}>
@@ -482,7 +612,13 @@ export function Dashboard() {
                 margin={{ top: 16, right: 18, left: 4, bottom: 0 }}
               >
                 <defs>
-                  <linearGradient id="revenueBarFill" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="revenueBarFill"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop
                       offset="0%"
                       stopColor={chartColors.revenue}

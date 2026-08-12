@@ -24,7 +24,7 @@ import type { ImageResponse } from "../../dtos/response/image-response.dto";
 import type { ProductVariationResponseDto } from "../../dtos/response/product-variation-response.dto";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 import { ArrowUpRight } from "lucide-react";
-import { ConfirmDeleteModal } from "../ConfirmaDeleteModal/ConfirmDeleteModal";
+import { ConfirmActionModal } from "../ConfirmActionModal/ConfirmActionModal";
 
 type BaseProps = {
   id: string;
@@ -39,8 +39,8 @@ type ProductProps = BaseProps & {
   name: string;
   description: string | undefined;
   category: string;
-  price: number | string;
-  promoPrice?: number | string;
+  price: number | string | null;
+  promoPrice?: number | string | null;
   imageUrl: ImageResponse[];
   stock: number | undefined;
   lowStock?: number;
@@ -290,13 +290,16 @@ export default function EntityCard(props: Props) {
         >
           <ArrowUpRight />
         </button>
-        <ConfirmDeleteModal
+        <ConfirmActionModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={() => props.onDelete?.(props.id)}
           title="Remover Cliente"
           message="Tem certeza que deseja remover este Cliente?"
           itemName={props.name}
+          warning="Esta ação não pode ser desfeita."
+          confirmLabel="Remover"
+          variant="danger"
         />
       </div>
     );
@@ -415,17 +418,23 @@ export default function EntityCard(props: Props) {
           </div>
 
           <div className={styles.supplierMeta}>
-            <div className={styles.metaItem}>
+            <div className={`${styles.metaItem} ${styles.supplierMetaItem}`}>
               <FiMail className={styles.metaIcon} />
-              {props.email}
+              <span className={styles.supplierMetaText} title={props.email}>
+                {props.email}
+              </span>
             </div>
-            <div className={styles.metaItem}>
+            <div className={`${styles.metaItem} ${styles.supplierMetaItem}`}>
               <FiPhone className={styles.metaIcon} />
-              {props.phone}
+              <span className={styles.supplierMetaText} title={props.phone}>
+                {props.phone}
+              </span>
             </div>
-            <div className={styles.metaItem}>
+            <div className={`${styles.metaItem} ${styles.supplierMetaItem}`}>
               <FiMapPin className={styles.metaIcon} />
-              {props.location}
+              <span className={styles.supplierMetaText} title={props.location}>
+                {props.location}
+              </span>
             </div>
           </div>
         </div>
@@ -442,13 +451,16 @@ export default function EntityCard(props: Props) {
           <ArrowUpRight />
         </button>
 
-        <ConfirmDeleteModal
+        <ConfirmActionModal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={() => props.onDelete?.(props.id)}
           title="Remover fornecedor"
           message="Tem certeza que deseja remover este fornecedor?"
           itemName={props.name}
+          warning="Esta ação não pode ser desfeita."
+          confirmLabel="Remover"
+          variant="danger"
         />
       </div>
     );
@@ -857,13 +869,16 @@ export default function EntityCard(props: Props) {
         </button>
       ) : null}
 
-      <ConfirmDeleteModal
+      <ConfirmActionModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={() => props.onDelete?.(props.id)}
         title="Remover produto"
         message="Tem certeza que deseja remover este produto?"
         itemName={props.name}
+        warning="Esta ação não pode ser desfeita."
+        confirmLabel="Remover"
+        variant="danger"
       />
     </div>
   );

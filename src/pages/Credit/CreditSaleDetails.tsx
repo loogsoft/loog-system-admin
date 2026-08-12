@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   AlertCircle,
@@ -29,6 +35,7 @@ import { CreditCustomerService } from "../../service/Credit-customer.service";
 import { ProductService } from "../../service/Product.service";
 import { CreditSaleService } from "../../service/Credit-sale.service";
 import { CreditSaleInstallmentService } from "../../service/Credit-sale-installment.service";
+import { ConfirmActionModal } from "../../components/ConfirmActionModal/ConfirmActionModal";
 import styles from "./CreditSaleDetails.module.css";
 import { IoLogoWhatsapp } from "react-icons/io5";
 
@@ -217,40 +224,24 @@ function buildCreditSaleWhatsAppMessage({
 const installmentStatusOptions = [
   {
     status: CreditSaleInstallmentStatusEnum.PENDING,
-    label: "Em aberto",
+    label: "Desfazer pagamento",
   },
   {
     status: CreditSaleInstallmentStatusEnum.PAID,
     label: "Pago",
   },
-  {
-    status: CreditSaleInstallmentStatusEnum.OVERDUE,
-    label: "Atrasado",
-  },
 ];
 
-function getCreditSaleStatusFromInstallments(
-  installments: CreditSaleInstallmentResponseDto[],
-  fallbackStatus: CreditSaleStatusEnum,
-) {
-  if (!installments.length) return fallbackStatus;
-
-  const allPaid = installments.every(
-    (installment) =>
-      installment.status === CreditSaleInstallmentStatusEnum.PAID,
-  );
-
-  if (allPaid) return CreditSaleStatusEnum.COMPLETED;
-
-  const hasOverdue = installments.some(
-    (installment) =>
-      installment.status === CreditSaleInstallmentStatusEnum.OVERDUE,
-  );
-
-  if (hasOverdue) return CreditSaleStatusEnum.LATE;
-
-  return CreditSaleStatusEnum.PENDING;
+function getInstallmentStatusOptions(status: CreditSaleInstallmentStatusEnum) {
+  return status === CreditSaleInstallmentStatusEnum.PAID
+    ? [installmentStatusOptions[0]]
+    : [installmentStatusOptions[1]];
 }
+
+type PendingInstallmentStatusChange = {
+  installment: CreditSaleInstallmentResponseDto;
+  status: CreditSaleInstallmentStatusEnum;
+};
 
 export function CreditSaleDetails() {
   const navigate = useNavigate();
@@ -278,12 +269,38 @@ export function CreditSaleDetails() {
   const [updatingInstallmentId, setUpdatingInstallmentId] = useState<
     string | null
   >(null);
+  const [pendingInstallmentStatusChange, setPendingInstallmentStatusChange] =
+    useState<PendingInstallmentStatusChange | null>(null);
+
+  const loadCreditSale = useCallback(
+    async (showLoading = true) => {
+      if (!id) return;
+
+      try {
+        if (showLoading) setLoading(true);
+        setError(null);
+        setStatusError(null);
+        const sale = await CreditSaleService.findOne(id);
+        setCreditSale(sale);
+        setInstallments(sale.installments ?? []);
+        setOpenInstallmentStatusId(null);
+        setPendingInstallmentStatusChange(null);
+      } catch (err) {
+        console.error(err);
+        setError("Não foi possível carregar os detalhes do crediário.");
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    },
+    [id],
+  );
 
   useEffect(() => {
     if (!id) {
       setInstallments([]);
       setOpenInstallmentStatusId(null);
       setStatusError(null);
+      setPendingInstallmentStatusChange(null);
 
       const loadCreateData = async () => {
         try {
@@ -307,25 +324,8 @@ export function CreditSaleDetails() {
       return;
     }
 
-    const loadCreditSale = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setStatusError(null);
-        const sale = await CreditSaleService.findOne(id);
-        setCreditSale(sale);
-        setInstallments(sale.installments ?? []);
-        setOpenInstallmentStatusId(null);
-      } catch (err) {
-        console.error(err);
-        setError("Não foi possível carregar os detalhes do crediário.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     void loadCreditSale();
-  }, [id]);
+  }, [id, loadCreditSale]);
 
   const availableProducts = useMemo(
     () =>
@@ -532,7 +532,9 @@ export function CreditSaleDetails() {
         : "Pago";
     }
 
-    return `Previsão ${formatDate(installment.dueDate)}`;
+    return installment.status === CreditSaleInstallmentStatusEnum.PENDING
+      ? `Previsão ${formatDate(installment.dueDate)}`
+      : `Atrasado ${formatDate(installment.dueDate)}`;
   };
 
   const monthInstallmentStatusMeta = useMemo(() => {
@@ -596,18 +598,24 @@ export function CreditSaleDetails() {
       )}`
     : "";
 
-  const onChangeInstallmentStatus = async (
+  const onRequestInstallmentStatusChange = (
     installment: CreditSaleInstallmentResponseDto,
     status: CreditSaleInstallmentStatusEnum,
   ) => {
-    if (!creditSale) return;
-
-    const installmentId = String(installment.id);
-
     if (installment.status === status) {
       setOpenInstallmentStatusId(null);
       return;
     }
+
+    setOpenInstallmentStatusId(null);
+    setPendingInstallmentStatusChange({ installment, status });
+  };
+
+  const onConfirmInstallmentStatusChange = async () => {
+    if (!creditSale || !pendingInstallmentStatusChange) return;
+
+    const { installment, status } = pendingInstallmentStatusChange;
+    const installmentId = String(installment.id);
 
     const paidAt =
       status === CreditSaleInstallmentStatusEnum.PAID
@@ -619,7 +627,7 @@ export function CreditSaleDetails() {
       setStatusError(null);
       setOpenInstallmentStatusId(null);
 
-      const updated = await CreditSaleInstallmentService.update(installmentId, {
+      await CreditSaleInstallmentService.update(installmentId, {
         creditSaleId: String(creditSale.id),
         installmentNumber: installment.installmentNumber,
         amount: toNumber(installment.amount),
@@ -628,37 +636,7 @@ export function CreditSaleDetails() {
         status,
       });
 
-      const nextInstallment: CreditSaleInstallmentResponseDto = {
-        id: updated.id ?? installment.id,
-        installmentNumber:
-          updated.installmentNumber ?? installment.installmentNumber,
-        amount: updated.amount ?? installment.amount,
-        dueDate: updated.dueDate ?? installment.dueDate,
-        paidAt: updated.paidAt ?? paidAt,
-        status: updated.status ?? status,
-      };
-
-      const nextInstallments = (
-        installments.length ? installments : (creditSale.installments ?? [])
-      ).map((item) =>
-        String(item.id) === installmentId ? nextInstallment : item,
-      );
-
-      const nextCreditSaleStatus = getCreditSaleStatusFromInstallments(
-        nextInstallments,
-        creditSale.status,
-      );
-
-      setInstallments(nextInstallments);
-      setCreditSale((current) => {
-        if (!current) return current;
-
-        return {
-          ...current,
-          status: nextCreditSaleStatus,
-          installments: nextInstallments,
-        };
-      });
+      await loadCreditSale(false);
     } catch (err) {
       console.error(err);
       setStatusError("Não foi possível atualizar o status da parcela.");
@@ -666,6 +644,10 @@ export function CreditSaleDetails() {
       setUpdatingInstallmentId(null);
     }
   };
+
+  const statusChangeIsPayment =
+    pendingInstallmentStatusChange?.status ===
+    CreditSaleInstallmentStatusEnum.PAID;
 
   if (loading) {
     return (
@@ -965,6 +947,32 @@ export function CreditSaleDetails() {
 
   return (
     <div className={styles.page}>
+      <ConfirmActionModal
+        isOpen={!!pendingInstallmentStatusChange}
+        onClose={() => setPendingInstallmentStatusChange(null)}
+        onConfirm={onConfirmInstallmentStatusChange}
+        title={
+          statusChangeIsPayment
+            ? "Marcar parcela como paga?"
+            : "Desfazer pagamento?"
+        }
+        message={
+          statusChangeIsPayment
+            ? "Confirme para registrar o pagamento desta parcela."
+            : "Confirme para voltar a parcela para em aberto. O status atrasado será calculado pela data de vencimento."
+        }
+        itemName={
+          pendingInstallmentStatusChange
+            ? `Parcela ${
+                pendingInstallmentStatusChange.installment.installmentNumber
+              } - ${formatBRL(pendingInstallmentStatusChange.installment.amount)}`
+            : undefined
+        }
+        warning="A tela será atualizada depois da confirmação."
+        confirmLabel={statusChangeIsPayment ? "Marcar como pago" : "Desfazer"}
+        variant={statusChangeIsPayment ? "success" : "warning"}
+        isLoading={!!updatingInstallmentId}
+      />
       <div className={styles.shell}>
         <header className={styles.top}>
           <div className={styles.topLeft}>
@@ -1174,7 +1182,9 @@ export function CreditSaleDetails() {
 
                         {statusMenuOpen ? (
                           <div className={styles.statusMenu}>
-                            {installmentStatusOptions.map((option) => (
+                            {getInstallmentStatusOptions(
+                              installment.status,
+                            ).map((option) => (
                               <button
                                 key={option.status}
                                 className={`${styles.statusOption} ${
@@ -1184,7 +1194,7 @@ export function CreditSaleDetails() {
                                 }`}
                                 type="button"
                                 onClick={() =>
-                                  onChangeInstallmentStatus(
+                                  onRequestInstallmentStatusChange(
                                     installment,
                                     option.status,
                                   )

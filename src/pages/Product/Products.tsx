@@ -11,7 +11,7 @@ import {
 import EntityCard from "../../components/EntityCard/EntityCard";
 import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
 import { FilterModal } from "../../components/FilterModal/FilterModal";
-import { Barcode, Plus } from "lucide-react";
+import { Barcode, FileBoxIcon, Plus } from "lucide-react";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
@@ -20,7 +20,7 @@ import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import {
   getLowStockEntries,
-  productHasAvailableStock,
+  productHasStock,
   productHasVariations,
 } from "../../utils/productStock";
 
@@ -61,8 +61,14 @@ export function Products() {
     category: "all",
     sortBy: null,
   });
+
+  const availableProducts = useMemo(
+    () => products.filter(productHasStock),
+    [products],
+  );
+
   const filtered = useMemo(() => {
-    let current = products.filter(productHasAvailableStock);
+    let current = [...availableProducts];
 
     // Filtro de categoria (select ou modal)
     const categoryToFilter =
@@ -102,7 +108,7 @@ export function Products() {
     }
 
     return current;
-  }, [activeCat, products, query, filters]);
+  }, [activeCat, availableProducts, query, filters]);
 
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / pageSize));
@@ -116,7 +122,6 @@ export function Products() {
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
   const counts = useMemo(() => {
-    const availableProducts = products.filter(productHasAvailableStock);
     const byCategory = availableProducts.reduce((acc, product) => {
       acc.set(product.category, (acc.get(product.category) ?? 0) + 1);
       return acc;
@@ -126,11 +131,19 @@ export function Products() {
       all: availableProducts.length,
       byCategory,
     };
-  }, [products]);
+  }, [availableProducts]);
 
   const totalVariations = useMemo(() => {
-    return products.reduce((sum, p) => sum + ((p.variations || []).length || 0), 0);
-  }, [products]);
+    return availableProducts.reduce(
+      (sum, p) =>
+        sum +
+        (p.variations || []).filter(
+          (variation) =>
+            variation.isActive !== false && Number(variation.stock) > 0,
+        ).length,
+      0,
+    );
+  }, [availableProducts]);
 
   const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
     () => [
@@ -151,7 +164,7 @@ export function Products() {
   );
 
   const totalValue = useMemo(() => {
-    return products.reduce((sum, p) => {
+    return availableProducts.reduce((sum, p) => {
       if (productHasVariations(p)) {
         return (
           sum +
@@ -170,7 +183,7 @@ export function Products() {
 
       return sum;
     }, 0);
-  }, [products]);
+  }, [availableProducts]);
 
   const lowStock = useMemo(
     () =>
@@ -182,8 +195,8 @@ export function Products() {
   );
 
   const categoryTotal = useMemo(() => {
-    return new Set(products.map((p) => p.category)).size;
-  }, [products]);
+    return new Set(availableProducts.map((p) => p.category)).size;
+  }, [availableProducts]);
 
   // const getPrimaryImageUrl = (images: ImageResponse[]) => {
   //   const primary = (images || []).find((img: any) => img?.isPrimary);
@@ -222,6 +235,10 @@ export function Products() {
     }
   };
 
+  function importFileProducts(): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -233,6 +250,15 @@ export function Products() {
         </div>
 
         <div className={styles.headerActions}>
+          <button
+            className={styles.addBtnFile}
+            type="button"
+            onClick={() => importFileProducts()}
+          >
+            <FileBoxIcon size={16} />
+            Importar Produtos
+          </button>
+
           <button
             className={styles.addBtn}
             type="button"

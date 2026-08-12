@@ -12,6 +12,7 @@ type StockOperationsTableProps = {
   initialPageSize?: number;
   emptyTitle?: string;
   emptySubtitle?: string;
+  showTypeFilter?: boolean;
 };
 
 function toNumber(value: number | string | null | undefined) {
@@ -85,6 +86,7 @@ export function StockOperationsTable({
   initialPageSize = 10,
   emptyTitle = "Nenhuma movimentação encontrada",
   emptySubtitle = "Tente ajustar os filtros ou realize uma nova movimentação.",
+  showTypeFilter = true,
 }: StockOperationsTableProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -174,20 +176,22 @@ export function StockOperationsTable({
           />
         </div>
 
-        <div className={styles.filterActions}>
-          <CustomSelect
-            options={[
-              { value: "all", label: "Todos" },
-              { value: "OUT", label: "Saída" },
-              { value: "IN", label: "Entrada" },
-            ]}
-            value={typeFilter}
-            onChange={(value: string) => {
-              setTypeFilter(value);
-              setPage(1);
-            }}
-          />
-        </div>
+        {showTypeFilter ? (
+          <div className={styles.filterActions}>
+            <CustomSelect
+              options={[
+                { value: "all", label: "Todos" },
+                { value: "OUT", label: "Saída" },
+                { value: "IN", label: "Entrada" },
+              ]}
+              value={typeFilter}
+              onChange={(value: string) => {
+                setTypeFilter(value);
+                setPage(1);
+              }}
+            />
+          </div>
+        ) : null}
       </div>
 
       <div className={styles.table}>

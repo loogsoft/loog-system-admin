@@ -9,10 +9,10 @@ export interface ProductResponse {
   name: string;
   description?: string;
   category: string;
-  price: number;
+  price: number | string | null;
   color?: string;
   size?: string;
-  promoPrice?: number;
+  promoPrice?: number | string | null;
   status?: ProductStatusEnum;
   activeLowStock: boolean;
   stock?: number | null;

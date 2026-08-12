@@ -185,7 +185,7 @@
   top: calc(100% + 8px);
   right: 0;
   z-index: 12;
-  min-width: 142px;
+  min-width: 200px;
   padding: 6px;
   border: 1px solid var(--border-default);
   border-radius: 14px;

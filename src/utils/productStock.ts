@@ -1,5 +1,6 @@
 import type { ProductResponse } from "../dtos/response/product-response.dto";
 import type { ProductVariationResponseDto } from "../dtos/response/product-variation-response.dto";
+import { ProductStatusEnum } from "../dtos/enums/product-status.enum";
 
 export type ProductStockEntry = {
   id: string;
@@ -17,6 +18,9 @@ const toStockNumber = (value: number | null | undefined) => {
 
 export const productHasVariations = (product: ProductResponse) =>
   Array.isArray(product.variations) && product.variations.length > 0;
+
+export const productIsActive = (product: ProductResponse) =>
+  product.status !== ProductStatusEnum.DISABLED;
 
 export const getActiveVariations = (product: ProductResponse) =>
   productHasVariations(product)
@@ -57,17 +61,25 @@ export const getProductStockEntries = (
 export const getOutOfStockEntries = (product: ProductResponse) =>
   getProductStockEntries(product).filter((entry) => entry.stock === 0);
 
+export const productShouldShowInOutOfStock = (product: ProductResponse) =>
+  isProductOutOfStock(product);
+
 export const getLowStockEntries = (product: ProductResponse) =>
-  getProductStockEntries(product).filter(
-    (entry) =>
-      entry.lowStockEnabled &&
-      entry.lowStock > 0 &&
-      entry.stock > 0 &&
-      entry.stock <= entry.lowStock,
-  );
+  productIsActive(product)
+    ? getProductStockEntries(product).filter(
+        (entry) =>
+          entry.lowStockEnabled &&
+          entry.lowStock > 0 &&
+          entry.stock > 0 &&
+          entry.stock <= entry.lowStock,
+      )
+    : [];
+
+export const productHasStock = (product: ProductResponse) =>
+  getProductStockEntries(product).some((entry) => entry.stock > 0);
 
 export const productHasAvailableStock = (product: ProductResponse) =>
-  getProductStockEntries(product).some((entry) => entry.stock > 0);
+  productIsActive(product) && productHasStock(product);
 
 export const getProductTotalStock = (product: ProductResponse) =>
   getProductStockEntries(product).reduce(

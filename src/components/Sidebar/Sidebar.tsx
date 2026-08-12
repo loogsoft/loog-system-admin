@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { FiSettings, FiUsers } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 import { IoExitOutline } from "react-icons/io5";
@@ -13,16 +13,30 @@ import {
   Notifications,
   CreditCardRounded,
   WorkspacePremium,
+  Casino,
+  History,
+  KeyboardArrowDown,
 } from "@mui/icons-material";
 import { UserTypeEnum } from "../../dtos/enums/user-type.enum";
 
-type MenuItem = {
+type MenuLink = {
   type: "item";
   icon: SvgIconComponent;
   label: string;
   path: string;
   color: string;
 };
+
+type MenuGroup = {
+  type: "group";
+  icon: SvgIconComponent;
+  label: string;
+  key: string;
+  color: string;
+  children: MenuLink[];
+};
+
+type MenuItem = MenuLink | MenuGroup;
 
 const menu: MenuItem[] = [
   {
@@ -33,25 +47,41 @@ const menu: MenuItem[] = [
     color: "#6C63FF",
   },
   {
-    type: "item",
+    type: "group",
     icon: Store,
-    label: "Produtos",
-    path: "/produtos",
+    label: "Estoque",
+    key: "estoque",
     color: "#00B894",
-  },
-  {
-    type: "item",
-    icon: ShoppingCart,
-    label: "Baixa de estoque",
-    path: "/discount-stock",
-    color: "#005ca2",
-  },
-  {
-    type: "item",
-    icon: Notifications,
-    label: "Sem estoque",
-    path: "/out-of-stock",
-    color: "#E17055",
+    children: [
+      {
+        type: "item",
+        icon: Store,
+        label: "Produtos",
+        path: "/produtos",
+        color: "#00B894",
+      },
+      {
+        type: "item",
+        icon: ShoppingCart,
+        label: "Baixa de estoque",
+        path: "/discount-stock",
+        color: "#005ca2",
+      },
+      {
+        type: "item",
+        icon: History,
+        label: "Historico de baixas",
+        path: "/stock-history",
+        color: "#8B5CF6",
+      },
+      {
+        type: "item",
+        icon: Notifications,
+        label: "Sem estoque",
+        path: "/out-of-stock",
+        color: "#E17055",
+      },
+    ],
   },
   {
     type: "item",
@@ -67,22 +97,22 @@ const menu: MenuItem[] = [
     path: "/credit",
     color: "#ffd900",
   },
-  // {
-  //   type: "group",
-  //   icon: BarChart,
-  //   label: "Estratégias",
-  //   color: "#438fe1",
-  //   key: "estrategias",
-  //   children: [
-  //     {
-  //       type: "item",
-  //       icon: Casino,
-  //       label: "Roleta",
-  //       path: "/roulette",
-  //       color: "#6C63FF",
-  //     },
-  //   ],
-  // },
+  {
+    type: "group",
+    icon: CreditCardRounded,
+    label: "Estratégias",
+    color: "#438fe1",
+    key: "estrategias",
+    children: [
+      {
+        type: "item",
+        icon: Casino,
+        label: "Roleta",
+        path: "/roulette",
+        color: "#6C63FF",
+      },
+    ],
+  },
 ];
 
 function readCompanyBrand() {
@@ -106,7 +136,18 @@ function readCompanyBrand() {
 export function Sidebar() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [companyBrand, setCompanyBrand] = useState(readCompanyBrand);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    return menu.reduce<Record<string, boolean>>((acc, item) => {
+      if (item.type === "group") {
+        acc[item.key] = item.children.some(
+          (child) => child.path === window.location.pathname,
+        );
+      }
+      return acc;
+    }, {});
+  });
 
   useEffect(() => {
     const updateBrand = () => setCompanyBrand(readCompanyBrand());
@@ -134,13 +175,23 @@ export function Sidebar() {
     .join("")
     .slice(0, 2);
 
-  const renderItem = (item: MenuItem) => {
+  const isMenuLinkActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const renderLink = (item: MenuLink, isChild = false) => {
     return (
       <NavLink
         key={item.path}
         to={item.path}
-        className={({ isActive: navActive }) =>
-          navActive ? styles.active : styles.link
+        className={() =>
+          isMenuLinkActive(item.path)
+            ? isChild
+              ? styles.subActive
+              : styles.active
+            : isChild
+              ? styles.subLink
+              : styles.link
         }
         style={{ gap: 12 }}
       >
@@ -151,6 +202,54 @@ export function Sidebar() {
         />
         <span>{item.label}</span>
       </NavLink>
+    );
+  };
+
+  const renderItem = (item: MenuItem) => {
+    if (item.type === "item") {
+      return renderLink(item);
+    }
+
+    const hasActiveChild = item.children.some(
+      (child) => isMenuLinkActive(child.path),
+    );
+    const isOpen = openGroups[item.key] ?? hasActiveChild;
+
+    return (
+      <div className={styles.group} key={item.key}>
+        <button
+          type="button"
+          className={`${styles.groupButton} ${
+            hasActiveChild ? styles.groupButtonActive : ""
+          }`}
+          onClick={() =>
+            setOpenGroups((prev) => ({
+              ...prev,
+              [item.key]: !(prev[item.key] ?? hasActiveChild),
+            }))
+          }
+          aria-expanded={isOpen}
+        >
+          <item.icon
+            className={styles.icon}
+            style={{ color: item.color }}
+            fontSize="small"
+          />
+          <span>{item.label}</span>
+          <KeyboardArrowDown
+            className={`${styles.groupArrow} ${
+              isOpen ? styles.groupArrowOpen : ""
+            }`}
+            fontSize="small"
+          />
+        </button>
+
+        {isOpen ? (
+          <div className={styles.groupItems}>
+            {item.children.map((child) => renderLink(child, true))}
+          </div>
+        ) : null}
+      </div>
     );
   };
 

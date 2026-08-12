@@ -1,0 +1,202 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-backdrop);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  padding: 32px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s ease;
+  text-align: center;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.iconWrapper {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconWrapperDanger {
+  background: color-mix(in srgb, var(--status-danger) 12%, transparent);
+}
+
+.iconWrapperWarning {
+  background: color-mix(in srgb, var(--status-warning) 14%, transparent);
+}
+
+.iconWrapperSuccess {
+  background: color-mix(in srgb, var(--status-success) 12%, transparent);
+}
+
+.iconWrapperInfo {
+  background: color-mix(in srgb, var(--status-info) 12%, transparent);
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+}
+
+.iconDanger {
+  color: var(--status-danger);
+}
+
+.iconWarning {
+  color: var(--status-warning);
+}
+
+.iconSuccess {
+  color: var(--status-success);
+}
+
+.iconInfo {
+  color: var(--status-info);
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.message {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.itemName {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.warning {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cancelBtn,
+.confirmBtn {
+  height: 44px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:disabled,
+.confirmBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+.cancelBtn {
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: var(--surface-muted);
+  transform: scale(1.02);
+}
+
+.confirmBtn {
+  border: none;
+  color: #ffffff;
+}
+
+.confirmBtn:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+.confirmBtnDanger {
+  background: var(--status-danger);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--status-danger) 30%, transparent);
+}
+
+.confirmBtnDanger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--status-danger) 86%, #000000);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--status-danger) 40%, transparent);
+}
+
+.confirmBtnWarning {
+  background: var(--status-warning);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--status-warning) 30%, transparent);
+}
+
+.confirmBtnWarning:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--status-warning) 86%, #000000);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--status-warning) 40%, transparent);
+}
+
+.confirmBtnSuccess {
+  background: var(--status-success);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--status-success) 30%, transparent);
+}
+
+.confirmBtnSuccess:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--status-success) 86%, #000000);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--status-success) 40%, transparent);
+}
+
+.confirmBtnInfo {
+  background: var(--status-info);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--status-info) 30%, transparent);
+}
+
+.confirmBtnInfo:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--status-info) 86%, #000000);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--status-info) 40%, transparent);
+}

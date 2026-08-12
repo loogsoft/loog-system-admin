@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { DashboardLayout } from "./components/layouts/DashboardLayout";
 import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { DiscountStock } from "./pages/DiscountStock/DiscountStock";
+import { StockHistory } from "./pages/StockHistory/StockHistory";
 import { Products } from "./pages/Product/Products";
 import { ProductsDetails } from "./pages/Product/ProductsDetails";
 import DiscountStockDetails from "./pages/DiscountStock/DiscountStockDetails";
@@ -103,6 +104,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/discount-stock" element={<DiscountStock />} />
+        <Route path="/stock-history" element={<StockHistory />} />
         <Route path="/produtos" element={<Products />} />
         <Route path="/product-details/:id?" element={<ProductsDetails />} />
         <Route

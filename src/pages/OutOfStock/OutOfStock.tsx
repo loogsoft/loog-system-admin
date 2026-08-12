@@ -16,7 +16,7 @@ import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getOutOfStockEntries } from "../../utils/productStock";
+import { productShouldShowInOutOfStock } from "../../utils/productStock";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
@@ -52,7 +52,7 @@ export function OutOfStock() {
   });
 
   const outOfStockProducts = useMemo(() => {
-    return products.filter((product) => getOutOfStockEntries(product).length > 0);
+    return products.filter(productShouldShowInOutOfStock);
   }, [products]);
 
   const filtered = useMemo(() => {
@@ -174,7 +174,7 @@ export function OutOfStock() {
         <div>
           <h1 className={styles.title}>Produtos sem estoque</h1>
           <p className={styles.subtitle}>
-            Visualize todos os produtos com estoque zerado para reposição.
+            Visualize produtos com estoque zerado, ativos ou desativados.
           </p>
         </div>
       </div>
@@ -183,7 +183,7 @@ export function OutOfStock() {
         <StatCard
           label="Total de produtos"
           value={outOfStockProducts.length}
-          sub="Produtos sem estoque"
+          sub="Produtos com estoque zerado"
           icon={<FiBox />}
           iconColor="#EFF6FF"
           iconBackgroundColor="#3B82F6"

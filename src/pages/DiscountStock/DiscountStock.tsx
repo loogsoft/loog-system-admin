@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./DiscountStock.module.css";
 import {
-  FiDollarSign,
   FiFilter,
   FiPackage,
   FiSearch,
@@ -13,13 +12,7 @@ import EntityCard from "../../components/EntityCard/EntityCard";
 import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
-import type { StockMovementResponseDto } from "../../dtos/response/stock-movement-response.dto";
-import type { StockOperationResponseDto } from "../../dtos/response/stock-operation-response.dto";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
-import {
-  ReturnStockModal,
-  type StockHistoryItem,
-} from "../../components/ReturnaStockModal/ReturnStockModal";
 import { StockMovementService } from "../../service/Stock-movement.service";
 import { DiscountStockFilterModal } from "../../components/FilterModal/DiscountStockFilterModal";
 import {
@@ -36,7 +29,6 @@ import {
 } from "../../components/StockScanCart/StockScanCart";
 import { useAuth } from "../../contexts/useAuth";
 import { useMessageContext } from "../../contexts/useMessageContext";
-import { StockOperationsTable } from "../../components/StockOperationsTable/StockOperationsTable";
 type StockLevel = "all" | "ok" | "low" | "critical";
 type SortOption = "alpha" | "priceAsc" | "priceDesc" | "stockAsc" | "stockDesc";
 type StockSearchResult =
@@ -119,21 +111,12 @@ export function DiscountStock() {
   const { checkStockAndNotify } = useMessageContext();
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [voltarEstoqueItem, setVoltarEstoqueItem] =
-    useState<StockHistoryItem | null>(null);
-  const [stockHistory, setStockHistory] = useState<StockMovementResponseDto[]>(
-    [],
-  );
-  const [stockOperations, setStockOperations] = useState<
-    StockOperationResponseDto[]
-  >([]);
   const [search, setSearch] = useState("");
   const stockSearchInputRef = useRef<HTMLInputElement | null>(null);
   const [scanCartItems, setScanCartItems] = useState<StockScanCartItem[]>([]);
   const [isScanCartOpen, setIsScanCartOpen] = useState(false);
   const [scanCartLoading, setScanCartLoading] = useState(false);
   const [category, setCategory] = useState("all");
-  const [view, setView] = useState<"stock" | "history">("stock");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -156,12 +139,6 @@ export function DiscountStock() {
     stockLevel: "all",
     sortBy: "alpha",
   });
-
-  const totalVendas = useMemo(
-    () => stockHistory.reduce((acc, h) => acc + h.quantity, 0),
-    [stockHistory],
-  );
-  // ...existing code...
 
   const formatDate = (date: Date) => {
     const weekdays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -200,22 +177,6 @@ export function DiscountStock() {
     fetchProducts();
   }, [activedFindAll]);
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        setLoading(true);
-        const data = await StockMovementService.findAllOperations();
-        setStockOperations(data);
-        setStockHistory(data.flatMap((operation) => operation.movements ?? []));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHistory();
-  }, [activedFindAll]);
-
   const LISTPAG: { value: number }[] = useMemo(
     () => [{ value: 6 }, { value: 12 }, { value: 24 }, { value: 48 }],
     [],
@@ -223,7 +184,7 @@ export function DiscountStock() {
 
   const stockCardItems = useMemo<DiscountStockCardItem[]>(
     () =>
-      products.flatMap((product) => {
+      products.filter(productHasAvailableStock).flatMap((product) => {
         return getProductStockEntries(product)
           .filter((entry) => entry.stock > 0)
           .map((entry) => ({ product, entry }));
@@ -231,13 +192,25 @@ export function DiscountStock() {
     [products],
   );
 
+  const totalAvailableStock = useMemo(
+    () => stockCardItems.reduce((total, item) => total + item.entry.stock, 0),
+    [stockCardItems],
+  );
+
+  const selectedCartQuantity = useMemo(
+    () => scanCartItems.reduce((total, item) => total + item.quantity, 0),
+    [scanCartItems],
+  );
+
   const categories = useMemo(() => {
-    const unique = Array.from(new Set(products.map((p) => p.category))).sort();
+    const unique = Array.from(
+      new Set(stockCardItems.map((item) => item.product.category)),
+    ).sort();
     return [
       { value: "all", label: `Todos ${stockCardItems.length}` },
       ...unique.map((cat) => ({ value: cat, label: cat })),
     ];
-  }, [products, stockCardItems.length]);
+  }, [stockCardItems]);
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -301,7 +274,7 @@ export function DiscountStock() {
 
   useEffect(() => {
     setPage(1);
-  }, [view, search, category, filters]);
+  }, [search, category, filters]);
 
   const totalResults = filteredItems.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
@@ -509,28 +482,13 @@ export function DiscountStock() {
     }
   };
 
-  // Calcula o faturamento total
-  const faturamento = useMemo(() => {
-    return stockHistory.reduce(
-      (acc, h) => acc + Number(h.price || h.variation?.price || 0) * h.quantity,
-      0,
-    );
-  }, [stockHistory]);
-
-  const faturamentoFormatted = useMemo(() => {
-    return faturamento.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-  }, [faturamento]);
-
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Dar baixa no estoque</h1>
           <p className={styles.subtitle}>
-            Registre saidas, ajuste quantidades e acompanhe o historico.
+            Registre saidas e ajuste quantidades dos produtos ativos em estoque.
           </p>
         </div>
         <div className={styles.headerMeta}>
@@ -545,239 +503,203 @@ export function DiscountStock() {
         <StatCard
           label="Total de produtos"
           value={stockCardItems.length}
-          sub="Produtos cadastrados"
+          sub="Produtos disponiveis para baixa"
           icon={<FiPackage />}
           iconColor="#EFF6FF"
           iconBackgroundColor="#3B82F6"
           valueColor="#3B82F6"
         />
         <StatCard
-          label="Total de vendas"
-          value={`${totalVendas} un`}
-          sub="Unidades vendidas"
+          label="Estoque disponivel"
+          value={`${totalAvailableStock} un`}
+          sub="Unidades prontas para saida"
           icon={<FiShoppingBag />}
         />
         <StatCard
-          label="Faturamento"
-          value={faturamentoFormatted}
-          sub="Valor em vendas"
-          icon={<FiDollarSign />}
+          label="Selecionados"
+          value={`${selectedCartQuantity} un`}
+          sub={`${scanCartItems.length} item(ns) no carrinho`}
+          icon={<FiShoppingBag />}
           iconColor="#ECFDF5"
           iconBackgroundColor="#059669"
           valueColor="#059669"
         />
       </section>
 
-      <section className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${view === "stock" ? styles.tabActive : ""}`}
-          type="button"
-          onClick={() => setView("stock")}
-        >
-          Produtos em estoque
-        </button>
-        <button
-          className={`${styles.tab} ${view === "history" ? styles.tabActive : ""}`}
-          type="button"
-          onClick={() => setView("history")}
-        >
-          Historico de baixas
-        </button>
-      </section>
-
-      {view === "stock" ? (
-        <section className={styles.tablePanel}>
-          <div className={styles.filters}>
-            <div className={styles.searchGroup}>
-              <div className={`${styles.search} ${styles.stockSearch}`}>
-                <FiSearch className={styles.searchIcon} />
-                <input
-                  ref={stockSearchInputRef}
-                  className={styles.searchInput}
-                  autoComplete="off"
-                  spellCheck={false}
-                  placeholder="Busque por produto ou leia o código de barras"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  onKeyDown={handleScanSearchKeyDown}
-                />
-                <button
-                  className={styles.barcodeAction}
-                  type="button"
-                  onClick={() => stockSearchInputRef.current?.focus()}
-                  aria-label="Posicionar cursor para leitura do código de barras"
-                  title="Usar leitor de código de barras"
-                >
-                  <Barcode size={17} aria-hidden="true" />
-                  <span>Ler código</span>
-                </button>
-              </div>
-              <CustomSelect
-                options={LISTPAG.map((c) => ({
-                  value: String(c.value),
-                  label: String(c.value),
-                }))}
-                value={String(pageSize)}
-                onChange={(value) => {
-                  setPageSize(Number(value));
+      <section className={styles.tablePanel}>
+        <div className={styles.filters}>
+          <div className={styles.searchGroup}>
+            <div className={`${styles.search} ${styles.stockSearch}`}>
+              <FiSearch className={styles.searchIcon} />
+              <input
+                ref={stockSearchInputRef}
+                className={styles.searchInput}
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="Busque por produto ou leia o código de barras"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={handleScanSearchKeyDown}
+              />
+              <button
+                className={styles.barcodeAction}
+                type="button"
+                onClick={() => stockSearchInputRef.current?.focus()}
+                aria-label="Posicionar cursor para leitura do código de barras"
+                title="Usar leitor de código de barras"
+              >
+                <Barcode size={17} aria-hidden="true" />
+                <span>Ler código</span>
+              </button>
+            </div>
+            <CustomSelect
+              options={LISTPAG.map((c) => ({
+                value: String(c.value),
+                label: String(c.value),
+              }))}
+              value={String(pageSize)}
+              onChange={(value) => {
+                setPageSize(Number(value));
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className={styles.filterActions}>
+            <CustomSelect
+              options={categories}
+              value={category}
+              onChange={(value) => setCategory(value)}
+            />
+            <div style={{ position: "relative" }}>
+              <button
+                className={styles.filterBtn}
+                type="button"
+                onClick={() => setIsFilterModalOpen(true)}
+              >
+                <FiFilter />
+                Filtros
+              </button>
+              <DiscountStockFilterModal
+                isOpen={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={(newFilters) => {
+                  setFilters(newFilters);
                   setPage(1);
                 }}
+                initialFilters={filters}
               />
             </div>
-            <div className={styles.filterActions}>
-              <CustomSelect
-                options={categories}
-                value={category}
-                onChange={(value) => setCategory(value)}
-              />
-              <div style={{ position: "relative" }}>
-                <button
-                  className={styles.filterBtn}
-                  type="button"
-                  onClick={() => setIsFilterModalOpen(true)}
-                >
-                  <FiFilter />
-                  Filtros
-                </button>
-                <DiscountStockFilterModal
-                  isOpen={isFilterModalOpen}
-                  onClose={() => setIsFilterModalOpen(false)}
-                  onApply={(newFilters) => {
-                    setFilters(newFilters);
-                    setPage(1);
-                  }}
-                  initialFilters={filters}
+          </div>
+        </div>
+        <div className={styles.cardGrid}>
+          {loading ? (
+            Array.from({ length: pageSize }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))
+          ) : pagedStockItems.length === 0 ? (
+            <div className={styles.emptyState}>
+              <FiPackage className={styles.emptyIcon} />
+              <h3 className={styles.emptyTitle}>
+                Nenhum produto disponivel para baixa
+              </h3>
+              <p className={styles.emptySubtitle}>
+                Produtos ativos e com estoque aparecerão aqui.
+              </p>
+            </div>
+          ) : (
+            pagedStockItems.map((item) => {
+              const { product, entry } = item;
+              const variation = entry.variation;
+              const cardColor = variation?.color ?? product.color;
+              const cardSize = variation?.size ?? product.size;
+              const variationHasOwnPrice =
+                entry.kind === "variation" && variation?.price != null;
+
+              return (
+                <EntityCard
+                  key={`${product.id}-${entry.id}`}
+                  id={entry.id}
+                  type="product"
+                  name={product.name}
+                  description={product.description}
+                  category={product.category}
+                  price={getStockEntryPrice(product, entry)}
+                  promoPrice={
+                    variationHasOwnPrice ? undefined : product.promoPrice
+                  }
+                  imageUrl={getStockCardImages(product, entry)}
+                  stock={entry.stock}
+                  available={
+                    product.status === ProductStatusEnum.ACTIVED &&
+                    entry.stock > 0
+                  }
+                  color={cardColor}
+                  height={450}
+                  colors={cardColor ? [cardColor] : undefined}
+                  size={cardSize}
+                  sizes={cardSize ? [cardSize] : undefined}
+                  navigateTo=""
+                  status={product.status}
+                  actionButton={
+                    <button
+                      className={styles.actionBtn}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStockCardDiscount(product, entry);
+                      }}
+                    >
+                      Dar baixa
+                    </button>
+                  }
                 />
-              </div>
-            </div>
+              );
+            })
+          )}
+        </div>
+        <div className={styles.tableFooter}>
+          <div className={styles.tableSummary}>
+            Mostrando {pagedStockItems.length} de {totalResults} itens
           </div>
-          <div className={styles.cardGrid}>
-            {loading ? (
-              Array.from({ length: pageSize }).map((_, i) => (
-                <SkeletonCard key={i} />
-              ))
-            ) : pagedStockItems.length === 0 ? (
-              <div className={styles.emptyState}>
-                <FiPackage className={styles.emptyIcon} />
-                <h3 className={styles.emptyTitle}>
-                  Nenhum produto em promoção
-                </h3>
-                <p className={styles.emptySubtitle}>
-                  Adicione produtos ao estoque promocional.
-                </p>
-              </div>
-            ) : (
-              pagedStockItems.map((item) => {
-                const { product, entry } = item;
-                const variation = entry.variation;
-                const cardColor = variation?.color ?? product.color;
-                const cardSize = variation?.size ?? product.size;
-                const variationHasOwnPrice =
-                  entry.kind === "variation" && variation?.price != null;
-
-                return (
-                  <EntityCard
-                    key={`${product.id}-${entry.id}`}
-                    id={entry.id}
-                    type="product"
-                    name={product.name}
-                    description={product.description}
-                    category={product.category}
-                    price={getStockEntryPrice(product, entry)}
-                    promoPrice={
-                      variationHasOwnPrice ? undefined : product.promoPrice
-                    }
-                    imageUrl={getStockCardImages(product, entry)}
-                    stock={entry.stock}
-                    available={
-                      product.status === ProductStatusEnum.ACTIVED &&
-                      entry.stock > 0
-                    }
-                    color={cardColor}
-                    height={450}
-                    colors={cardColor ? [cardColor] : undefined}
-                    size={cardSize}
-                    sizes={cardSize ? [cardSize] : undefined}
-                    navigateTo=""
-                    status={product.status}
-                    actionButton={
-                      <button
-                        className={styles.actionBtn}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStockCardDiscount(product, entry);
-                        }}
-                      >
-                        Dar baixa
-                      </button>
-                    }
-                  />
-                );
-              })
-            )}
-          </div>
-          <div className={styles.tableFooter}>
-            <div className={styles.tableSummary}>
-              Mostrando {pagedStockItems.length} de {totalResults} itens
-            </div>
-            <div className={styles.pagination}>
+          <div className={styles.pagination}>
+            <button
+              className={`${styles.pageBtn} ${
+                currentPage === 1 ? styles.pageBtnDisabled : ""
+              }`}
+              type="button"
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              aria-label="Pagina anterior"
+            >
+              ‹
+            </button>
+            {pages.map((p) => (
               <button
+                key={p}
                 className={`${styles.pageBtn} ${
-                  currentPage === 1 ? styles.pageBtnDisabled : ""
+                  p === currentPage ? styles.pageBtnActive : ""
                 }`}
                 type="button"
-                onClick={() => setPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                aria-label="Pagina anterior"
+                onClick={() => setPage(p)}
               >
-                ‹
+                {p}
               </button>
-              {pages.map((p) => (
-                <button
-                  key={p}
-                  className={`${styles.pageBtn} ${
-                    p === currentPage ? styles.pageBtnActive : ""
-                  }`}
-                  type="button"
-                  onClick={() => setPage(p)}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                className={`${styles.pageBtn} ${
-                  currentPage === totalPages ? styles.pageBtnDisabled : ""
-                }`}
-                type="button"
-                onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages}
-                aria-label="Proxima pagina"
-              >
-                ›
-              </button>
-            </div>
+            ))}
+            <button
+              className={`${styles.pageBtn} ${
+                currentPage === totalPages ? styles.pageBtnDisabled : ""
+              }`}
+              type="button"
+              onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              aria-label="Proxima pagina"
+            >
+              ›
+            </button>
           </div>
-        </section>
-      ) : (
-        <section className={styles.tablePanel}>
-          <StockOperationsTable
-            operations={stockOperations}
-            pageSizeOptions={LISTPAG.map((item) => item.value)}
-            initialPageSize={6}
-          />
-        </section>
-      )}
+        </div>
+      </section>
 
-      <ReturnStockModal
-        isOpen={voltarEstoqueItem !== null}
-        onClose={() => setVoltarEstoqueItem(null)}
-        item={voltarEstoqueItem}
-        onConfirm={(data) => {
-          console.log("Restauração confirmada:", data);
-          setVoltarEstoqueItem(null);
-        }}
-      />
       <StockScanCart
         isOpen={isScanCartOpen}
         items={scanCartItems}

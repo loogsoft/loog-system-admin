@@ -9,4 +9,5 @@ export interface SupplierRequestDto {
   status?: SupplierStatus;
   avatarColor?: string;
   openOrders?: number;
+  linkSite?: string;
 }

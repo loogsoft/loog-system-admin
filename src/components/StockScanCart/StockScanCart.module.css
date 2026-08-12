@@ -861,13 +861,23 @@
 
 .creditSearchField input {
   width: 100%;
-  min-height: 44px;
+  min-height: 46px;
   border: 1px solid var(--border-default);
   border-radius: 12px;
-  padding: 0 13px;
+  padding: 0 14px;
   background: var(--surface-muted);
   color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
   outline: none;
+}
+
+.creditSearchField input::placeholder {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.78;
 }
 
 .creditSearchField input:focus {

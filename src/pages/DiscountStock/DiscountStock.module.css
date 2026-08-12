@@ -70,45 +70,6 @@
   margin-bottom: 18px;
 }
 
-.tabs {
-  display: inline-flex;
-  background: var(--surface);
-  border: 1px solid var(--border-default);
-  border-radius: 14px;
-  padding: 4px;
-  gap: 6px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-1);
-}
-
-.tab {
-  border: none;
-  background: transparent;
-  padding: 0 14px;
-  height: 30px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.tab:hover:not(.tabActive) {
-  background: var(--surface-muted);
-  color: var(--text-primary);
-}
-
-.tabActive {
-  background: var(--highlight-primary);
-  color: #fff;
-}
-
-.tabActive:hover {
-  background: var(--highlight-primary);
-  color: #fff;
-}
-
 .tablePanel {
   margin-top: 14px;
   background: var(--surface);

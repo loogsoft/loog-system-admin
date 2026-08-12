@@ -949,7 +949,7 @@ export function StockScanCart({
                             sanitizeText(event.target.value, MAX_TEXT_LENGTH),
                           )
                         }
-                        placeholder="Nome, CPF, telefone, cidade..."
+                        placeholder="Busque por nome, CPF, telefone ou cidade"
                         autoComplete="off"
                         maxLength={MAX_TEXT_LENGTH}
                       />

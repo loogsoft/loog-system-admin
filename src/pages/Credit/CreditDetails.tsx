@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 import { CreditCustomerService } from "../../service/Credit-customer.service";
-import { ConfirmDeleteModal } from "../../components/ConfirmaDeleteModal/ConfirmDeleteModal";
+import { ConfirmActionModal } from "../../components/ConfirmActionModal/ConfirmActionModal";
 
 function getApiErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
@@ -213,8 +213,11 @@ export function CreditDetails() {
   return (
     <div className={styles.page}>
       {isEdit && (
-        <ConfirmDeleteModal
+        <ConfirmActionModal
           message="Tem certeza que deseja remover este cliente?"
+          warning="Esta ação não pode ser desfeita."
+          confirmLabel="Remover"
+          variant="danger"
           onConfirm={() => {
             void deleteClient(id);
           }}

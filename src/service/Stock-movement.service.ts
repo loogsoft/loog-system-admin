@@ -2,11 +2,14 @@ import type { StockMovementRequestDto } from "../dtos/request/stock-movement-req
 import type { StockOperationResponseDto } from "../dtos/response/stock-operation-response.dto";
 import type { StockMovementResponseDto } from "../dtos/response/stock-movement-response.dto";
 import api from "./api";
+import type { ProductResponse } from "../dtos/response/product-response.dto";
 
 const URL = "/stock-movements";
 const OPERATION_URL = "/stock-operations";
 
-const cleanPayload = (dto: StockMovementRequestDto): StockMovementRequestDto => ({
+const cleanPayload = (
+  dto: StockMovementRequestDto,
+): StockMovementRequestDto => ({
   ...dto,
   creditCustomerId:
     dto.paymentMethod === "Crediario" ? dto.creditCustomerId : undefined,
@@ -33,6 +36,13 @@ export const StockMovementService = {
 
   findAll: async (): Promise<StockMovementResponseDto[]> => {
     const response = await api.get<StockMovementResponseDto[]>(URL);
+    return response.data;
+  },
+
+  BestSellingProducts: async (): Promise<ProductResponse> => {
+    const response = await api.get<ProductResponse>(
+      `${OPERATION_URL}/best-selling-products`,
+    );
     return response.data;
   },
 

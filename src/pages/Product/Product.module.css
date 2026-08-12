@@ -52,6 +52,26 @@
 .addBtn:hover {
   transform: scale(1.05);
 }
+.addBtnFile {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: none;
+  background: var(--highlight-secondary);
+  border: 1px solid var(--highlight-primary);
+  color: var(--highlight-primary);
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addBtnFile:hover {
+  transform: scale(1.05);
+}
 
 
 .stats {

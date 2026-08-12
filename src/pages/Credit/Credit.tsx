@@ -1011,7 +1011,15 @@ export function Credit() {
                         ) : null}
                       </div>
                       <div>
-                        <span className={styles.amountBadge}>
+                        <span
+                          className={`${styles.amountBadge} ${
+                            installmentSummary.status ===
+                              CreditSaleInstallmentStatusEnum.OVERDUE &&
+                            !installmentSummary.isCompleted
+                              ? styles.amountBadgeLate
+                              : ""
+                          }`}
+                        >
                           {installmentSummary.openAmount.toLocaleString(
                             "pt-BR",
                             {

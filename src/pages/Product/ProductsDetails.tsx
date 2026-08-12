@@ -19,7 +19,7 @@ import { ImageGallery } from "../../components/ImageGallery/ImageGallery";
 import EntityCard from "../../components/EntityCard/EntityCard";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 import { FiTrash2 } from "react-icons/fi";
-import { ConfirmDeleteModal } from "../../components/ConfirmaDeleteModal/ConfirmDeleteModal";
+import { ConfirmActionModal } from "../../components/ConfirmActionModal/ConfirmActionModal";
 import { toast } from "react-toastify";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
@@ -1159,13 +1159,16 @@ export function ProductsDetails() {
                 }}
               />
 
-              <ConfirmDeleteModal
+              <ConfirmActionModal
                 isOpen={!!categoryToDelete}
                 onClose={() => setCategoryToDelete(null)}
                 onConfirm={() => void onDeleteCategory()}
                 title="Remover categoria"
                 message="Tem certeza que deseja remover esta categoria da lista?"
                 itemName={categoryToDelete?.name}
+                warning="Esta ação não pode ser desfeita."
+                confirmLabel="Remover"
+                variant="danger"
               />
 
               <label className={styles.field}>
