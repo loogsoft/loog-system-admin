@@ -34,7 +34,7 @@ export function sendDiscountStockToWhatsApp(items: CartItem[]) {
   message += `TOTAL: R$ ${total.toFixed(2)}\n`;
   message += "Baixa registrada pelo site";
 
-  const phone = "5564999663524";
+  const phone = "5564999999687";
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
   window.location.href = url;

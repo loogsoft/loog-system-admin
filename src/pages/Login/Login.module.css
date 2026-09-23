@@ -36,6 +36,9 @@
 }
 
 .paymentOverlay {
+  --payment-alert: #b45309;
+  --payment-alert-solid: #b45309;
+
   position: fixed;
   inset: 0;
   z-index: 30;
@@ -53,12 +56,12 @@
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
   border: 1px solid
-    color-mix(in srgb, var(--highlight-primary-semp) 24%, var(--border-default));
+    color-mix(in srgb, var(--payment-alert) 24%, var(--border-default));
   border-radius: 20px;
   background:
     linear-gradient(
       145deg,
-      color-mix(in srgb, var(--highlight-primary-semp) 10%, transparent),
+      color-mix(in srgb, var(--payment-alert) 10%, transparent),
       transparent 38%
     ),
     var(--surface);
@@ -107,15 +110,15 @@
   border-radius: 16px;
   background: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 12%,
+    var(--payment-alert) 12%,
     var(--surface)
   );
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--highlight-primary-semp) 22%, transparent);
+    color-mix(in srgb, var(--payment-alert) 22%, transparent);
 }
 
 .paymentHeroText {
@@ -126,7 +129,7 @@
 }
 
 .paymentHeroText span {
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -151,11 +154,11 @@
   margin-top: 16px;
   padding: 13px 14px;
   border: 1px solid
-    color-mix(in srgb, var(--highlight-primary-semp) 28%, var(--border-default));
+    color-mix(in srgb, var(--payment-alert) 28%, var(--border-default));
   border-radius: 14px;
   background: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 7%,
+    var(--payment-alert) 7%,
     var(--surface)
   );
   display: flex;
@@ -164,7 +167,7 @@
 }
 
 .paymentDueCard span {
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -214,7 +217,7 @@
   margin-top: 14px;
   border: none;
   background: transparent;
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -276,10 +279,10 @@
   min-width: 112px;
   height: 34px;
   border: 1px solid
-    color-mix(in srgb, var(--highlight-primary-semp) 26%, var(--border-default));
+    color-mix(in srgb, var(--payment-alert) 26%, var(--border-default));
   border-radius: 10px;
   background: var(--surface);
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -296,8 +299,8 @@
 
 .paymentCopyButton:hover {
   transform: translateY(-1px);
-  border-color: var(--highlight-primary-semp);
-  background: color-mix(in srgb, var(--highlight-primary-semp) 8%, var(--surface));
+  border-color: var(--payment-alert);
+  background: color-mix(in srgb, var(--payment-alert) 8%, var(--surface));
 }
 
 .paymentCopyButtonCopied {
@@ -329,7 +332,7 @@
 }
 
 .paymentBarcodeCard strong {
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   font-size: 10.5px;
   font-weight: 800;
   line-height: 1.3;
@@ -354,7 +357,7 @@
 
 .paymentPaidSwitch:hover {
   transform: translateY(-1px);
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
 }
 
 .paymentSwitchTrack {
@@ -383,12 +386,12 @@
 }
 
 .paymentPaidSwitchActive {
-  color:  var(--highlight-primary-semp);
+  color: var(--payment-alert);
 }
 
 .paymentPaidSwitchActive .paymentSwitchTrack {
-  border-color: var(--highlight-primary-semp);
-  background:  var(--highlight-primary-semp);
+  border-color: var(--payment-alert-solid);
+  background: var(--payment-alert-solid);
 }
 
 .paymentPaidSwitchActive .paymentSwitchThumb {
@@ -398,11 +401,11 @@
 .paymentReviewAlert {
   padding: 10px 12px;
   border: 1px solid
-    color-mix(in srgb, var(--highlight-primary-semp) 24%, var(--border-default));
+    color-mix(in srgb, var(--payment-alert) 24%, var(--border-default));
   border-radius: 12px;
   background: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 7%,
+    var(--payment-alert) 7%,
     var(--surface)
   );
   display: flex;
@@ -411,7 +414,7 @@
 }
 
 .paymentReviewAlert strong {
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   font-size: 11px;
   font-weight: 800;
 }
@@ -426,11 +429,11 @@
   margin-top: 18px;
   padding: 22px 18px;
   border: 1px solid
-    color-mix(in srgb, var(--highlight-primary-semp) 24%, var(--border-default));
+    color-mix(in srgb, var(--payment-alert) 24%, var(--border-default));
   border-radius: 18px;
   background: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 7%,
+    var(--payment-alert) 7%,
     var(--surface)
   );
   display: flex;
@@ -446,17 +449,17 @@
   border-radius: 16px;
   background: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 13%,
+    var(--payment-alert) 13%,
     var(--surface)
   );
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
 .paymentWaitingLabel {
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
@@ -480,12 +483,15 @@
 }
 
 .paymentToast {
+  --payment-alert: #b45309;
+  --payment-alert-solid: #b45309;
+
   width: min(380px, calc(100vw - 32px));
   min-height: 0;
   padding: 0;
   overflow: hidden;
   border: 1px solid
-    color-mix(in srgb, var(--highlight-primary-semp) 24%, var(--border-default));
+    color-mix(in srgb, var(--payment-alert) 24%, var(--border-default));
   border-radius: 14px;
   background: var(--surface);
   color: var(--text-primary);
@@ -517,10 +523,10 @@
   border-radius: 10px;
   background: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 12%,
+    var(--payment-alert) 12%,
     var(--surface)
   );
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -547,7 +553,7 @@
 
 .paymentToastProgress {
   height: 3px;
-  background: var(--highlight-primary-semp);
+  background: var(--payment-alert-solid);
 }
 
 .paymentActions {
@@ -573,11 +579,11 @@
 }
 
 .paymentPrimary {
-  border: 1px solid var(--highlight-primary-semp);
-  background: var(--highlight-primary-semp);
+  border: 1px solid var(--payment-alert-solid);
+  background: var(--payment-alert-solid);
   color: #ffffff;
   box-shadow: 0 12px 24px
-    color-mix(in srgb, var(--highlight-primary-semp) 24%, transparent);
+    color-mix(in srgb, var(--payment-alert-solid) 24%, transparent);
 }
 
 .paymentSecondary {
@@ -604,7 +610,7 @@
 
 .paymentPrimary:hover {
   box-shadow: 0 16px 30px
-    color-mix(in srgb, var(--highlight-primary-semp) 30%, transparent);
+    color-mix(in srgb, var(--payment-alert-solid) 30%, transparent);
 }
 
 :global([data-theme="dark"]) .page {
@@ -612,19 +618,22 @@
 }
 
 :global([data-theme="dark"]) .paymentOverlay {
+  --payment-alert: #f59e0b;
+  --payment-alert-solid: #b45309;
+
   background: rgba(2, 6, 23, 0.66);
 }
 
 :global([data-theme="dark"]) .paymentModal {
   border-color: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 28%,
+    var(--payment-alert) 28%,
     var(--border-default)
   );
   background:
     linear-gradient(
       145deg,
-      color-mix(in srgb, var(--highlight-primary-semp) 14%, transparent),
+      color-mix(in srgb, var(--payment-alert) 14%, transparent),
       transparent 38%
     ),
     var(--surface);
@@ -638,14 +647,14 @@
 }
 
 :global([data-theme="dark"]) .paymentHeroIcon {
-  background: color-mix(in srgb, var(--highlight-primary-semp) 18%, transparent);
-  color: var(--highlight-primary-semp);
+  background: color-mix(in srgb, var(--payment-alert) 18%, transparent);
+  color: var(--payment-alert);
   box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--highlight-primary-semp) 24%, transparent);
+    color-mix(in srgb, var(--payment-alert) 24%, transparent);
 }
 
 :global([data-theme="dark"]) .paymentHeroText span {
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
 }
 
 :global([data-theme="dark"]) .paymentHeroText h2,
@@ -661,18 +670,18 @@
 :global([data-theme="dark"]) .paymentDueCard {
   border-color: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 26%,
+    var(--payment-alert) 26%,
     var(--border-default)
   );
   background: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 10%,
+    var(--payment-alert) 10%,
     var(--surface)
   );
 }
 
 :global([data-theme="dark"]) .paymentDueCard span {
-  color: var(--highlight-primary-semp);
+  color: var(--payment-alert);
 }
 
 :global([data-theme="dark"]) .paymentBarcodeCard {
@@ -689,9 +698,12 @@
 }
 
 :global([data-theme="dark"]) .paymentToast {
+  --payment-alert: #f59e0b;
+  --payment-alert-solid: #b45309;
+
   border-color: color-mix(
     in srgb,
-    var(--highlight-primary-semp) 24%,
+    var(--payment-alert) 24%,
     var(--border-default)
   );
   background: var(--surface);
@@ -699,7 +711,7 @@
 }
 
 :global([data-theme="dark"]) .paymentToastIcon {
-  background: color-mix(in srgb, var(--highlight-primary-semp) 18%, transparent);
+  background: color-mix(in srgb, var(--payment-alert) 18%, transparent);
 }
 
 :global([data-theme="dark"]) .paymentSecondary {

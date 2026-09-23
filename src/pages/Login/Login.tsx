@@ -62,7 +62,7 @@ import { UserTypeEnum } from "../../dtos/enums/user-type.enum";
 import type { CompanyResponseDto } from "../../dtos/response/company-response.dto";
 import { SubscriptionStatusEnum } from "../../dtos/enums/subscription-status.num";
 
-const SUPPORT_PHONE = "64999663524";
+const SUPPORT_PHONE = "64999999687";
 const SUPPORT_MESSAGE =
   "Olá! Aqui é do Gerenciamento de Estoque LOOG SYSTEM. Estou com um problema ao acessar o painel, podem me ajudar?";
 const SUPPORT_URL = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(

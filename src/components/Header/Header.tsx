@@ -81,7 +81,7 @@ export function Header({ title, isMessageModalOpen }: HeaderProps) {
       ? user.email.charAt(0).toUpperCase()
       : "U";
 
-  const SUPPORT_PHONE = "64999663524";
+  const SUPPORT_PHONE = "64999999687";
   const SUPPORT_MESSAGE =
     "Olá! Sou usuário do sistema de Gerenciamento de Estoque da Loog System e estou enfrentando um problema. Poderiam me ajudar, por favor?";
   const SUPPORT_URL = `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(

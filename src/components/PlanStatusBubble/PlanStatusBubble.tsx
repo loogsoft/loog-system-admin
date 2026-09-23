@@ -12,7 +12,7 @@ type PlanStatusBubbleProps = {
   variant?: PlanStatusBubbleVariant;
 };
 
-const SUPPORT_PHONE = "64999663524";
+const SUPPORT_PHONE = "64999999687";
 
 const PLAN_CONTENT: Record<
   PlanStatusType,
