@@ -1,9 +1,69 @@
 import type { ProductStatusEnum } from "../dtos/enums/product-status.enum";
+import type { PaginationResponseDto } from "../dtos/pagination/pagination-response.dto";
 import type { ProductRequest } from "../dtos/request/product-request.dto";
 import type { ProductResponse } from "../dtos/response/product-response.dto";
 import api from "./api";
 
 const API_URL = "/products";
+
+type ProductFindAllParams = {
+  page?: number;
+  limit?: number;
+};
+
+type ProductListResponse =
+  | ProductResponse[]
+  | PaginationResponseDto<ProductResponse>;
+
+function normalizeProductListResponse(
+  data: ProductListResponse,
+  params?: ProductFindAllParams,
+): PaginationResponseDto<ProductResponse> {
+  if (Array.isArray(data)) {
+    return {
+      data,
+      total: data.length,
+      limit: params?.limit ?? data.length,
+      page: params?.page ?? 1,
+      totalPage: 1,
+    };
+  }
+
+  return data;
+}
+
+async function findAllPaginatedProducts(
+  params?: ProductFindAllParams,
+): Promise<PaginationResponseDto<ProductResponse>> {
+  const response = await api.get<ProductListResponse>(API_URL, { params });
+  return normalizeProductListResponse(response.data, params);
+}
+
+async function findAllProducts(
+  params?: ProductFindAllParams,
+): Promise<ProductResponse[]> {
+  const firstPage = await findAllPaginatedProducts(params);
+
+  if (params?.page || firstPage.totalPage <= 1) {
+    return firstPage.data;
+  }
+
+  const pageSize = firstPage.limit || firstPage.data.length || 1;
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPage - 1 }, (_, index) =>
+      findAllPaginatedProducts({
+        ...params,
+        page: index + 2,
+        limit: pageSize,
+      }),
+    ),
+  );
+
+  return [
+    ...firstPage.data,
+    ...remainingPages.flatMap((page) => page.data),
+  ];
+}
 
 function appendFormValue(fd: FormData, key: string, value: unknown) {
   if (value === undefined) return;
@@ -23,10 +83,9 @@ function appendFormValue(fd: FormData, key: string, value: unknown) {
 }
 
 export const ProductService = {
-  findAll: async (): Promise<ProductResponse[]> => {
-    const response = await api.get<ProductResponse[]>(API_URL);
-    return response.data;
-  },
+  findAll: findAllProducts,
+
+  findAllPaginated: findAllPaginatedProducts,
 
   findOne: async (id: string): Promise<ProductResponse> => {
     const response = await api.get<ProductResponse>(`${API_URL}/${id}`);
