@@ -140,7 +140,10 @@ export function Header({ title, isMessageModalOpen }: HeaderProps) {
       ? "tester"
       : null;
   const companyName =
-    company?.companyName || user?.name || user?.email?.split("@")[0] || "Usuário";
+    company?.companyName ||
+    user?.name ||
+    user?.email?.split("@")[0] ||
+    "Usuário";
   const StatusIcon = company
     ? status.active
       ? CheckCircle2
@@ -150,12 +153,15 @@ export function Header({ title, isMessageModalOpen }: HeaderProps) {
     !company
       ? styles.subscriptionCardLoading
       : status.active
-      ? styles.subscriptionCardActive
-      : styles.subscriptionCardDisabled
+        ? isTesterPlan
+          ? styles.subscriptionCardActiveTester
+          : styles.subscriptionCardActive 
+        : styles.subscriptionCardDisabled
   }`;
 
   useEffect(() => {
-    const companyId = user?.companyId || localStorage.getItem("companyId") || "";
+    const companyId =
+      user?.companyId || localStorage.getItem("companyId") || "";
 
     if (!companyId) {
       return;

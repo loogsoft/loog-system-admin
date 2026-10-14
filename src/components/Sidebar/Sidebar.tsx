@@ -97,22 +97,22 @@ const menu: MenuItem[] = [
     path: "/credit",
     color: "#ffd900",
   },
-  {
-    type: "group",
-    icon: CreditCardRounded,
-    label: "Estratégias",
-    color: "#438fe1",
-    key: "estrategias",
-    children: [
-      {
-        type: "item",
-        icon: Casino,
-        label: "Roleta",
-        path: "/roulette",
-        color: "#6C63FF",
-      },
-    ],
-  },
+  // {
+  //   type: "group",
+  //   icon: CreditCardRounded,
+  //   label: "Estratégias",
+  //   color: "#438fe1",
+  //   key: "estrategias",
+  //   children: [
+  //     {
+  //       type: "item",
+  //       icon: Casino,
+  //       label: "Roleta",s
+  //       path: "/roulette",
+  //       color: "#6C63FF",
+  //     },
+  //   ],
+  // },
 ];
 
 function readCompanyBrand() {
