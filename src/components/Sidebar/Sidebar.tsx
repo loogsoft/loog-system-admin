@@ -13,7 +13,6 @@ import {
   Notifications,
   CreditCardRounded,
   WorkspacePremium,
-  Casino,
   History,
   KeyboardArrowDown,
 } from "@mui/icons-material";
