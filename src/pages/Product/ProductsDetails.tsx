@@ -2032,7 +2032,7 @@ export function ProductsDetails() {
                             <div className={styles.variationStockRow}>
                               <label className={styles.field}>
                                 <span className={styles.label}>
-                                  Preço (opcional)
+                                  Preço
                                 </span>
                                 <input
                                   className={styles.input}
