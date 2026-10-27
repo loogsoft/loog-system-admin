@@ -22,6 +22,7 @@ import RegisterCompany from "./pages/registerCompany/RegisterCompany";
 import { Collaborators } from "./pages/Collaborators/Collaborators";
 import { MovementDetails } from "./pages/Movements/MovementDetails";
 import { UserTypeEnum } from "./dtos/enums/user-type.enum";
+import Publish from "./pages/Publish/Publish";
 
 export default function App() {
   const { isAuthenticated, loading, user } = useAuth();
@@ -115,6 +116,7 @@ export default function App() {
         <Route path="/suppliers" element={<Supplier />} />
         <Route path="/supplier-details/:id?" element={<SupplierDetails />} />
         <Route path="/config/:id?" element={<Profille />} />
+        <Route path="/publish" element={<Publish />} />
 
         {user?.userType === UserTypeEnum.ADMIN && (
           <Route path="/collaborators" element={<Collaborators />} />

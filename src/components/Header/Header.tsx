@@ -25,7 +25,7 @@ type HeaderProps = {
   isMessageModalOpen: (value: boolean) => void;
 };
 
-type PlanStatusMenuProps = {
+type PlanStatusMenuProps = {  
   companyName: string;
   planType: PlanStatusType;
   trialStartDate?: Date | string;

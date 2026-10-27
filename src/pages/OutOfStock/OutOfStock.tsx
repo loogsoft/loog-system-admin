@@ -17,8 +17,13 @@ import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { useLocation, useNavigate } from "react-router-dom";
 import { productShouldShowInOutOfStock } from "../../utils/productStock";
+import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
+type OutOfStockItem = ProductResponse & {
+  productId: string;
+  isVariation: boolean;
+};
 
 export function OutOfStock() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
@@ -51,12 +56,59 @@ export function OutOfStock() {
     sortBy: null,
   });
 
-  const outOfStockProducts = useMemo(() => {
-    return products.filter(productShouldShowInOutOfStock);
+  const outOfStockItems = useMemo(() => {
+    const items: OutOfStockItem[] = [];
+
+    for (const product of products) {
+      if (product.variations?.length) {
+        for (const variation of product.variations) {
+          if (Number(variation.stock ?? 0) !== 0) continue;
+
+          let images = product.images;
+          if (variation.images?.length) {
+            images = variation.images;
+          } else if (variation.imageUrl) {
+            images = [{
+              id: variation.id,
+              fileName: variation.name,
+              url: variation.imageUrl,
+              isPrimary: true,
+            }];
+          }
+
+          items.push({
+            ...product,
+            id: variation.id,
+            productId: product.id,
+            isVariation: true,
+            price: variation.price ?? product.price,
+            promoPrice: undefined,
+            images,
+            stock: 0,
+            lowStock: variation.lowStock,
+            color: variation.color,
+            size: variation.size,
+            status:
+              variation.isActive === false
+                ? ProductStatusEnum.DISABLED
+                : product.status,
+            variations: undefined,
+          });
+        }
+      } else if (productShouldShowInOutOfStock(product)) {
+        items.push({
+          ...product,
+          productId: product.id,
+          isVariation: false,
+        });
+      }
+    }
+
+    return items;
   }, [products]);
 
   const filtered = useMemo(() => {
-    let current = [...outOfStockProducts];
+    let current = [...outOfStockItems];
 
     const categoryToFilter =
       filters.category !== "all" ? filters.category : activeCat;
@@ -70,9 +122,7 @@ export function OutOfStock() {
         (p) =>
           p.name.toLowerCase().includes(trimmed) ||
           p.id.toLowerCase().includes(trimmed) ||
-          (p.variations ?? []).some((variation) =>
-            variation.id.toLowerCase().includes(trimmed),
-          ),
+          p.productId.toLowerCase().includes(trimmed),
       );
     }
 
@@ -94,7 +144,7 @@ export function OutOfStock() {
     }
 
     return current;
-  }, [activeCat, outOfStockProducts, query, filters]);
+  }, [activeCat, outOfStockItems, query, filters]);
 
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / pageSize));
@@ -108,20 +158,20 @@ export function OutOfStock() {
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
   const categoriesDynamic = useMemo(() => {
     const unique = Array.from(
-      new Set(outOfStockProducts.map((p) => p.category)),
+      new Set(outOfStockItems.map((p) => p.category)),
     );
 
     return [
       {
         key: "all" as CategoryKey,
-        label: `Todos ${outOfStockProducts.length}`,
+        label: `Todos ${outOfStockItems.length}`,
       },
       ...unique.map((cat) => ({
         key: cat as CategoryKey,
         label: String(cat),
       })),
     ];
-  }, [outOfStockProducts]);
+  }, [outOfStockItems]);
 
   const LISTPAG: { value: number }[] = useMemo(
     () => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }],
@@ -129,8 +179,8 @@ export function OutOfStock() {
   );
 
   const categoryTotal = useMemo(() => {
-    return new Set(outOfStockProducts.map((p) => p.category)).size;
-  }, [outOfStockProducts]);
+    return new Set(outOfStockItems.map((p) => p.category)).size;
+  }, [outOfStockItems]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -174,16 +224,16 @@ export function OutOfStock() {
         <div>
           <h1 className={styles.title}>Produtos sem estoque</h1>
           <p className={styles.subtitle}>
-            Visualize produtos com estoque zerado, ativos ou desativados.
+            Visualize produtos e variações com estoque zerado, ativos ou desativados.
           </p>
         </div>
       </div>
 
       <section className={styles.metrics}>
         <StatCard
-          label="Total de produtos"
-          value={outOfStockProducts.length}
-          sub="Produtos com estoque zerado"
+          label="Total de itens"
+          value={outOfStockItems.length}
+          sub="Produtos e variações com estoque zerado"
           icon={<FiBox />}
           iconColor="#EFF6FF"
           iconBackgroundColor="#3B82F6"
@@ -214,10 +264,11 @@ export function OutOfStock() {
               <input
                 className={styles.searchInput}
                 type="text"
-                placeholder="Buscar produtos sem estoque..."
+                placeholder="Buscar produtos e variações sem estoque..."
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
+                  setPage(1);
                 }}
               />
             </div>
@@ -238,7 +289,10 @@ export function OutOfStock() {
             <CustomSelect
               options={categoriesForSelect}
               value={activeCat}
-              onChange={(value) => setActiveCat(value as CategoryKey)}
+              onChange={(value) => {
+                setActiveCat(value as CategoryKey);
+                setPage(1);
+              }}
             />
             <div style={{ position: "relative" }}>
               <button
@@ -255,6 +309,7 @@ export function OutOfStock() {
                 onApply={(newFilters) => {
                   setFilters(newFilters);
                   setActiveCat(newFilters.category);
+                  setPage(1);
                 }}
                 categories={categoriesDynamic}
                 initialFilters={filters}
@@ -274,9 +329,9 @@ export function OutOfStock() {
         ) : paginated.length === 0 ? (
           <div className={styles.emptyState}>
             <FiBox className={styles.emptyIcon} />
-            <h3 className={styles.emptyTitle}>Nenhum produto sem estoque</h3>
+            <h3 className={styles.emptyTitle}>Nenhum item sem estoque encontrado</h3>
             <p className={styles.emptySubtitle}>
-              Todos os produtos estão com estoque disponível no momento.
+              Nenhum produto ou variação com estoque zerado corresponde à busca e aos filtros atuais.
             </p>
           </div>
         ) : (
@@ -284,52 +339,24 @@ export function OutOfStock() {
             {paginated.map((p) => (
               <EntityCard
                 lowStock={p.lowStock}
-                key={p.id}
+                key={`${p.productId}:${p.id}`}
                 id={p.id}
                 name={p.name}
                 description={p.description}
                 category={p.category}
                 price={p.price}
+                height={400}
                 promoPrice={p.promoPrice}
-                imageUrl={[
-                  ...(p.images || []),
-                  ...(p.variations || [])
-                    .filter((v) => v.imageUrl)
-                    .map((v) => ({
-                      url: Array.isArray(v.imageUrl)
-                        ? v.imageUrl[0] || ""
-                        : v.imageUrl || "",
-                      fileName: v.name || "",
-                      id: v.id || "",
-                      isPrimary: false,
-                    })),
-                ]}
+                imageUrl={p.images || []}
                 stock={p.stock ?? undefined}
                 available
                 color={p.color}
-                colors={Array.from(
-                  new Set([
-                    ...(p.color ? [p.color] : []),
-                    ...((p.variations || [])
-                      .map((v) => v.color)
-                      .filter(Boolean) as string[]),
-                  ]),
-                )}
                 size={p.size}
-                sizes={Array.from(
-                  new Set([
-                    ...(p.size ? [p.size] : []),
-                    ...((p.variations || [])
-                      .map((v) => v.size)
-                      .filter(Boolean) as string[]),
-                  ]),
-                )}
-                variations={p.variations}
                 status={p.status}
                 onEdit={() => {}}
-                onDelete={(id) => handleDelete(id)}
+                onDelete={p.isVariation ? undefined : handleDelete}
                 onToggleAvailable={() => {}}
-                navigateTo={`/product-details/${p.id}`}
+                navigateTo={`/product-details/${p.productId}`}
               />
             ))}
           </div>
@@ -337,7 +364,7 @@ export function OutOfStock() {
 
         <div className={styles.bottom}>
           <div className={styles.counter}>
-            Mostrando {paginated.length} de {total} produtos
+            Mostrando {paginated.length} de {total} itens
           </div>
           <div className={styles.pagination}>
             <button

@@ -1,26 +1,28 @@
-import { useEffect, useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { FiSettings, FiUsers } from "react-icons/fi";
-import styles from "./Sidebar.module.css";
-import { IoExitOutline } from "react-icons/io5";
-import { useAuth } from "../../contexts/useAuth";
 import type { SvgIconComponent } from "@mui/icons-material";
 import {
-  Dashboard,
-  Store,
-  ShoppingCart,
-  People,
-  Notifications,
   CreditCardRounded,
-  WorkspacePremium,
+  Dashboard,
   History,
   KeyboardArrowDown,
+  Notifications,
+  People,
+  ShoppingCart,
+  Store,
+  WorkspacePremium
 } from "@mui/icons-material";
+import { Send, type LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FiSettings, FiUsers } from "react-icons/fi";
+import { IoExitOutline } from "react-icons/io5";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/useAuth";
 import { UserTypeEnum } from "../../dtos/enums/user-type.enum";
+import styles from "./Sidebar.module.css";
+
 
 type MenuLink = {
   type: "item";
-  icon: SvgIconComponent;
+  icon: SvgIconComponent | LucideIcon;
   label: string;
   path: string;
   color: string;
@@ -95,6 +97,13 @@ const menu: MenuItem[] = [
     label: "Crediarios",
     path: "/credit",
     color: "#ffd900",
+  },
+  {
+    type: "item",
+    icon: Send,
+    label: "Publicações",
+    path: "/publish",
+    color: "#3B82F6",
   },
   // {
   //   type: "group",
@@ -218,9 +227,8 @@ export function Sidebar() {
       <div className={styles.group} key={item.key}>
         <button
           type="button"
-          className={`${styles.groupButton} ${
-            hasActiveChild ? styles.groupButtonActive : ""
-          }`}
+          className={`${styles.groupButton} ${hasActiveChild ? styles.groupButtonActive : ""
+            }`}
           onClick={() =>
             setOpenGroups((prev) => ({
               ...prev,
@@ -236,9 +244,8 @@ export function Sidebar() {
           />
           <span>{item.label}</span>
           <KeyboardArrowDown
-            className={`${styles.groupArrow} ${
-              isOpen ? styles.groupArrowOpen : ""
-            }`}
+            className={`${styles.groupArrow} ${isOpen ? styles.groupArrowOpen : ""
+              }`}
             fontSize="small"
           />
         </button>
