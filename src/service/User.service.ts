@@ -46,6 +46,16 @@ export const UserService = {
     return response.data;
   },
 
+  buscarLinkPagamento: async (
+    dto: LoginRequestDto,
+  ): Promise<{ paymentUrl: string }> => {
+    const response = await api.post<{ paymentUrl: string }>(
+      "/users/payment-link",
+      dto,
+    );
+    return response.data;
+  },
+
   verificationToken: async (
     dto: VerifyCoderequestDto,
   ): Promise<LoginResponseDto> => {

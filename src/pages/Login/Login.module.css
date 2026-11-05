@@ -563,6 +563,10 @@
   gap: 10px;
 }
 
+.paymentCheck {
+  grid-column: 1 / -1;
+}
+
 .paymentPrimary,
 .paymentSecondary {
   height: 42px;
