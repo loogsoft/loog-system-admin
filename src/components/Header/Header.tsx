@@ -153,9 +153,7 @@ export function Header({ title, isMessageModalOpen }: HeaderProps) {
     !company
       ? styles.subscriptionCardLoading
       : status.active
-        ? isTesterPlan
-          ? styles.subscriptionCardActiveTester
-          : styles.subscriptionCardActive 
+        ? styles.subscriptionCardActive
         : styles.subscriptionCardDisabled
   }`;
 
