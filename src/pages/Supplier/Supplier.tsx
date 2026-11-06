@@ -28,6 +28,7 @@ type SupplierCardData = {
   email: string;
   phone: string;
   location: string;
+  linkSite?: string;
   status: SupplierStatus;
   initials: string;
   avatarColor: string;
@@ -84,6 +85,7 @@ const mapSupplierCard = (
     email: String(item.email ?? "-"),
     phone: String(item.phone ?? "-"),
     location: resolveLocation(item),
+    linkSite: item.linkSite,
     status: normalizeStatus(item.status),
     initials: getInitials(name),
     avatarColor: String(
@@ -352,6 +354,7 @@ export function Supplier() {
                 email={supplier.email}
                 phone={supplier.phone}
                 location={supplier.location}
+                linkSite={supplier.linkSite}
                 isActive={supplier.status === "active"}
                 initials={supplier.initials}
                 imageUrl={supplier.imageUrl}

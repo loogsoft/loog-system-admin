@@ -23,7 +23,7 @@ import type { CSSProperties } from "react";
 import type { ImageResponse } from "../../dtos/response/image-response.dto";
 import type { ProductVariationResponseDto } from "../../dtos/response/product-variation-response.dto";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "lucide-react";
 import { ConfirmActionModal } from "../ConfirmActionModal/ConfirmActionModal";
 
 type BaseProps = {
@@ -63,6 +63,7 @@ type SupplierProps = BaseProps & {
   email: string;
   phone: string;
   location: string;
+  linkSite?: string;
   isActive: boolean;
   initials: string;
   avatarColor?: string;
@@ -309,6 +310,11 @@ export default function EntityCard(props: Props) {
     props.type === "supplier" ? ProductStatusEnum.ACTIVED : props.status;
 
   if (props.type === "supplier") {
+    let supplierSiteUrl = props.linkSite?.trim() ?? "";
+    if (supplierSiteUrl && !/^https?:\/\//i.test(supplierSiteUrl)) {
+      supplierSiteUrl = `https://${supplierSiteUrl}`;
+    }
+
     const supplierAvatarStyle = props.avatarColor
       ? ({ backgroundColor: props.avatarColor } as CSSProperties)
       : undefined;
@@ -437,6 +443,18 @@ export default function EntityCard(props: Props) {
               </span>
             </div>
           </div>
+          {supplierSiteUrl && (
+            <a
+              className={styles.supplierSiteLink}
+              href={supplierSiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <ExternalLink size={14} />
+              Acessar site
+            </a>
+          )}
         </div>
 
         <button

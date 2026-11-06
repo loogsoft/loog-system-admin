@@ -1,4 +1,4 @@
-import styles from "./Product.module.css";
+import { Barcode, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FiAlertTriangle,
@@ -8,21 +8,21 @@ import {
   FiGrid,
   FiSearch,
 } from "react-icons/fi";
-import EntityCard from "../../components/EntityCard/EntityCard";
-import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
-import { FilterModal } from "../../components/FilterModal/FilterModal";
-import { Barcode, FileBoxIcon, Plus } from "lucide-react";
-import type { CategoryKey } from "../../types/Product-type";
-import { ProductService } from "../../service/Product.service";
-import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { useLocation, useNavigate } from "react-router-dom";
-import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import EntityCard from "../../components/EntityCard/EntityCard";
+import { FilterModal } from "../../components/FilterModal/FilterModal";
+import { SkeletonCard } from "../../components/SkeletonCard/SkeletonCard";
+import StatCard from "../../components/StatCard/StatCard";
+import type { ProductResponse } from "../../dtos/response/product-response.dto";
+import { ProductService } from "../../service/Product.service";
+import type { CategoryKey } from "../../types/Product-type";
 import {
   getLowStockEntries,
   productHasStock,
   productHasVariations,
 } from "../../utils/productStock";
+import styles from "./Product.module.css";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
@@ -235,9 +235,9 @@ export function Products() {
     }
   };
 
-  function importFileProducts(): void {
-    throw new Error("Function not implemented.");
-  }
+  // function importFileProducts(): void {
+  //   throw new Error("Function not implemented.");
+  // }
 
   return (
     <div className={styles.page}>
@@ -250,14 +250,14 @@ export function Products() {
         </div>
 
         <div className={styles.headerActions}>
-          <button
+          {/* <button
             className={styles.addBtnFile}
             type="button"
             onClick={() => importFileProducts()}
           >
             <FileBoxIcon size={16} />
             Importar Produtos
-          </button>
+          </button> */}
 
           <button
             className={styles.addBtn}
@@ -447,9 +447,9 @@ export function Products() {
                 )}
                 variations={p.variations}
                 status={p.status}
-                onEdit={() => {}}
+                onEdit={() => { }}
                 onDelete={(id) => handleDelete(id)}
-                onToggleAvailable={() => {}}
+                onToggleAvailable={() => { }}
                 navigateTo={`/product-details/${p.id}`}
               />
             ))}
@@ -462,9 +462,8 @@ export function Products() {
           </div>
           <div className={styles.pagination}>
             <button
-              className={`${styles.pageBtn} ${
-                currentPage === 1 ? styles.pageBtnDisabled : ""
-              }`}
+              className={`${styles.pageBtn} ${currentPage === 1 ? styles.pageBtnDisabled : ""
+                }`}
               type="button"
               onClick={() => setPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
@@ -475,9 +474,8 @@ export function Products() {
             {pages.map((p) => (
               <button
                 key={p}
-                className={`${styles.pageBtn} ${
-                  p === currentPage ? styles.pageBtnActive : ""
-                }`}
+                className={`${styles.pageBtn} ${p === currentPage ? styles.pageBtnActive : ""
+                  }`}
                 type="button"
                 onClick={() => setPage(p)}
               >
@@ -485,9 +483,8 @@ export function Products() {
               </button>
             ))}
             <button
-              className={`${styles.pageBtn} ${
-                currentPage === maxPage ? styles.pageBtnDisabled : ""
-              }`}
+              className={`${styles.pageBtn} ${currentPage === maxPage ? styles.pageBtnDisabled : ""
+                }`}
               type="button"
               onClick={() => setPage(Math.min(maxPage, currentPage + 1))}
               disabled={currentPage === maxPage}
