@@ -374,7 +374,17 @@ export function Dashboard() {
     const totalProduct = async () => {
       try {
         const data = await ProductService.findAll();
-        setStockIten(data.length);
+        const totalItems = data.reduce((total, product) => {
+          const variationCount = product.variations?.length ?? 0;
+
+          if (variationCount > 0) {
+            return total + variationCount;
+          }
+
+          return total + 1;
+        }, 0);
+
+        setStockIten(totalItems);
 
         const low = data.filter(
           (product) => getLowStockEntries(product).length > 0,
@@ -435,27 +445,24 @@ export function Dashboard() {
         <div className={styles.actions}>
           <div className={styles.periodTabs}>
             <button
-              className={`${styles.periodTab} ${
-                period === "day" ? styles.periodTabActive : ""
-              }`}
+              className={`${styles.periodTab} ${period === "day" ? styles.periodTabActive : ""
+                }`}
               type="button"
               onClick={() => setPeriod("day")}
             >
               Dia
             </button>
             <button
-              className={`${styles.periodTab} ${
-                period === "week" ? styles.periodTabActive : ""
-              }`}
+              className={`${styles.periodTab} ${period === "week" ? styles.periodTabActive : ""
+                }`}
               type="button"
               onClick={() => setPeriod("week")}
             >
               Semana
             </button>
             <button
-              className={`${styles.periodTab} ${
-                period === "month" ? styles.periodTabActive : ""
-              }`}
+              className={`${styles.periodTab} ${period === "month" ? styles.periodTabActive : ""
+                }`}
               type="button"
               onClick={() => setPeriod("month")}
             >
@@ -520,8 +527,8 @@ export function Dashboard() {
               <p>
                 {bestSellingProduct
                   ? `${bestSellingProduct.category || "Sem categoria"} • ${formatBRL(
-                      bestSellingPrice,
-                    )}`
+                    bestSellingPrice,
+                  )}`
                   : "Assim que houver venda, o produto campeao aparece aqui."}
               </p>
             </div>
